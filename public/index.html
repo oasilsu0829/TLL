@@ -2906,7 +2906,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const mag = () => (magMod = magMod || import('/mag/mag.js').catch((e) => { magMod = null; toast('잡지를 불러오지 못했습니다'); throw e; }));
   $('magBtn').addEventListener('click', () => { sfx.unlock(); mag().then((m) => m.open()); });
   // 신간 팝업(2026-11-13 사용자 요청: 우편함 대신). 안 연 호가 있으면 앱을 열 때 띄우고, '나중에'는 12시간 동안 다시 안 띄움
-  fetch('/mag/issues/index.json').then((r) => r.json()).then((j) => {
+  fetch('/mag/issues/index.json', { cache: 'no-cache' }).then((r) => r.json()).then((j) => {
     const seen = LS.get('mag.opened') || {}, later = LS.get('mag.later') || {};
     const kst = new Date(Date.now() + 9 * 3600e3), ym = kst.toISOString().slice(0, 7);
     const L = (j.issues || []).map((x) => (x.dynamic ? { ...x, id: `${x.mag}-${ym}`, vol: `${ym.replace('-', '.')}`, title: `나의 ${kst.getUTCMonth() + 1}월 — 내 청취 기록으로 짠 호` } : x));

@@ -79,6 +79,73 @@
    ]
   },
   {
+   "id": "fb-02",
+   "dir": "fb-02",
+   "mag": "fb",
+   "name": "feedback",
+   "vol": "vol.02",
+   "date": "2026.11.16",
+   "fmt": 2,
+   "title": "방 하나를 비우는 일 — 브레인스토리 [Shoebox Days]",
+   "publisher": "피드백 프레스",
+   "color": "#2bb3d9",
+   "singles": 11,
+   "crate": {
+    "id": "c-pub-fb",
+    "name": "피드백 프레스",
+    "o": 902
+   },
+   "tracks": [
+    {
+     "t": "Breathe",
+     "a": "Brainstory"
+    },
+    {
+     "t": "Dead End",
+     "a": "Brainstory"
+    },
+    {
+     "t": "Seasons",
+     "a": "Brainstory"
+    },
+    {
+     "t": "Peach Optimo",
+     "a": "Brainstory"
+    },
+    {
+     "t": "Rialto Winds",
+     "a": "Brainstory"
+    },
+    {
+     "t": "The Watchers",
+     "a": "Brainstory",
+     "uri": "spotify:track:6M6ofEV7CunjerXcqoU4e7"
+    },
+    {
+     "t": "Blend",
+     "a": "Brainstory"
+    },
+    {
+     "t": "Necessary Loss",
+     "a": "Brainstory"
+    },
+    {
+     "t": "The Weight",
+     "a": "The Band"
+    },
+    {
+     "t": "Pinesol",
+     "a": "Wavves",
+     "uri": "spotify:track:1IFiUmVe3A42F2xMLIOdPX"
+    },
+    {
+     "t": "TRENCHES (feat. Switchfoot)",
+     "a": "Anberlin",
+     "uri": "spotify:track:7DV1MTr1DyvG4RlaGpEzFc"
+    }
+   ]
+  },
+  {
    "id": "cy-01",
    "dir": "cy-01",
    "mag": "cy",

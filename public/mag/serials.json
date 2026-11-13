@@ -1,0 +1,36 @@
+{
+ "serials": [
+  {
+   "id": "fb-rooms",
+   "mag": "fb",
+   "name": "feedback",
+   "title": "방",
+   "writer": "노암 갤러거",
+   "about": "밴드가 소리를 만든 방들을 하나씩 찾아간다. 녹음실, 지하실, 거실.",
+   "episodes": [
+    { "n": 1, "issue": "fb-02", "art": "rooms", "title": "빅 핑크, 이름만 남긴 방", "date": "2026.11.16" }
+   ],
+   "next": { "n": 2, "title": "거실", "note": "집 안에서 녹음한 밴드 앨범 하나의 거실을 찾아간다" }
+  },
+  {
+   "id": "drop-canon",
+   "mag": "drop",
+   "name": "Drop",
+   "title": "정전 해부",
+   "writer": "고한석",
+   "about": "Drop의 정전 앨범 한 장이 어떻게 만들어졌는지 기록으로 되짚는다. 듣고 쓰는 리뷰가 아니라 만든 과정의 기록.",
+   "episodes": [],
+   "next": { "n": 1, "title": "다음 Drop 호에서 시작", "note": "정전 목록에서 그 주 신보와 이어지는 한 장" }
+  },
+  {
+   "id": "cy-chron",
+   "mag": "cy",
+   "name": "Cypher",
+   "title": "언더그라운드 연대기",
+   "writer": "돈까스",
+   "about": "국내 힙합을 한 해씩, 공연·음반·크루의 기록으로 되짚는다.",
+   "episodes": [],
+   "next": { "n": 1, "title": "다음 Cypher 호에서 시작", "note": "첫 회는 기록이 충분히 남은 해부터" }
+  }
+ ]
+}

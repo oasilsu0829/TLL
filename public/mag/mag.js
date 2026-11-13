@@ -1,5 +1,7 @@
 // 잡지 (MAG): 우편함 → 택배 상자 → 비닐 → 넘겨 읽기 → 마지막 장 부록 싱글. 책장에서는 지난 호를 바로 연다.
 // 지면은 issues/<id>/issue.html (펼침마다 <template class="sp">). 화면 전체를 덮는 겹 하나를 Shadow DOM으로 그려
+// 판형 2(index.json fmt: 2, 2026-11-13 개편): 쪽마다 <template class="pg">(2:3, 폰은 한 쪽 · 넓은 화면은 두 쪽 펼침, 반 자르기 없음)
+//   + 기사 본문 <template class="art" data-id data-title>. 지면의 [data-read=기사 id][data-at=문단 id] 를 누르면 읽기 모드(큰 글씨 한 단 스크롤)
 // 음악 앱 CSS와 섞이지 않게 한다. 저장: localStorage mag.opened {id: 시각}, mag.page {id: 넘긴 장 수}
 const core = () => window.MusicCore;
 const LS = {
@@ -7,6 +9,7 @@ const LS = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 const BASE = '/mag/issues/';
+let serials = [];
 let root, sh, list = [], cur = null, spreads = [], state = 'home', tab = 'shelf', k = 0, wide = false, leaves = [], torn = false, faces = [];
 const issueCache = new Map();
 const $ = (s) => sh.querySelector(s);
@@ -70,6 +73,19 @@ h2{margin:0 0 6px;font-family:'Noto Serif KR',Georgia,serif;font-weight:900;font
 .mini.new .cv::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,transparent 30%,rgba(255,255,255,.35) 38%,transparent 46%),rgba(220,228,236,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
 .mini small{display:block;margin-top:8px;font-size:12px;color:#cfc6b6;line-height:1.4}
 .mini small b{color:#f3eee6;font-weight:700}
+/* 연재 */
+.ser{width:min(760px,100%);margin:0 auto 30px;background:rgba(251,250,246,.06);border:1px solid rgba(233,226,214,.18);border-radius:14px;padding:18px 18px 12px}
+.ser h3{margin:0;font-family:'Noto Serif KR',Georgia,serif;font-weight:900;font-size:21px;color:#f3eee6;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ser h3 small{font-family:monospace;font-weight:400;font-size:12px;letter-spacing:.12em;color:var(--sc,#cfc6b6)}
+.ser p{margin:6px 0 12px;color:#b9b0a2;font-size:14px;line-height:1.55}
+.ser .ep{display:flex;width:100%;align-items:baseline;gap:12px;text-align:left;background:none;border:0;border-top:1px solid rgba(233,226,214,.14);padding:12px 2px;min-height:48px;cursor:pointer;color:#f3eee6;font-size:15px}
+.ser .ep b{font-family:monospace;color:var(--sc,#cfc6b6);min-width:3.2em}
+.ser .ep small{margin-left:auto;color:#8f877b;font-size:12px;white-space:nowrap}
+.ser .ep:focus-visible{outline:2px solid #f59ad6;outline-offset:2px}
+.ser .nx{border-top:1px dashed rgba(233,226,214,.25);padding:12px 2px 4px;color:#b9b0a2;font-size:14px}
+.ser .nx b{color:#f3eee6}
+.rdser{margin:0 0 6px;padding:14px 16px;border-radius:12px;border:1px solid var(--rd-rule,rgba(0,0,0,.15));font-size:15px;line-height:1.5}
+.rdser b{display:block;font-size:12px;letter-spacing:.12em;font-family:monospace;color:var(--rd-accent,#2bb3d9);margin-bottom:4px}
 /* 상자 */
 .boxv{display:flex;align-items:center;justify-content:center}
 .box{position:relative;width:var(--bw);height:calc(var(--bw)*1.12);touch-action:none;cursor:ew-resize;perspective:1400px}
@@ -120,6 +136,26 @@ h2{margin:0 0 6px;font-family:'Noto Serif KR',Georgia,serif;font-weight:900;font
 .single7.lp12 .lpimg{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:.25cqw;box-shadow:0 .5cqw 1cqw rgba(0,0,0,.22),0 1.6cqw 3.4cqw rgba(0,0,0,.2);-webkit-user-drag:none;user-select:none}
 .single7.lp12 .tp{z-index:2}
 .single7.lp12.taken{transform:rotate(0deg) translateY(-2cqw) scale(1.03)!important}
+/* 판형 2 · 읽기 모드 */
+.mini .cv.f2{aspect-ratio:2/3}
+.rd{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;background:rgba(20,18,16,.55);opacity:0;transition:opacity .35s}
+.rd[hidden]{display:none}
+.rd.on{opacity:1}
+.rdsheet{position:relative;flex:1;margin-top:max(10px,env(safe-area-inset-top,0px));border-radius:16px 16px 0 0;overflow:hidden;transform:translateY(100%);transition:transform .45s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.45)}
+.rd.on .rdsheet{transform:none}
+.rdtop{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--rd-rule,rgba(0,0,0,.12));background:var(--rd-bg,#fbfaf6);color:var(--rd-ink,#161514)}
+.rdtop b{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rdtop button{border:1px solid currentColor;background:none;border-radius:999px;min-height:36px;padding:4px 14px;cursor:pointer;font-size:13px}
+.rdprog{position:absolute;left:0;top:0;height:3px;width:0;background:var(--rd-accent,#2bb3d9);z-index:2}
+.rdscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--rd-bg,#fbfaf6);color:var(--rd-ink,#161514)}
+.rdcol{max-width:36em;margin:0 auto;padding:28px max(20px,env(safe-area-inset-right,0px)) 40px max(20px,env(safe-area-inset-left,0px));font-size:17px;line-height:1.7;word-break:keep-all;overflow-wrap:break-word}
+@media (min-width:700px){.rdcol{font-size:19px;padding-top:44px}}
+.rdcol .hit{animation:rdhit 2.2s ease-out}
+@keyframes rdhit{0%{background:var(--rd-hit,rgba(43,179,217,.25))}100%{background:transparent}}
+.rdend{margin:48px 0 8px;padding-top:18px;border-top:1px solid var(--rd-rule,rgba(0,0,0,.15));display:flex;flex-direction:column;gap:10px}
+.rdend button{text-align:left;border:0;border-radius:12px;padding:14px 16px;min-height:48px;cursor:pointer;background:var(--rd-accent,#2bb3d9);color:var(--rd-on,#fff);font-size:16px;font-weight:700}
+.rdend button.alt{background:none;color:inherit;border:1px solid currentColor;font-weight:400}
+.rdend small{display:block;font-weight:400;font-size:13px;opacity:.85;margin-bottom:2px}
 .toast{position:absolute;left:50%;top:60px;transform:translate(-50%,-30px);opacity:0;background:#fbfaf6;color:#161514;padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:.3s;z-index:70;max-width:calc(100% - 32px);pointer-events:none}
 .toast.on{transform:translate(-50%,0);opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
@@ -130,8 +166,8 @@ function ensureRoot() {
   root = document.createElement('div'); root.id = 'magRoot';
   sh = root.attachShadow({ mode: 'open' });
   sh.innerHTML = `<style>${CSS}</style><div class="wrapall">
-    <div class="mbar"><div class="tabs" role="tablist"><button class="chip" data-t="shelf" type="button" aria-pressed="true">책장</button></div>
-      <div class="tabs"><button class="chip" id="back" type="button" hidden>← 목록</button><button class="chip" id="close" type="button" aria-label="잡지 닫기">닫기</button></div></div>
+    <div class="mbar"><div class="tabs" role="tablist"><button class="chip" data-t="shelf" type="button" aria-pressed="true">책장</button><button class="chip" data-t="serial" type="button" aria-pressed="false">연재</button></div>
+      <div class="tabs"><button class="chip" id="rdBtn" type="button" hidden>본문 읽기</button><button class="chip" id="back" type="button" hidden>← 목록</button><button class="chip" id="close" type="button" aria-label="잡지 닫기">닫기</button></div></div>
     <section class="view" id="vMail"></section>
     <section class="view" id="vShelf" hidden></section>
     <section class="view boxv" id="vBox" hidden><div class="box" id="box" role="button" tabindex="0" aria-label="택배 상자. 테이프를 가로로 그어서 열기">
@@ -142,6 +178,9 @@ function ensureRoot() {
       <button class="nav prev" id="prev" type="button" aria-label="이전 쪽">‹</button><button class="nav next" id="next" type="button" aria-label="다음 쪽">›</button>
       <div class="pgno" id="pgno"></div></section>
     <div class="hint"><span id="hint"></span><button class="chip" id="alt" type="button" hidden></button></div>
+    <div class="rd" id="rd" hidden><div class="rdsheet iss" id="rdSheet" role="dialog" aria-modal="true" aria-labelledby="rdTitle"><div class="rdprog" id="rdProg"></div>
+      <div class="rdtop"><b id="rdTitle"></b><button type="button" id="rdClose">지면으로</button></div>
+      <div class="rdscroll" id="rdScroll"><div class="rdcol" id="rdCol"></div></div></div></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </div>`;
   document.body.appendChild(root);
@@ -151,13 +190,18 @@ function ensureRoot() {
   $('#alt').addEventListener('click', () => { if (state === 'box') openBox(); else if (state === 'wrap') tearWrap(.5); });
   $('#prev').addEventListener('click', () => turn(-1));
   $('#next').addEventListener('click', () => turn(1));
+  $('#rdBtn').addEventListener('click', () => { const a = pageArt(); if (a) openReader(a.id, a.at); });
+  $('#rdClose').addEventListener('click', closeReader);
+  $('#rd').addEventListener('click', (e) => { if (e.target.id === 'rd') closeReader(); });
+  $('#rdScroll').addEventListener('scroll', rdProgress, { passive: true });
   bindBox(); bindBook();
   addEventListener('resize', () => { if (state === 'read' || state === 'wrap') { const w = wide; measure(); if (w !== wide) { k = wide ? Math.ceil(k / 2) : k * 2; buildBook(); } } });
   addEventListener('keydown', onKey);
 }
 function onKey(e) {
   if (!root || root.hidden) return;
-  if (e.key === 'Escape') { e.stopPropagation(); if (state === 'home') close(); else home(); }
+  if (e.key === 'Escape') { e.stopPropagation(); if (rdOpen()) closeReader(); else if (state === 'home') close(); else home(); return; }
+  if (rdOpen()) return;
   if (state === 'read') { if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); }
 }
 let toastT = 0;
@@ -168,6 +212,7 @@ function show(id) { for (const v of sh.querySelectorAll('.view')) v.hidden = v.i
 async function loadList() {
   const r = await fetch(BASE + 'index.json', { cache: 'no-cache' });
   const k = new Date(Date.now() + 9 * 3600e3), ym = k.toISOString().slice(0, 7), mon = k.getUTCMonth() + 1;
+  serials = await fetch(BASE.replace('issues/', '') + 'serials.json', { cache: 'no-cache' }).then((x) => x.json()).then((j) => j.serials || []).catch(() => []);
   list = ((await r.json()).issues || []).map((x) => x.dynamic ? { ...x, id: `${x.mag}-${ym}`, vol: `${k.getUTCFullYear()}.${String(mon).padStart(2, '0')}`, date: `${ym.replace('-', '.')}.01`, title: `나의 ${mon}월 — 내 청취 기록으로 짠 호` } : x);
 }
 async function loadIssue(it) {
@@ -185,7 +230,6 @@ async function loadIssue(it) {
   const v = parseIssue(it, html); v.sp = v.sp.map((x) => lp12(it, x));
   issueCache.set(it.id, v); return v;
 }
-// 부록 싱글 = 12인치 LP. 투명 비닐(PVC) 커버에 잡지사 시그니처가 인쇄된 그림(sleeves/<mag>.webp)으로 바꿔 끼운다
 const sleeveOf = (mag) => `/mag/sleeves/${mag}.webp`;
 // 부록: 지면의 .single7.bigs 자리에 투명 비닐 커버 그림(sleeves/<mag>.webp). 2026-11-13부터 그림이 7인치 싱글(45 RPM · 큰 구멍)
 function lp12(it, html) {
@@ -197,15 +241,20 @@ function parseIssue(it, html) {
   if (link && !document.querySelector(`link[href="${link.href}"]`)) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = link.getAttribute('href'); document.head.appendChild(l); }
   const css = [...doc.querySelectorAll('style')].map((s) => s.textContent).join('\n').replace(/:root\s*\{/g, `.iss-${it.id}{`);
   const sp = [...doc.querySelectorAll('template.sp')].map((t) => t.innerHTML);
-  return { css, sp };
+  // 판형 2: 쪽 하나씩 + 기사 본문
+  const pg = [...doc.querySelectorAll('template.pg')].map((t) => t.innerHTML);
+  const arts = [...doc.querySelectorAll('template.art')].map((t) => ({ id: t.dataset.id, title: t.dataset.title || '', html: t.innerHTML }));
+  if (pg.length) return { css, sp: pg, f2: true, arts };
+  return { css, sp, arts };
 }
 
 /* ── 우편함 · 책장 ── */
 const opened = () => LS.get('mag.opened') || {};
 async function home() {
-  state = 'home'; $('#back').hidden = true;
+  state = 'home'; $('#back').hidden = true; closeReader(true); $('#rdBtn').hidden = true;
   for (const b of sh.querySelectorAll('[data-t]')) b.setAttribute('aria-pressed', String(b.dataset.t === tab));
   hint('');
+  if (tab === 'serial') { showSerials(); return; }
   if (tab === 'mail') {
     show('vMail');
     const fresh = list.filter((x) => !opened()[x.id]);
@@ -221,7 +270,7 @@ async function home() {
     const shelves = mags.map((m) => {
       const its = list.filter((x) => x.mag === m.mag); // 안 연 새 호도 비닐째 꽂힘(NEW) → 누르면 상자부터
       return `<div class="shelf"><h3><span>${m.name} — ${m.publisher}</span><span>${its.length}권</span></h3>
-        <div class="ledge">${its.length ? its.map((x) => `<button class="mini${read[x.id] ? '' : ' new'}" type="button" data-id="${x.id}"><div class="cv iss iss-${x.id}" data-cv="${x.id}"></div>${read[x.id] ? '' : '<span class="newb">NEW</span>'}<small><b>${x.vol}</b> · ${x.date}<br>${x.title}</small></button>`).join('') : '<span class="empty" style="margin:20px 0">아직 꽂힌 호가 없습니다</span>'}</div><div class="board"></div></div>`;
+        <div class="ledge">${its.length ? its.map((x) => `<button class="mini${read[x.id] ? '' : ' new'}" type="button" data-id="${x.id}"><div class="cv iss iss-${x.id}${x.fmt === 2 ? ' f2' : ''}" data-cv="${x.id}"></div>${read[x.id] ? '' : '<span class="newb">NEW</span>'}<small><b>${x.vol}</b> · ${x.date}<br>${x.title}</small></button>`).join('') : '<span class="empty" style="margin:20px 0">아직 꽂힌 호가 없습니다</span>'}</div><div class="board"></div></div>`;
     }).join('');
     const nNew = list.filter((x) => !read[x.id]).length;
     $('#vShelf').innerHTML = `<h2>책장</h2><p class="sub">${nNew ? `새 호 ${nNew}권이 비닐째 꽂혀 있습니다. 누르면 상자부터 엽니다.` : '출판사별로 꽂힙니다. 누르면 바로 펼칩니다.'}</p>${shelves}`;
@@ -231,6 +280,26 @@ async function home() {
       loadIssue(it).then((v) => { ensureCss(it, v); cv.innerHTML = `<div class="spw" style="width:100%">${v.sp[0]}</div>`; }).catch(() => {});
     }
   }
+}
+/* ── 연재: 호를 넘어 이어지는 코너. 목록은 /mag/serials.json (예약 편집 세션이 회차를 더함) ── */
+function showSerials() {
+  show('vShelf');
+  const col = (m) => (list.find((x) => x.mag === m) || {}).color || '#cfc6b6';
+  const live = serials.filter((s) => s.episodes.length || s.next);
+  $('#vShelf').innerHTML = `<h2>연재</h2><p class="sub">호를 넘어 이어지는 코너. 회차를 누르면 그 글부터 엽니다.</p>${live.map((s) => `
+    <section class="ser" style="--sc:${col(s.mag)}"><h3>${s.title}<small>${s.name} · 글 ${s.writer}</small></h3><p>${s.about}</p>
+      ${s.episodes.map((e) => `<button class="ep" type="button" data-ser="${s.id}" data-n="${e.n}"><b>${e.n}회</b><span>${e.title}</span><small>${e.date}</small></button>`).join('')}
+      ${s.next ? `<div class="nx">${s.episodes.length ? `다음 회 예고 · <b>${s.next.n}회 ${s.next.title}</b>` : `<b>${s.next.title}</b>`}${s.next.note ? ` — ${s.next.note}` : ''}</div>` : ''}</section>`).join('') || '<p class="empty">아직 연재가 없습니다</p>'}`;
+  for (const b of sh.querySelectorAll('[data-ser]')) b.addEventListener('click', () => openEpisode(b.dataset.ser, +b.dataset.n));
+}
+const serialOf = (issue, art) => { for (const s of serials) { const i = s.episodes.findIndex((e) => e.issue === issue && e.art === art); if (i >= 0) return { s, i }; } return null; };
+async function openEpisode(sid, n) {
+  const s = serials.find((x) => x.id === sid), e = s && s.episodes.find((x) => x.n === n);
+  const it = e && list.find((x) => x.id === e.issue);
+  if (!it) { toast('그 호를 찾지 못했습니다'); return; }
+  if (!opened()[it.id]) { openParcel(it); toast('새 호입니다. 상자부터 열어 주세요'); return; }
+  await openRead(it);
+  openReader(e.art);
 }
 function ensureCss(it, v) {
   if (sh.querySelector(`style[data-iss="${it.id}"]`)) return;
@@ -271,10 +340,11 @@ function openBox() {
 function measure() {
   const vw = innerWidth - 32, vh = innerHeight - 150;
   wide = innerWidth >= 820;
+  const ratio = cur && cur.fmt === 2 ? 1.5 : 4 / 3; // 판형 2는 2:3(화면용)
   let w = wide ? Math.min(560, (vw - 90) / 2) : Math.min(520, vw);
-  w = Math.min(w, vh * .75);
+  w = Math.min(w, vh / ratio);
   const r = root.style;
-  r.setProperty('--pw', w + 'px'); r.setProperty('--ph', w * 4 / 3 + 'px');
+  r.setProperty('--pw', w + 'px'); r.setProperty('--ph', w * ratio + 'px');
   r.setProperty('--bkw', (wide ? 2 * w : w) + 'px'); r.setProperty('--lx', (wide ? w : 0) + 'px');
   r.setProperty('--bw', Math.min(420, vw, vh * .85) + 'px');
 }
@@ -295,7 +365,10 @@ function buildBook() {
   const v = issueCache.get(cur.id); spreads = v.sp; ensureCss(cur, v);
   const book = $('#book');
   let groups;
-  if (wide) { groups = [[half(0), half(1, 'L')]]; for (let i = 1; i < spreads.length; i++) groups.push([half(i, 'R'), half(i + 1, 'L')]); }
+  if (v.f2) { // 판형 2: 쪽을 그대로. 넓은 화면은 표지 한 쪽 → (1,2) (3,4)… 두 쪽 펼침
+    const P = spreads.map((h) => `<div class="spw iss iss-${cur.id}" style="left:0;width:100%">${h}</div>`);
+    groups = wide ? Array.from({ length: Math.ceil(P.length / 2) }, (_, j) => [P[2 * j], P[2 * j + 1] || '']) : P.map((h) => [h, '']);
+  } else if (wide) { groups = [[half(0), half(1, 'L')]]; for (let i = 1; i < spreads.length; i++) groups.push([half(i, 'R'), half(i + 1, 'L')]); }
   else groups = pagesList().map(([i, s]) => [half(i, s), '']);
   // 아이폰 사파리는 3D 장이 많으면 메모리가 넘쳐 탭을 닫는다 → 지금 장 근처만 내용을 넣고(near) 나머지는 비워서 숨긴다
   faces = groups.map(([f, b], i) => [f + (i === 0 && state === 'wrap' && !torn ? wrapHTML() : ''), b]);
@@ -323,6 +396,7 @@ function apply(moving = -1) {
   if (moving >= 0) setTimeout(() => apply(), 880);
   $('#book').style.transform = wide && k === 0 ? 'translateX(calc(var(--pw) * -.5))' : '';
   $('#pgno').textContent = state === 'read' ? `${k + 1} / ${n}` : '';
+  $('#rdBtn').hidden = !(state === 'read' && pageArt());
   if (state === 'read') { hint(lastPage() ? '부록 싱글을 누르면 테이프를 떼고 재생합니다' : ''); const pg = LS.get('mag.page') || {}; pg[cur.id] = k; LS.set('mag.page', pg); }
 }
 const lastPage = () => k >= leaves.length - 1;
@@ -373,6 +447,8 @@ function bindBook() {
     if (!sw || state !== 'read') return;
     const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
     if (e.target.closest('a')) return;
+    const rdb = Math.abs(dx) <= 8 && Math.abs(dy) <= 8 && e.target.closest('[data-read]');
+    if (rdb) { openReader(rdb.dataset.read, rdb.dataset.at); return; }
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { turn(dx < 0 ? 1 : -1); return; }
     if (Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
     const act = e.target.closest('[data-act]');
@@ -382,7 +458,7 @@ function bindBook() {
     const r = bookEl.getBoundingClientRect();
     turn(e.clientX > (wide ? r.left + r.width / 2 : r.left + r.width * .35) ? 1 : -1);
   });
-  bookEl.addEventListener('keydown', (e) => { const s = e.target.closest('.single7'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); takeSingle(s); } });
+  bookEl.addEventListener('keydown', (e) => { const rb = e.target.closest('[data-read]'); if (rb && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openReader(rb.dataset.read, rb.dataset.at); return; } const s = e.target.closest('.single7'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); takeSingle(s); } });
 }
 
 /* ── 부록 싱글: 테이프를 떼고 Spotify에서 찾아 재생, 출판사 크레이트에 꽂기 ── */
@@ -432,6 +508,43 @@ async function playUris(C, uris) {
   await C.api('/me/player/play?device_id=' + id, { method: 'PUT', body: { uris } });
 }
 
+/* ── 읽기 모드: 기사 본문을 큰 글씨 한 단으로. 그 잡지 글꼴·색은 issue.html의 .reader 규칙과 --rd-* 변수가 정한다 ── */
+const rdOpen = () => sh && !$('#rd').hidden;
+function pageArt() { // 지금 보이는 쪽(넓은 화면은 오른쪽 먼저)에 걸린 기사
+  if (!cur || !leaves.length) return null;
+  const L = leaves[k] && leaves[k].children, P = leaves[k - 1] && leaves[k - 1].children;
+  for (const f of [L && L[0], P && P[1]]) { const el = f && f.querySelector('[data-art]'); if (el) return { id: el.dataset.art, at: el.dataset.at }; }
+  return null;
+}
+function openReader(id, at) {
+  const v = issueCache.get(cur.id), arts = (v && v.arts) || [], i = arts.findIndex((a) => a.id === id);
+  if (i < 0) return;
+  const a = arts[i], nx = arts[i + 1], rd = $('#rd'), col = $('#rdCol');
+  $('#rdSheet').className = `rdsheet iss iss-${cur.id}`;
+  $('#rdTitle').textContent = a.title;
+  const so = serialOf(cur.id, id), sp = so && so.s.episodes[so.i - 1], sn = so && so.s.episodes[so.i + 1];
+  const serHTML = so ? `<div class="rdser"><b>연재 '${so.s.title}' ${so.s.episodes[so.i].n}회</b>${sn ? '' : so.s.next ? `다음 회 예고: ${so.s.next.n}회 ${so.s.next.title}` : ''}</div>${sp ? `<button type="button" class="alt" data-ep="${sp.n}"><small>지난 회</small>${sp.n}회 ${sp.title}</button>` : ''}${sn ? `<button type="button" data-ep="${sn.n}"><small>다음 회</small>${sn.n}회 ${sn.title}</button>` : ''}` : '';
+  col.innerHTML = `<article class="reader">${a.html}</article><div class="rdend">${serHTML}${nx ? `<button type="button" data-next="${nx.id}"><small>다음 기사</small>${nx.title}</button>` : ''}<button type="button" class="alt" data-back>지면으로 돌아가기</button></div>`;
+  col.querySelector('[data-back]').onclick = closeReader;
+  for (const b of col.querySelectorAll('[data-ep]')) b.onclick = () => { closeReader(true); openEpisode(so.s.id, +b.dataset.ep); };
+  const nb = col.querySelector('[data-next]'); if (nb) nb.onclick = () => openReader(nb.dataset.next);
+  const fresh = rd.hidden;
+  rd.hidden = false; if (fresh) requestAnimationFrame(() => rd.classList.add('on'));
+  const sc = $('#rdScroll'), t = at && col.querySelector(`[data-p="${window.CSS.escape(at)}"]`);
+  sc.scrollTop = 0;
+  if (t) requestAnimationFrame(() => { sc.scrollTop = t.offsetTop - 24; t.classList.add('hit'); });
+  rdProgress(); sfx.page();
+  $('#rdClose').focus({ preventScroll: true });
+}
+function rdProgress() { const s = $('#rdScroll'), m = s.scrollHeight - s.clientHeight; $('#rdProg').style.width = (m > 0 ? s.scrollTop / m * 100 : 100) + '%'; }
+function closeReader(now) {
+  if (!sh) return;
+  const rd = $('#rd'); if (rd.hidden) return;
+  rd.classList.remove('on');
+  if (now === true) { rd.hidden = true; return; }
+  setTimeout(() => { rd.hidden = true; $('#rdCol').innerHTML = ''; }, 350);
+}
+
 /* ── 책장에서 바로 펼치기 ── */
 async function openRead(it) {
   cur = it; torn = true; state = 'read'; $('#back').hidden = false;
@@ -448,6 +561,14 @@ export async function open() {
   tab = 'shelf';
   home();
 }
+// 그 호의 기사 하나를 읽기 모드로 연다(연재 목록·검사 스크립트가 씀). 안 연 호면 상자부터
+export async function openArticle(id, art) {
+  if (!root || root.hidden) await open();
+  const it = list.find((x) => x.id === id); if (!it) return;
+  if (!opened()[it.id]) { openParcel(it); return; }
+  if (!cur || cur.id !== id || state !== 'read') await openRead(it);
+  openReader(art);
+}
 // 신간 팝업에서: 그 호를 바로 연다(안 연 호면 상자부터)
 export async function openIssue(id) {
   await open();
@@ -456,6 +577,7 @@ export async function openIssue(id) {
 }
 export function close() {
   if (!root) return;
+  closeReader(true);
   root.hidden = true; document.body.style.overflow = ''; state = 'home';
   if (sh) { const b = sh.querySelector('#book'); if (b) b.innerHTML = ''; leaves = []; faces = []; }
   document.body.classList.remove('magon'); if (window.Deck3D && Deck3D.suspend) Deck3D.suspend(false);
