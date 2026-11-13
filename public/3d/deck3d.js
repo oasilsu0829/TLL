@@ -26,7 +26,7 @@ const GO_PX = 491, GI_PX = 222;                        // 판 그림(1024px)에�
 // 가운데 큰 구멍(지름 1.5인치)에 45 어댑터를 끼운다. 홈·라벨 px은 1024 그림 기준(512 = 판 반지름)
 const LP = { r: REC_R, go: GO_PX, gi: GI_PX, lr: 188, s: 1 };
 const SINGLE = { r: REC_R * 7 / 12, go: 493, gi: 292, lr: 250, hole: 110, s: 7 / 12, big: true };
-const kindOf = (L) => (L && L.m ? SINGLE : LP);
+const kindOf = (L) => (L && (L.m || L.single) ? SINGLE : LP); // 잡지 부록 · Spotify 'single' 앨범
 
 let renderer;
 try {
@@ -1012,11 +1012,11 @@ function start() {
   // 판 갈기 준비 중(표지 그림을 기다리는 동안)에는 플래터 위 옛 판 라벨을 바꾸지 않는다
   let preparing = 0;
   // 판 갈기에 쓸 새 판·슬리브를 미리 만들어 둔다(크레이트에서 고른 판). 누르는 순간엔 그리기 없이 바로 시작
-  const preKey = (a, slam) => [a.id, a.img, slam ? 1 : 0, (a.tracks || []).map((f) => f.toFixed(3)).join(','), (a.p || 0) >> 2].join('|');
+  const preKey = (a, slam) => [a.id, a.img, slam ? 1 : 0, a.single ? 1 : 0, (a.tracks || []).map((f) => f.toFixed(3)).join(','), (a.p || 0) >> 2].join('|');
   let pre = null; // { k, disc, sleeve, L }
   let lastDropV = -1;
   function build(a, slam, img) {
-    const L = { name: a.name, artist: a.artist, img: a.img, m: a.m, tracks: a.tracks || null };
+    const L = { name: a.name, artist: a.artist, img: a.img, m: a.m, single: !!a.single, tracks: a.tracks || null };
     const K = kindOf(L), disc = makeRecord(K);
     if (a.m) { drawRecord(disc.userData.R, L, null); loadImg(lblSrc(L)).then((im) => im && drawRecord(disc.userData.R, L, im)); }
     else { drawRecord(disc.userData.R, L, img); if (!img && a.img) loadImg(a.img).then((im) => im && drawRecord(disc.userData.R, L, im)); }
