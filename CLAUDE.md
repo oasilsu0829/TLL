@@ -5,8 +5,8 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 ## 주소·배포
 - https://tll.oasilsu0829.workers.dev (Cloudflare Worker 이름 `tll`). 내 턴테이블 `/`, 친구용 `/deck/`
 - 배포는 GitHub 연동(Workers Builds). 사용자는 PC가 없으니 로컬 `wrangler` 명령을 전제로 하지 말 것. Build command `npm run build`(echo만), Deploy command `npx wrangler deploy`
-- D1은 전용 `tll-db`(binding DB). wrangler.toml에 database_id가 없어 첫 배포 때 자동으로 만들어진다. 만들어진 뒤 id를 wrangler.toml에 적어 둘 것
-  - 임시 binding OLD = Sabathia `jarvis-db`: 첫 요청 때 src/util.js copyOld()가 settings의 music · music.cid · music.owner · music.u.* 를 한 번 복사(`tll.copied`). **복사 확인 후 OLD 블록과 copyOld를 지울 것**(다음 할 일)
+- D1은 전용 `tll-db`(binding DB, id 4e9e7263-e232-456f-af4a-e8efbb22ec8d). 첫 배포 때 자동으로 만들어졌다
+  - 2026-11-13 Sabathia `jarvis-db`에서 음악 데이터(music · music.cid · music.owner · music.u.*)를 한 번 복사했고(settings `tll.copied`), 사용자가 크레이트 확인 후 연결(OLD binding·copyOld)을 지웠다. 이제 Sabathia와 공유하는 것 없음
 - 인증: Sabathia의 API_TOKEN은 쓰지 않는다. 서버는 X-Spotify(액세스 토큰)로 /me를 확인한다. Client ID 바꾸기(PUT /api/music/cid)는 주인 계정만
 - Spotify 대시보드 Redirect URIs: `https://tll.oasilsu0829.workers.dev/` 와 `https://tll.oasilsu0829.workers.dev/deck/`
 - 옮기기: Sabathia `/music/`이 처음 한 번 그 기기의 `music.*`·`mag.*`(로그인 토큰 제외)를 `#from=<base64url JSON>`에 담아 보낸다 → `public/shell.js`가 여기 없는 키만 채우고 주소에서 지운다. Sabathia `/deck/…`·`/music/<파일>`은 이쪽으로 301

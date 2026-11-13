@@ -20,7 +20,7 @@ export async function readBody(req) {
   }
 }
 
-// T/L/L 전용 D1(tll-db). 음악이 쓰는 테이블을 준비하고(이미 있으면 그대로), 예전 Sabathia D1이 붙어 있으면 한 번 복사한다
+// T/L/L 전용 D1(tll-db). 음악이 쓰는 테이블을 준비한다(이미 있으면 그대로)
 let ready = null;
 export function ensureTables(env) {
   if (!ready) {
@@ -37,21 +37,8 @@ export function ensureTables(env) {
       .then(() => env.DB.prepare("ALTER TABLE jam_q ADD COLUMN kind TEXT NOT NULL DEFAULT ''").run().catch((e) => {
         if (!/duplicate column/i.test(String(e && e.message))) throw e;
       }))
-      .then(() => copyOld(env).catch((e) => console.log('copyOld', e && e.message))) // 실패해도 앱은 돈다(다음 isolate에서 다시)
       .catch((e) => { ready = null; throw e; });
   }
   return ready;
 }
 
-// 임시(2026-11-13): 예전 Sabathia D1(env.OLD)의 음악 데이터를 한 번만 복사한다.
-// 크레이트 music.u.<id> · 예전 공유 문서 music · Client ID music.cid · 주인 music.owner (잼은 지나간 것이라 옮기지 않음)
-// 끝나면 settings k='tll.copied'에 시각. 이미 새 DB에 있는 키는 덮지 않는다. wrangler.toml의 OLD를 지우면 아무것도 안 한다
-async function copyOld(env) {
-  if (!env.OLD) return;
-  if (await env.DB.prepare("SELECT 1 FROM settings WHERE k = 'tll.copied'").first()) return;
-  const { results } = await env.OLD.prepare(
-    "SELECT k, v FROM settings WHERE k = 'music' OR k = 'music.cid' OR k = 'music.owner' OR k LIKE 'music.u.%'"
-  ).all();
-  const put = (k, v) => env.DB.prepare('INSERT OR IGNORE INTO settings (k, v) VALUES (?, ?)').bind(k, v);
-  await env.DB.batch([...(results || []).map((r) => put(r.k, r.v)), put('tll.copied', String(Date.now()))]);
-}
