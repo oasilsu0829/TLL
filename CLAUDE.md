@@ -86,6 +86,8 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                       그림 mag/sleeves/<mag>.webp(커버 800px) · <mag>-l.webp(판 라벨). 원본 scripts/mag-sleeves.html, 다시 뽑기 node scripts/mag-sleeves.cjs <출력 폴더>(Playwright, png → webp)
                       지면: mag.js lp12()가 .single7.bigs 안에 커버 그림을 끼움(테이프는 그대로). 크레이트 항목 = k 'pl' + m(잡지 키) + img(/music/mag/sleeves/…, merge.js가 이 경로만 허용)
                       m이 있으면 클립보드가 아니라 LP: 크레이트에 커버 그림, 판 갈기는 앨범 슬리브 모션(slam 아님), 3D 판 라벨은 잡지사 라벨 그림 그대로(deck3d lblSrc, 글자 안 얹음)
+                      턴테이블 위에선 7인치 싱글(2026-11-13 사용자 요청: 실제 싱글 크기): deck3d kindOf(L.m) = SINGLE(반지름 0.35 = 12인치의 7/12, 그룹 scale, 라벨 크게, 가운데 큰 구멍 + 노란 45 어댑터 그림), 슬리브도 7¼인치. 내려앉으면 45 rpm 불 + 뒤 구석 어댑터 숨김(kindOn), 톤암·홈 빛·잡기 반지름은 지금 판 종류(recK). 지면 그림은 그대로 LP 비닐 커버
+                      겹침 버그(같은 날): 판 갈기 도중 또 갈면(잡지가 열려 3D가 멈춘 동안 특히) 옛 판이 장면에 남아 새 판과 겹쳤음 → D.drop이 옛 판을 이어받아 사라지게, 내려앉을 때 장면에 남은 판을 치움
                     - 33⅓은 유저마다 다름(2026-11-13): index.json에 dynamic: true면 issue.html은 CSS만 쓰고 지면은 mag/m33.js build(MusicCore)가 만든다. 호 id = mo-YYYY-MM(달마다 새 호)
                       재료: /me, /me/top/tracks·artists(short_term), /me/player/recently-played, 이 기기 재생 기록 LS music.plays(index.html logPlay: poll 때마다 날짜별 곡 초·횟수·시간대, 62일 보관, 한국 시각. 앱이 열려 있을 때만 쌓임)
                       지면: 표지(앨범 표지 4장 원본 그대로 · 이름 · 청취 시간) · 편지·목차 · TOP 20 + 1위 · 언제 듣나(히트맵) + 아티스트 다섯 · 허세 카드(최대 6장, 카드마다 근거 숫자) · 부록(TOP 5 싱글)
