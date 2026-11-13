@@ -32,7 +32,7 @@
 :root {
   --chassis: #F3F4F6; --plinth: #FFFFFF; --warm: #F9FAFB; --line: #E5E7EB; --line-2: #D4D4D8;
   --ink: #111827; --ink-2: #374151; --muted: #6B7280; --red: #E60012;
-  --main: #026395; --main-glow: #2f9fd8; /* 메인 색 바하마 블루(2026-11-13). --red는 지우기·경고에만 */
+  --main: #026395; --main-glow: #2f9fd8; /* 포인트 색. 기본 바하마 블루, 앨범이 바뀌면 표지 색으로(applyAmb accentOf). --red는 지우기·경고에만 */
   --z50: #FAFAFA; --z100: #F4F4F5; --z200: #E4E4E7; --z300: #D4D4D8; --z400: #A1A1AA; --z800: #27272A;
   --mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
   --sans: 'Space Grotesk', 'Noto Sans KR', system-ui, sans-serif;
@@ -2176,7 +2176,27 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       const r = document.documentElement.style; r.setProperty('--a1', a1); r.setProperty('--a2', a2); r.setProperty('--a3', a3);
       document.querySelector('meta[name="theme-color"]').setAttribute('content', a1);
       if (window.Deck3D && Deck3D.ok && Deck3D.setTint) Deck3D.setTint(a1);
+      const [m, gl] = accentOf(p); r.setProperty('--main', m); r.setProperty('--main-glow', gl); window.__tllAccent = [m, gl, a1];
+      if (window.Deck3D && Deck3D.ok && Deck3D.setAccent) Deck3D.setAccent(m, gl);
     });
+  }
+  // 포인트 색: 표지 대표색 중 가장 진한(채도 높은) 색. 흰 바탕 글자용은 어둡게(L 34%), 어두운 데 불빛은 밝게(L 60%)
+  // 흑백에 가까운 표지거나 색을 못 뽑으면 바하마 블루
+  const BAHAMA = ['#026395', '#2f9fd8'];
+  function hsl(hex) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l];
+    const s = d / (1 - Math.abs(2 * l - 1));
+    const h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [h * 60, s, l];
+  }
+  function accentOf(p) {
+    if (!p) return BAHAMA;
+    const best = p.map(hsl).filter(([, s, l]) => l > 0.08 && l < 0.92).sort((a, b) => b[1] - a[1])[0];
+    if (!best || best[1] < 0.22) return BAHAMA;
+    const h = Math.round(best[0]), s = Math.round(Math.min(best[1], 0.8) * 100);
+    return [`hsl(${h}, ${s}%, 34%)`, `hsl(${h}, ${Math.min(s + 10, 90)}%, 60%)`];
   }
 
   function render() {

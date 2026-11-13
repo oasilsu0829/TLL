@@ -283,7 +283,7 @@ function start() {
     lampBody.position.set(lampAt.x, PLATE + 0.033, lampAt.z); deck.add(lampBody);
     for (const yy of [0.02, 0.03, 0.04]) { const gr2 = new THREE.Mesh(new THREE.TorusGeometry(0.0295, 0.0018, 6, 32), new THREE.MeshStandardMaterial({ color: 0x3a3c42, metalness: 0.5, roughness: 0.5 })); gr2.rotation.x = Math.PI / 2; gr2.position.set(lampAt.x, PLATE + yy, lampAt.z); deck.add(gr2); }
     const cap2 = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.028, 0.008, 32), new THREE.MeshStandardMaterial({ color: 0x1d1f24, roughness: 0.5 })); cap2.position.set(lampAt.x, PLATE + 0.062, lampAt.z); deck.add(cap2);
-    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3aa8e0, emissive: 0x1f8fd0, emissiveIntensity: 1.6 }));
+    const lens = D._lens = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3aa8e0, emissive: 0x1f8fd0, emissiveIntensity: 1.6 }));
     lens.position.set(lampAt.x + 0.02, PLATE + 0.046, lampAt.z - 0.019); deck.add(lens);
     const glow = new THREE.PointLight(0x2f9fd8, 0.35, 0.5, 2); glow.position.set(lampAt.x + 0.03, PLATE + 0.05, lampAt.z - 0.03); deck.add(glow); D._glow = glow;
     const lip = new THREE.Mesh(new THREE.TorusGeometry(PL_R - 0.003, 0.004, 8, 128), alu); lip.rotation.x = Math.PI / 2; lip.position.y = PL_TOP - 0.001; node.add(lip);
@@ -376,7 +376,7 @@ function start() {
     // 헤드셸(관 끝에서 비스듬히) + 카트리지 + 손잡이
     const hs = new THREE.Group(); hs.position.copy(end); hs.rotation.y = -0.4; lift.add(hs);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.084, 0.015, 0.155), black), 0, 0, 0.075, hs);
-    const cart = add(new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.036, 0.07), new THREE.MeshStandardMaterial({ color: 0x026395, roughness: 0.45 })), 0, -0.025, 0.092, hs);
+    const cart = add(new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.036, 0.07), D._cartM = new THREE.MeshStandardMaterial({ color: 0x026395, roughness: 0.45 })), 0, -0.025, 0.092, hs);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.014, 0.028), black), 0, -0.047, 0.108, hs);
     const fl = add(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.006, 0.016), chrome), 0.05, 0.006, 0.11, hs); fl.rotation.z = 0.35;
     // 바늘 끝(헤드셸 기준 -0.054)이 판 윗면(REC_Y + 0.004 = 0.078)에 닿도록 ARM_H = 0.078 + 0.016 + 0.054 + 여유
@@ -471,7 +471,7 @@ function start() {
     for (let i = 0; i <= 10; i++) { const tk = new THREE.Mesh(new THREE.BoxGeometry(i % 5 ? 0.02 : 0.035, 0.002, 0.003), darkM); tk.position.set(-0.04, 0.0015, -0.25 + i * 0.05); sl.add(tk); }
     const knob = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.04), [satinM, satinM, new THREE.MeshStandardMaterial({ color: 0xe6e8ea, metalness: 0.9, roughness: 0.25 }), satinM, satinM, satinM]);
     knob.position.y = 0.018; knob.userData.act = 'slider'; sl.add(knob); clickables.push(knob); ctl.knob = knob; ctl.slider = sl;
-    const kl = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.002, 0.006), new THREE.MeshStandardMaterial({ color: 0x026395 })); kl.position.y = 0.034; knob.add(kl); kl.position.set(0, 0.016, 0);
+    const kl = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.002, 0.006), (D._klM = new THREE.MeshStandardMaterial({ color: 0x026395 }))); kl.position.y = 0.034; knob.add(kl); kl.position.set(0, 0.016, 0);
     engrave('VOLUME', 0.8, 0.578, 0.1, 34);
     // 오른쪽 아래: 앰버 시간 표시창 · 템포 범위 버튼(8/16, 장식) · RESET(볼륨 50)
     {
@@ -607,7 +607,7 @@ function start() {
     buildControls();
     buildFx();
     // 후광: 스트로브 등 · 33/45 불 · 전원 LED · 바늘 조명
-    halo(deck, D._glow.position.clone().add(new THREE.Vector3(-0.012, -0.01, 0.013)), 0x3aa8e0, 0.16, () => 0.55 + night * 0.4);
+    halo(deck, D._glow.position.clone().add(new THREE.Vector3(-0.012, -0.01, 0.013)), 0x3aa8e0, 0.16, () => 0.55 + night * 0.4); D._lampHalo = halos[halos.length - 1].sp;
     halo(ctl.speed.s33.ring.parent, new THREE.Vector3(0, 0.01, 0), 0xff7a3a, 0.08, () => (speed45 ? 0 : 0.45));
     halo(ctl.speed.s45.ring.parent, new THREE.Vector3(0, 0.01, 0), 0xff7a3a, 0.08, () => (speed45 ? 0.45 : 0));
     halo(ctl.pled.parent, ctl.pled.position.clone(), 0x44ff88, 0.07, () => (playing ? 0.8 : 0));
@@ -617,6 +617,8 @@ function start() {
     deck.traverse((o) => { if (o.isMesh && o !== floor && !(o.material && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } });
     applyLabel();
     D.ok = true;
+    // 3D가 늦게 떴으면 화면이 먼저 정한 앨범 색을 받아 온다
+    if (window.__tllAccent) { D.setTint(window.__tllAccent[2]); D.setAccent(window.__tllAccent[0], window.__tllAccent[1]); }
     document.body.classList.add('d3');
     resize();
     loop.last = performance.now(); requestAnimationFrame(loop);
@@ -1016,6 +1018,16 @@ function start() {
   // 앨범 대표색: 밤 조명이 그 색을 조금 머금는다
   const warm = new THREE.Color(0xffd8a8), tintC = new THREE.Color(0xffd8a8);
   D.setTint = (hex) => { const h = hex || '#ffd8a8'; if (h === D.setTint.last) return; D.setTint.last = h; poke = performance.now(); tintC.copy(warm).lerp(new THREE.Color(h), 0.45); };
+  // 포인트 색(앨범 표지에서 뽑은 색, 없으면 바하마 블루): 카트리지·노브 표시·램프 렌즈·불빛·후광
+  D.setAccent = (main, glow) => {
+    const k = main + glow; if (k === D.setAccent.last) return; D.setAccent.last = k; poke = performance.now();
+    const m = new THREE.Color(main), g = new THREE.Color(glow);
+    if (D._cartM) D._cartM.color.copy(m);
+    if (D._klM) D._klM.color.copy(m);
+    if (D._lens) { D._lens.material.color.copy(g); D._lens.material.emissive.copy(g).multiplyScalar(0.8); }
+    if (D._glow) D._glow.color.copy(g);
+    if (D._lampHalo) D._lampHalo.material.color.copy(g);
+  };
   D.suspend = (on) => { D._off = !!on; renderer.domElement.style.display = on ? 'none' : ''; if (!on) { poke = performance.now(); resize(); } };
   D.grabbing = () => !!grab;
   D.dropping = () => !!drop;

@@ -11,7 +11,7 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - Spotify 대시보드 Redirect URIs: `https://tll.oasilsu0829.workers.dev/` 와 `https://tll.oasilsu0829.workers.dev/deck/`
 - 옮기기: Sabathia `/music/`이 처음 한 번 그 기기의 `music.*`·`mag.*`(로그인 토큰 제외)를 `#from=<base64url JSON>`에 담아 보낸다 → `public/shell.js`가 여기 없는 키만 채우고 주소에서 지운다. Sabathia `/deck/…`·`/music/<파일>`은 이쪽으로 301
 - 로고 T/L/L(2026-11-13): 앱 아이콘은 `scripts/tll-icon.html`의 4안(A 명판 · B 판 라벨 · C 계단 · D 각인) 중 D(각인, 2026-11-13 사용자 선택). 바꾸기 `node scripts/tll-icon.cjs <안>`. 화면 글자·3D 각인·명판·라벨·붐박스 상표·Spotify 기기 이름(DEV)도 T/L/L
-- 메인 색 바하마 블루 #026395(2026-11-13 사용자 요청). index.html `--main`, 어두운 데 켜지는 불은 `--main-glow` #2f9fd8. `--red`는 지우기·경고에만. 3D 카트리지·노브 표시·불빛(스트로브 램프)도 파랑. 그대로 둔 빨강: 잼 REC, RCA 케이블, 클립보드 여백 줄, 잡지 자체 색
+- 포인트 색(2026-11-13): 처음엔 바하마 블루 #026395로 통일했다가 같은 날 사용자 요청으로 '앨범 표지 색 따라가기'로 되돌림. 앨범이 바뀌면 applyAmb()가 배경(.amb)과 함께 accentOf(표지 대표색 중 채도 가장 높은 색)로 `--main`(L 34%, 흰 바탕 글자) · `--main-glow`(L 60%, 불빛)를 바꾸고 Deck3D.setAccent로 3D 카트리지·노브 표시·램프·후광도 바꾼다. 흑백 표지·색 못 뽑음·앨범 없음이면 바하마 블루. `--red`는 지우기·경고에만. 그대로 둔 빨강: 잼 REC, RCA 케이블, 클립보드 여백 줄, 잡지 자체 색
 - 테스트: `npm test` (test/music.mjs 합치기, test/music-api.mjs API — node:sqlite)
 
 ## 구조
