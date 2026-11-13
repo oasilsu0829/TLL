@@ -17,7 +17,7 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 ## 구조
 ```
 public/index.html   앱 화면(예전 public/music/index.html). /deck/도 Worker가 이 파일을 내준다(window.FRIEND)
-public/shell.js     예전 기록 가져오기(#from=, 한 번), /sw.js 등록
+public/shell.js     예전 기록 가져오기(#from=, 한 번), /sw.js 등록. 새 버전 자동 적용(controllerchange: 연 지 20초 안이면 바로, 아니면 화면을 떠날 때 새로고침, 돌아올 때마다 r.update())
 public/sw.js        캐시 먼저 + 뒤에서 갱신. 여러 파일을 고치면 VERSION을 올릴 것
 public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). 처음 전체화면 켤 때 import
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
