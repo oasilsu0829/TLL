@@ -12,7 +12,7 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - 옮기기: Sabathia `/music/`이 처음 한 번 그 기기의 `music.*`·`mag.*`(로그인 토큰 제외)를 `#from=<base64url JSON>`에 담아 보낸다 → `public/shell.js`가 여기 없는 키만 채우고 주소에서 지운다. Sabathia `/deck/…`·`/music/<파일>`은 이쪽으로 301
 - 로고 T/L/L(2026-11-13): 앱 아이콘은 `scripts/tll-icon.html`의 4안(A 명판 · B 판 라벨 · C 계단 · D 각인) 중 D(각인, 2026-11-13 사용자 선택). 바꾸기 `node scripts/tll-icon.cjs <안>`. 화면 글자·3D 각인·명판·라벨·붐박스 상표·Spotify 기기 이름(DEV)도 T/L/L
 - 포인트 색(2026-11-13): 처음엔 바하마 블루 #026395로 통일했다가 같은 날 사용자 요청으로 '앨범 표지 색 따라가기'로 되돌림. 앨범이 바뀌면 applyAmb()가 배경(.amb)과 함께 accentOf(표지 대표색 중 채도 가장 높은 색)로 `--main`(L 34%, 흰 바탕 글자) · `--main-glow`(L 60%, 불빛)를 바꾸고 Deck3D.setAccent로 3D 카트리지·노브 표시·램프·후광도 바꾼다. 흑백 표지·색 못 뽑음·앨범 없음이면 바하마 블루. `--red`는 지우기·경고에만. 그대로 둔 빨강: 잼 REC, RCA 케이블, 클립보드 여백 줄, 잡지 자체 색
-- 테스트: `npm test` (test/music.mjs 합치기, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사)
+- 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase)
 
 ## 구조
 ```
@@ -23,7 +23,7 @@ public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). �
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D · 잼 · 잡지 · 친구용 매니페스트·아이콘
 src/index.js        라우터(/deck/, 예전 /music/… → 새 경로 301, /api/music/*)
-src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q) · src/lyrics.js 가사(LRCLIB 프록시, /api/music/lyrics)
+src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q) · src/lyrics.js 가사(LRCLIB · NetEase 프록시, /api/music/lyrics)
 ```
 
 ## 기능 메모 (Sabathia에서 옮겨 온 그대로, 경로만 새 구조로 고침. '/music/'은 이제 '/')
@@ -92,6 +92,9 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                       재료: /me, /me/top/tracks·artists(short_term), /me/player/recently-played, 이 기기 재생 기록 LS music.plays(index.html logPlay: poll 때마다 날짜별 곡 초·횟수·시간대, 62일 보관, 한국 시각. 앱이 열려 있을 때만 쌓임)
                       지면: 표지(앨범 표지 4장 원본 그대로 · 이름 · 청취 시간) · 편지·목차 · TOP 20 + 1위 · 언제 듣나(히트맵) + 아티스트 다섯 · 허세 카드(최대 6장, 카드마다 근거 숫자) · 부록(TOP 5 싱글)
                       권한 user-top-read·user-read-recently-played를 SCOPES에 더함 → 예전 토큰은 지면에 '다시 로그인' 버튼(data-act=relogin)
+                    - 뜯은 기록 동기화(2026-11-13 사용자 '한 번 뜯어도 기록이 안 됨, 싱글이 계속 추가됨'): mag.opened·mag.pl이 기기마다 localStorage에만 있어서 다른 기기·홈 화면 앱에서 또 새 호로 뜨고, 부록을 누를 때마다 Spotify 플레이리스트를 새로 만들어 크레이트에 또 꽂혔음
+                      → 크레이트 계정 문서에 mag { opened, pl }를 같이 실음(merge.js cleanMag/mergeMag: opened 합집합, pl 먼저 만든 것). index.html magFold/magOut가 LS ↔ doc.mag, mag.js는 뜯거나 부록을 만들면 MusicCore.magSaved(), 잡지 열 때 magPull(최대 3초). 신간 팝업은 첫 동기화(최대 6초)를 기다린 뒤 고름
+                      부록 재사용: 이 기기 기록 → 크레이트에 꽂힌 같은 LP(MusicCore.findMagLp, 잡지 키 + 이름) → 내 Spotify 플레이리스트 중 같은 이름('<잡지> <호> 부록') → 그때만 새로 만듦. 크레이트의 같은 잡지·같은 이름 LP는 clean()이 한 장만 남김(이미 겹친 것도 정리). 비닐 뜯는 동안 넘김 화살표(#prev/#next)를 숨김(마우스 기기에서 양끝을 가렸음)
                     - 첫 호 4권: Drop Vol.01(U2), feedback vol.01(Kings of Leon), Cypher Vol.01(Aesop Rock & Blockhead), 33⅓(유저별 자동, 정적 mo-00은 CSS만). 사진은 Flickr CC(Openverse 경유), 저작자는 각 호 판권 쪽
                     - 편집 방침·성격·로직: docs/magazine/ (editorial-logic.md, mags/*.md 바이블, logo-prompts.md). 시안 원본은 docs/magazine/issues/
                     - 지면 만드는 법(지금은 수작업): 세션 스크래치에서 HTML 시안 → 이미지 data URI를 파일로 빼고 펼침을 template으로 감싸 issue.html. 다음 단계는 예약 편집 세션이 자동으로
@@ -111,6 +114,7 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                     - LP 전체화면(2026-11-13): 턴테이블 칸 오른쪽 위 아이콘(#fullBtn .fsb) 또는 F 키. body.lpfull → 턴테이블 칸이 화면을 덮고 3초 손대지 않으면 아래 줄·단추가 사라짐(lpidle), 왼쪽 아래 곡 이름 크게. Esc로 나감
                       가사(같은 날 사용자 요청, 애플 뮤직처럼·전체화면에서만): 3D를 왼쪽으로 밀고(.deck3d right = --lyrw 44%) 오른쪽에 가사(#lyr, public/lyrics.js). 세로 화면은 턴테이블 위·가사 아래(--lyrh 46%)
                       가사 = /api/music/lyrics?t&a&al&d → src/lyrics.js가 LRCLIB(lrclib.net, 무료·키 없음) /get → /search(제목 그대로·feat./Remaster 뗀 제목·q) 순, 길이 5초 넘게 다르면 버림, Workers 캐시(찾음 7일·못 찾음 1일)
+                      가사 개편(같은 날 사용자 '가사 너무 안 떠, 특히 한국 가사'): LRCLIB + NetEase(music.163.com 공개 검색·가사, K-pop·한국 곡 많음)를 같이 찾음. 시간 맞춘 가사 LRCLIB > NetEase > 그냥 가사. Spotify 이름(영문 제목·한글 가수 이름 '아이유')과 가사 쪽 이름('IU (아이유)')이 달라 못 찾던 것 → 괄호 속 다른 이름, 띄어쓰기·기호 무시 비교, 제목만 검색 후 가수·길이(8초)로 고르기, 가수가 달라도 제목이 똑같고 길이 2.5초 안이면 통과(NetEase는 한국 가수를 중국어 이름으로 둠). 화면은 가수 전부(a 여러 번)를 보냄. 캐시 키 v2, 못 찾음 6시간. 시험 24곡(한글 가수 이름) 예전 20 → 24. Musixmatch 비공식 토큰은 쓰지 않음, 벅스 API는 막힘
                       지금 줄은 위 30%에 맞춰 부드럽게 올림(0.25초 먼저 켬), 지난 줄 더 흐리게, 빈 줄·긴 전주 = 점 세 개. 손으로 굴리면 3.5초 따라가지 않음. 줄 누르면 그 시각으로(MusicCore.seekMs). 시간 없는 가사는 그냥 글. 배경은 앨범 색(--a1·--a2)을 머금은 어둠
                     - UI 정리(2026-11-13 사용자 요청: 버튼이 많음): 턴테이블 위 줄(셔플·반복·조명·전체화면·SPOTIFY CONNECT·기기 표시)을 없앰. 셔플·반복은 아랫줄 이전/다음 양옆 아이콘(.sq.ghost, 켜지면 포인트 색 + 점, 한 곡 반복은 1 표시), 전체화면은 턴테이블 칸 오른쪽 위 아이콘, 기기는 아랫줄 기기 단추만
 ## 잡지 개편 계획 (2026-11-13 논의. 같은 날 사용자 '첫 시험 호를 만들어줘' → feedback vol.02로 실행, 아래 '개편 첫 시험 호')

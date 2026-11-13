@@ -43,6 +43,14 @@ assert.equal(r.j.claimed, false); assert.ok(!r.j.doc.crates['c-main']); assert.o
 r = await call('POST', '/api/music/sync', { doc: doc({}) }, 'tok-me');
 assert.ok(!r.j.doc.crates['c-f']); assert.equal(r.j.claimed, false);
 assert.equal((await call('POST', '/api/music/sync', { doc: doc({}) }, 'bad')).status, 401);
+// 잡지: 한 기기에서 뜯은 호·부록 플레이리스트가 같은 계정의 다른 기기로 간다(친구 계정엔 안 감)
+r = await call('POST', '/api/music/sync', { doc: { ...doc({}), mag: { opened: { 'drop-01': 111 }, pl: { 'drop-01': { id: '37i9dQZF1DXcBWIGoYBM5M', name: 'Drop Vol.01 부록', n: 5 } } } } }, 'tok-me');
+r = await call('POST', '/api/music/sync', { doc: doc({}) }, 'tok-me');
+assert.equal(r.j.doc.mag.opened['drop-01'], 111); assert.equal(r.j.doc.mag.pl['drop-01'].id, '37i9dQZF1DXcBWIGoYBM5M');
+r = await call('POST', '/api/music/sync', { doc: { ...doc({}), mag: { opened: { 'fb-01': 222 }, pl: { 'drop-01': { id: '1A2GTWGtFfWp7KSQTwWOyo', name: 'Drop Vol.01 부록' } } } } }, 'tok-me');
+assert.deepEqual(Object.keys(r.j.doc.mag.opened).sort(), ['drop-01', 'fb-01']); assert.equal(r.j.doc.mag.pl['drop-01'].id, '37i9dQZF1DXcBWIGoYBM5M', '먼저 만든 부록이 남는다');
+r = await call('POST', '/api/music/sync', { doc: doc({}) }, 'tok-fr');
+assert.ok(!r.j.doc.mag);
 
 // 잼: 열린 잼 없음 → 손님 넣기 거절
 assert.equal((await call('GET', '/api/music/jam')).j.jam, null);

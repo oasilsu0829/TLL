@@ -1,6 +1,6 @@
 // 전체화면 가사(애플 뮤직처럼): 턴테이블을 왼쪽으로 밀고 오른쪽(세로 화면은 아래)에 시간 맞춘 가사를 띄운다
 // - index.html lpFull이 처음 전체화면을 켤 때 import. 전체화면에서만 돈다(show(false)면 아무것도 안 함)
-// - 가사는 /api/music/lyrics(src/lyrics.js → LRCLIB). 지금 줄을 위쪽 1/3에 맞춰 올리고, 손으로 굴리면 3.5초 동안 따라가지 않음
+// - 가사는 /api/music/lyrics(src/lyrics.js → LRCLIB · NetEase). 지금 줄을 위쪽 1/3에 맞춰 올리고, 손으로 굴리면 3.5초 동안 따라가지 않음
 // - 줄을 누르면 그 시각으로 감기(MusicCore.seekMs)
 
 // '[01:02.34]가사' → [{ t: ms, s: '가사' }]. 빈 줄 = 간주(점 세 개)
@@ -52,15 +52,16 @@ export function mount(host, core) {
     if (s) p.textContent = s; else { p.classList.add('dots'); p.innerHTML = '<i></i><i></i><i></i>'; p.setAttribute('aria-label', '간주'); }
     return p;
   }
+  let src = 'LRCLIB';
   function drawSynced(L) {
     clear('synced'); lines = L; els = L.map((x) => line(x.s)); box.append(...els);
-    note.textContent = '가사 LRCLIB';
+    note.textContent = '가사 ' + src;
     step();
   }
   function drawPlain(text) {
     clear('plain');
     for (const s of String(text).split(/\r?\n/)) { const p = document.createElement('p'); p.className = s.trim() ? 'll' : 'll gap'; p.textContent = s.trim(); box.append(p); }
-    note.textContent = '가사 LRCLIB · 시간 정보 없음';
+    note.textContent = '가사 ' + src + ' · 시간 정보 없음';
   }
   function follow(force) {
     if (!force && Date.now() < hold) return;
@@ -76,10 +77,8 @@ export function mount(host, core) {
     if (!r) {
       msg('가사를 찾는 중');
       try {
-        const q = new URLSearchParams({
-          t: it.name || '', a: (it.artists && it.artists[0] && it.artists[0].name) || '',
-          al: (it.album && it.album.name) || '', d: String(Math.round((it.duration_ms || 0) / 1000)),
-        });
+        const q = new URLSearchParams({ t: it.name || '', al: (it.album && it.album.name) || '', d: String(Math.round((it.duration_ms || 0) / 1000)) });
+        for (const a of (it.artists || []).slice(0, 6)) if (a && a.name) q.append('a', a.name); // 가수 전부(가사 쪽엔 다른 가수 이름으로 올라 있기도 함)
         const res = await fetch('/api/music/lyrics?' + q);
         if (!res.ok) throw new Error(String(res.status));
         r = await res.json();
@@ -87,6 +86,7 @@ export function mount(host, core) {
       } catch { if (my === req) { msg('가사를 불러오지 못했습니다'); id = undefined; } return; }
     }
     if (my !== req) return;
+    src = r.src || 'LRCLIB';
     if (r.synced) { const L = parseLrc(r.synced); if (L.length) return drawSynced(L); }
     if (r.plain) return drawPlain(r.plain);
     msg(r.inst ? '연주곡입니다' : '이 곡은 가사를 찾지 못했습니다');

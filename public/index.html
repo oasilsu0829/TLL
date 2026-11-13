@@ -1208,18 +1208,34 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     return j;
   }
   let syncing = false, again = false, syncT = 0, lastSync = 0;
+  // 잡지: 뜯은 호(mag.opened)·부록 플레이리스트(mag.pl)는 mag.js가 localStorage에 쓰고, 여기서 계정 문서(doc.mag)와 맞춘다
+  // (기기마다 따로 두었을 때: 다른 기기·홈 화면 앱에서 또 새 호로 뜨고, 부록을 누를 때마다 플레이리스트가 새로 생겨 크레이트에 또 꽂혔음)
+  function magFold() {
+    doc.mag = MM.mergeMag(doc.mag, { opened: LS.get('mag.opened') || {}, pl: LS.get('mag.pl') || {} });
+  }
+  function magOut() {
+    const m = MM.cleanMag(doc.mag);
+    LS.set('mag.opened', { ...(LS.get('mag.opened') || {}), ...m.opened });
+    LS.set('mag.pl', { ...m.pl, ...(LS.get('mag.pl') || {}) });
+    magDot();
+  }
+  let magList = null;
+  function magDot() { if (!magList) return; const seen = LS.get('mag.opened') || {}; $('magDot').hidden = !magList.some((x) => !seen[x.id]); }
+  let syncedOk;
+  const syncedOnce = new Promise((r) => { syncedOk = r; });
   function syncSoon() { clearTimeout(syncT); syncT = setTimeout(sync, 1500); }
   async function sync() {
     clearTimeout(syncT);
-    if (!uid || !loggedIn()) return; // 계정을 모르면 이 기기에만 둔다
+    if (!uid || !loggedIn()) { syncedOk(); return; } // 계정을 모르면 이 기기에만 둔다
     if (syncing) { again = true; return; }
     syncing = true;
     const note = $('syncNote'), forUid = uid;
     try {
+      magFold();
       const j = await srv('/api/music/sync', { method: 'POST', body: { doc } });
       if (forUid !== uid) throw new Error('계정이 바뀜');
       if (j.user && j.user !== uid) { syncing = false; setUser(j.user); return; }
-      doc = MM.merge(MM.clean(j.doc), doc);
+      doc = MM.merge(MM.clean(j.doc), doc); magOut();
       // 계정 나누기 전에 이 기기에 있던 크레이트: 예전 문서를 가져간 계정(본인)이면 합치고, 아니면 버린다
       const legacy = LS.get('music.crates');
       if (legacy) { if (j.claimed) { doc = MM.merge(doc, MM.clean(legacy)); syncSoon(); } LS.del('music.crates'); }
@@ -1232,7 +1248,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       note.classList.add('warn');
       note.textContent = '크레이트 동기화 안 됨: ' + (e.status === 401 && /토큰/.test(e.message) ? '토큰이 맞지 않습니다(일정 앱 설정의 토큰)' : e.message || e) + ' (이 기기에는 저장됨)';
     }
-    syncing = false;
+    syncing = false; syncedOk();
     if (again) { again = false; syncSoon(); }
   }
 
@@ -2834,9 +2850,19 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       let c = doc.crates[cid];
       if (!c || c.del) c = { id: cid, name, o, u: 0, albums: [] };
       const y = MM.album(a); if (!y) return;
-      c.albums = [y, ...c.albums.filter((x) => x.id !== y.id)];
+      // 같은 잡지의 같은 부록(이름이 같음)은 한 장만: 예전에 겹쳐 꽂힌 것도 같이 치운다
+      c.albums = [y, ...c.albums.filter((x) => x.id !== y.id && !(y.m && x.m === y.m && x.name === y.name))];
       touch(c); renderCrates(); renderCrate();
     },
+    // 잡지: 크레이트에 이미 꽂힌 같은 부록 LP(잡지 키 + 이름) → 플레이리스트를 새로 만들지 않고 그대로 쓴다
+    findMagLp(m, name) {
+      for (const c of live()) { const a = c.albums.find((x) => x.k === 'pl' && x.m === m && x.name === name); if (a) return a; }
+      return null;
+    },
+    // mag.js가 뜯은 기록·부록 플레이리스트를 쓴 뒤 부른다 → 계정 문서에 싣고 서버와 맞춤
+    magSaved() { magFold(); storeDoc(); syncSoon(); },
+    // 잡지를 열 때: 서버에서 다른 기기의 기록을 받아 온다(최대 3초)
+    magPull: () => Promise.race([sync(), new Promise((r) => setTimeout(r, 3000))]),
     saveJam(e) {
       let c = doc.crates['c-jam'];
       if (!c || c.del) c = { id: 'c-jam', name: 'JAM', o: 999, u: 0, albums: [] };
@@ -2867,10 +2893,13 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const mag = () => (magMod = magMod || import('/mag/mag.js').catch((e) => { magMod = null; toast('잡지를 불러오지 못했습니다'); throw e; }));
   $('magBtn').addEventListener('click', () => { sfx.unlock(); mag().then((m) => m.open()); });
   // 신간 팝업(2026-11-13 사용자 요청: 우편함 대신). 안 연 호가 있으면 앱을 열 때 띄우고, '나중에'는 12시간 동안 다시 안 띄움
-  fetch('/mag/issues/index.json', { cache: 'no-cache' }).then((r) => r.json()).then((j) => {
-    const seen = LS.get('mag.opened') || {}, later = LS.get('mag.later') || {};
+  // 다른 기기에서 뜯은 호도 새 호로 띄우지 않게, 첫 동기화(최대 6초)를 기다린 뒤 고른다
+  fetch('/mag/issues/index.json', { cache: 'no-cache' }).then((r) => r.json()).then(async (j) => {
     const kst = new Date(Date.now() + 9 * 3600e3), ym = kst.toISOString().slice(0, 7);
     const L = (j.issues || []).map((x) => (x.dynamic ? { ...x, id: `${x.mag}-${ym}`, vol: `${ym.replace('-', '.')}`, title: `나의 ${kst.getUTCMonth() + 1}월 — 내 청취 기록으로 짠 호` } : x));
+    await Promise.race([syncedOnce, new Promise((r) => setTimeout(r, 6000))]);
+    const seen = LS.get('mag.opened') || {}, later = LS.get('mag.later') || {};
+    magList = L;
     const fresh = L.filter((x) => !seen[x.id]);
     $('magDot').hidden = !fresh.length;
     const show = fresh.filter((x) => !(later[x.id] > Date.now() - 12 * 3600e3));

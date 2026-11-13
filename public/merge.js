@@ -3,6 +3,9 @@
    - 크레이트마다 고친 시각 u. 두 기기 것을 합칠 때 크레이트 id마다 u가 늦은 쪽이 이긴다
    - 지운 크레이트는 { id, del: 1, u } 로 남겨 다른 기기에서도 지워지게 한다(180일 뒤 치움)
    - 기본 크레이트(c-main)는 기기마다 같은 id에 u: 0 이라 겹치지 않는다
+   - 잡지(mag, 2026-11-13): { opened: { 호 id: 처음 뜯은 시각 }, pl: { 호 id: { id, name, n } } } — 뜯은 호와 부록 LP 플레이리스트.
+     기기마다 따로 두면 다른 기기에서 또 새 호로 뜨고 부록 플레이리스트가 또 만들어져서, 계정 문서에 같이 싣는다.
+     opened는 합집합(이른 시각), pl은 먼저 만든 것(a 쪽)이 이긴다
    일반 스크립트로 불러도(window.MusicMerge), 모듈에서 import 해도(globalThis.MusicMerge) 된다 */
 (function (root) {
   'use strict';
@@ -32,6 +35,24 @@
     return y;
   }
 
+  const MID = /^[a-z0-9-]{2,40}$/, MAX_MAG = 400;
+  function cleanMag(m) {
+    m = obj(m);
+    const opened = {}, pl = {};
+    for (const [id, t] of Object.entries(obj(m.opened)).slice(0, MAX_MAG)) if (MID.test(id) && num(t) > 0) opened[id] = Math.floor(num(t));
+    for (const [id, x0] of Object.entries(obj(m.pl)).slice(0, MAX_MAG)) {
+      const x = obj(x0);
+      if (MID.test(id) && AID.test(x.id || '')) pl[id] = { k: 'pl', id: x.id, name: str(x.name, 200), artist: str(x.artist, 200), n: Math.max(0, Math.floor(num(x.n))) };
+    }
+    return { opened, pl };
+  }
+  function mergeMag(a, b) {
+    const A = cleanMag(a), B = cleanMag(b), opened = { ...A.opened };
+    for (const [id, t] of Object.entries(B.opened)) opened[id] = opened[id] ? Math.min(opened[id], t) : t;
+    return { opened, pl: { ...B.pl, ...A.pl } };
+  }
+  const emptyMag = (m) => !Object.keys(m.opened).length && !Object.keys(m.pl).length;
+
   // 어떤 모양이 와도 문서 모양으로 맞춘다. now를 주면 앞서 있는 시계(u)를 now + 5분으로 누르고 오래된 지운 표시를 치운다
   function clean(doc, now) {
     const out = { v: 1, crates: {} };
@@ -49,11 +70,15 @@
       const seen = new Set(), albums = [];
       for (const a of Array.isArray(x.albums) ? x.albums : []) {
         const y = album(a);
-        if (!y || seen.has(y.id) || albums.length >= MAX_ALBUMS) continue;
-        seen.add(y.id); albums.push(y);
+        // 잡지 부록 LP는 같은 잡지·같은 이름이면 한 장만(예전에 기기마다 플레이리스트를 새로 만들어 겹쳐 꽂힌 것 정리). 앞(최근) 것이 남는다
+        const mk = y && y.m ? 'm|' + y.m + '|' + y.name : '';
+        if (!y || seen.has(y.id) || (mk && seen.has(mk)) || albums.length >= MAX_ALBUMS) continue;
+        seen.add(y.id); if (mk) seen.add(mk); albums.push(y);
       }
       out.crates[id] = { id, name: str(x.name, 40) || '크레이트', o: num(x.o), u, albums };
     }
+    const mag = cleanMag(obj(doc).mag);
+    if (!emptyMag(mag)) out.mag = mag;
     return out;
   }
 
@@ -64,8 +89,10 @@
     for (const [id, x] of Object.entries(B)) {
       if (!(id in A) || num(x.u) > num(A[id].u)) out.crates[id] = x;
     }
+    const mag = mergeMag(a && a.mag, b && b.mag);
+    if (!emptyMag(mag)) out.mag = mag;
     return out;
   }
 
-  root.MusicMerge = { clean, merge, album };
+  root.MusicMerge = { clean, merge, album, cleanMag, mergeMag };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
