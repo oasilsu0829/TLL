@@ -22,7 +22,11 @@ const HEAD = new THREE.Vector3(-0.165, 0, 0.92);        // 축에서 바늘까�
 let RPS = 33.333 / 60;                                 // 33⅓ rpm (45 버튼을 누르면 45/60)
 const PIV = new THREE.Vector3(0.645, 0, -0.4);         // 톤암 축
 const GO_PX = 491, GI_PX = 222;                        // 판 그림(1024px)에서 소리 홈 바깥·안쪽 반지름
-const GO_R = REC_R * GO_PX / 512, GI_R = REC_R * GI_PX / 512;
+// 판 종류: LP(12인치)와 싱글(7인치, 잡지 부록). 싱글은 판을 7/12로 줄이고(두께 그대로, 그룹 scale) 라벨을 크게,
+// 가운데 큰 구멍(지름 1.5인치)에 45 어댑터를 끼운다. 홈·라벨 px은 1024 그림 기준(512 = 판 반지름)
+const LP = { r: REC_R, go: GO_PX, gi: GI_PX, lr: 188, s: 1 };
+const SINGLE = { r: REC_R * 7 / 12, go: 493, gi: 292, lr: 250, hole: 110, s: 7 / 12, big: true };
+const kindOf = (L) => (L && L.m ? SINGLE : LP);
 
 let renderer;
 try {
@@ -126,13 +130,13 @@ function start() {
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.197; deck.add(shadow);
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
-  function recordTexture() {
+  function recordTexture(K = LP) {
     const c = document.createElement('canvas'); c.width = c.height = 1024;
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-    return { c, t };
+    return { c, t, K };
   }
   function drawRecord(R, L, img) {
-    const g = R.c.getContext('2d'), S = 1024, m = S / 2;
+    const g = R.c.getContext('2d'), S = 1024, m = S / 2, K = R.K || LP, GO_PX = K.go, GI_PX = K.gi;
     g.clearRect(0, 0, S, S);
     g.fillStyle = '#0b0b0e'; g.beginPath(); g.arc(m, m, m, 0, 7); g.fill();
     // 소리 홈(GO_PX ~ GI_PX). 곡 사이 무음 홈은 실제 곡 길이 비율 자리에 매끈한 띠로
@@ -145,7 +149,7 @@ function start() {
       g.strokeStyle = 'rgba(255,255,255,.09)'; g.lineWidth = 2; g.beginPath(); g.arc(m, m, r + 1.5, 0, 7); g.stroke();
     }
     g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 8; g.beginPath(); g.arc(m, m, GO_PX + 7, 0, 7); g.stroke(); // 들어가는 홈
-    const LR = 188;
+    const LR = K.lr;
     g.save(); g.beginPath(); g.arc(m, m, LR, 0, 7); g.clip();
     const mg = !!(L && L.m && img); // 잡지 부록 LP: 잡지사 라벨 그림 그대로(글자 얹지 않음)
     if (mg) g.drawImage(img, m - LR, m - LR, LR * 2, LR * 2);
@@ -153,7 +157,22 @@ function start() {
     else { g.fillStyle = '#f4f4f5'; g.fillRect(0, 0, S, S); }
     g.restore();
     g.strokeStyle = 'rgba(200,200,205,.9)'; g.lineWidth = 4; g.beginPath(); g.arc(m, m, LR, 0, 7); g.stroke();
-    if (mg) { g.fillStyle = '#d4d4d8'; g.beginPath(); g.arc(m, m, 13, 0, 7); g.fill(); g.fillStyle = '#27272a'; g.beginPath(); g.arc(m, m, 5, 0, 7); g.fill(); }
+    if (K.big) {
+      // 7인치: 라벨 위·아래에 제목·아티스트(그림이 없을 때만), 가운데 큰 구멍 + 45 어댑터(세 갈래 스파이더)
+      if (!mg) {
+        g.fillStyle = img ? '#fff' : '#111827'; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.font = '700 34px "Space Grotesk", "Noto Sans KR", sans-serif'; g.fillText(clip(g, ((L && L.name) || 'SINGLE').toUpperCase(), 330), m, m - 168);
+        g.font = '500 24px "JetBrains Mono", "Noto Sans KR", monospace'; g.fillText(clip(g, (L && L.artist) || '', 300), m, m + 170);
+      }
+      g.fillStyle = '#16171b'; g.beginPath(); g.arc(m, m, K.hole, 0, 7); g.fill();
+      const ins = g.createLinearGradient(m - K.hole, m - K.hole, m + K.hole, m + K.hole); ins.addColorStop(0, '#e9c46a'); ins.addColorStop(1, '#b8892f');
+      g.strokeStyle = ins; g.fillStyle = ins;
+      g.lineWidth = 16; g.beginPath(); g.arc(m, m, K.hole - 10, 0, 7); g.stroke();
+      g.lineWidth = 26; g.lineCap = 'round';
+      for (let i = 0; i < 3; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 3; g.beginPath(); g.moveTo(m, m); g.lineTo(m + Math.cos(a) * (K.hole - 12), m + Math.sin(a) * (K.hole - 12)); g.stroke(); }
+      g.lineCap = 'butt'; g.beginPath(); g.arc(m, m, 30, 0, 7); g.fill();
+      g.fillStyle = '#27272a'; g.beginPath(); g.arc(m, m, 8, 0, 7); g.fill();
+    } else if (mg) { g.fillStyle = '#d4d4d8'; g.beginPath(); g.arc(m, m, 13, 0, 7); g.fill(); g.fillStyle = '#27272a'; g.beginPath(); g.arc(m, m, 5, 0, 7); g.fill(); }
     else {
     g.fillStyle = img ? '#fff' : '#111827'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.font = '700 22px "JetBrains Mono", monospace'; g.fillText('T/L/L', m, m - 92);
@@ -179,8 +198,8 @@ function start() {
     return imgCache.get(url);
   }
   // 판 = 검은 원기둥(옆·밑) + 윗면 원판(일반 UV라 라벨 글자가 똑바로 보인다)
-  function makeRecord() {
-    const R = recordTexture();
+  function makeRecord(K = LP) {
+    const R = recordTexture(K);
     const black = new THREE.MeshStandardMaterial({ color: 0x0b0b0e, roughness: 0.45 });
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(REC_R, REC_R, 0.008, 128), black);
@@ -191,7 +210,8 @@ function start() {
     const rim = new THREE.Mesh(new THREE.TorusGeometry(REC_R - 0.004, 0.0045, 8, 128), black); rim.rotation.x = Math.PI / 2; rim.position.y = 0.003;
     g.add(body, top, rim);
     g.rotation.x = 0.004; // 판 휨: 살짝 기운 채로 돌아 출렁여 보인다
-    g.userData.R = R; g.userData.mats = [black, top.material];
+    g.scale.set(K.s, 1, K.s); // 싱글은 지름만 줄인다(두께 그대로)
+    g.userData.R = R; g.userData.K = K; g.userData.mats = [black, top.material];
     return g;
   }
 
@@ -540,9 +560,9 @@ function start() {
     ctl.target = { pop: tlPop, head: tlHead, light: tlLight };
     // 45 어댑터(뒤 오른쪽 구석)
     const ad = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.052, 0.014, 40), new THREE.MeshStandardMaterial({ color: 0xe6e8ea, metalness: 0.95, roughness: 0.2 }));
-    ad.position.set(0.79, PLATE + 0.007, -0.6); ad.castShadow = true; deck.add(ad);
-    const adh = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.016, 24), darkM); adh.position.set(0.79, PLATE + 0.008, -0.6); deck.add(adh);
-    const adw = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.056, 0.004, 40), darkM); adw.position.set(0.79, PLATE + 0.002, -0.6); deck.add(adw);
+    ad.position.set(0.79, PLATE + 0.007, -0.6); ad.castShadow = true; deck.add(ad); D._adapter = [ad];
+    const adh = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.016, 24), darkM); adh.position.set(0.79, PLATE + 0.008, -0.6); deck.add(adh); D._adapter.push(adh);
+    const adw = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.056, 0.004, 40), darkM); adw.position.set(0.79, PLATE + 0.002, -0.6); deck.add(adw); D._adapter.push(adw);
     // 뒤쪽 RCA 케이블(빨강·흰색) — 낮은 각도에서 보인다
     for (const [cx, col] of [[0.5, 0xc8102e], [0.58, 0xf1f1f1]]) {
       const plug = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.05, 16), new THREE.MeshStandardMaterial({ color: col, roughness: 0.4 }));
@@ -624,7 +644,19 @@ function start() {
     loop.last = performance.now(); requestAnimationFrame(loop);
   }
 
+  const recK = () => (record && record.userData.K) || LP;
+  // 싱글은 45 rpm에 어댑터를 끼운다(뒤 구석 어댑터가 판 가운데로), LP는 33⅓
+  function kindOn() {
+    const big = !!recK().big; speed45 = big; RPS = (big ? 45 : 33.333) / 60;
+    (D._adapter || []).forEach((o) => { o.visible = !big; });
+  }
   function applyLabel(target = record) {
+    // 판 갈기 없이 라벨만 바뀌는데 판 종류(LP·싱글)가 다르면(처음 열 때 · 움직임 줄이기) 판을 바꿔 끼운다
+    if (target === record && record && !drop && kindOf(label) !== record.userData.K) {
+      const n = makeRecord(kindOf(label)), p = record.parent;
+      n.position.copy(record.position); n.rotation.copy(record.rotation); p.remove(record); p.add(n);
+      record = target = n; labelKey = ''; kindOn();
+    }
     const L = label, key = L ? [L.name, L.artist, L.img, (L.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|') : '';
     if (target === record && key === labelKey) return;
     poke = performance.now();
@@ -705,7 +737,7 @@ function start() {
       return;
     }
     if (drop || !record) return;
-    const a = recordAngle(e); if (!a || a.d > REC_R || a.d < 0.04) return;
+    const a = recordAngle(e); if (!a || a.d > recK().r || a.d < 0.04) return;
     e.preventDefault(); el.setPointerCapture(e.pointerId);
     grab = { phi: a.phi, spin0: spin, t: performance.now(), last: performance.now(), v: 0 };
     el.style.cursor = 'grabbing';
@@ -720,7 +752,7 @@ function start() {
       } else { ctl.dial.rotation.y = dragCtl.rot - (e.clientX - dragCtl.x) * 0.02; }
       return;
     }
-    if (!grab) { const act = parts && hitControl(e); if (act) { el.style.cursor = 'pointer'; return; } const a = parts && recordAngle(e); el.style.cursor = a && a.d < REC_R && a.d > 0.04 && !drop ? 'grab' : ''; return; }
+    if (!grab) { const act = parts && hitControl(e); if (act) { el.style.cursor = 'pointer'; return; } const a = parts && recordAngle(e); el.style.cursor = a && a.d < recK().r && a.d > 0.04 && !drop ? 'grab' : ''; return; }
     const a = recordAngle(e); if (!a) return;
     let dphi = a.phi - grab.phi; if (dphi > Math.PI) dphi -= 2 * Math.PI; if (dphi < -Math.PI) dphi += 2 * Math.PI;
     grab.phi = a.phi;
@@ -796,7 +828,8 @@ function start() {
     parts.platter.rotation.y = spin;
     // 톤암: 판을 가는 중엔 쉼 자리, 재생 중이면 곡 진행에 따라 안쪽으로. 움직이는 동안엔 들려 있다
     const cueArm = !playing && !busy && !grab && (cue === 'lead' || cue === 'down');
-    const yawT = playing && !busy && !grab ? yawFor(GO_R - clamp01(progress) * (GO_R - GI_R)) : grab ? yaw : cueArm ? yawFor(GO_R) : playing && !busy ? yaw : 0;
+    const rk = recK(), gO = rk.r * rk.go / 512, gI = rk.r * rk.gi / 512; // 지금 판(LP·싱글)의 소리 홈 바깥·안쪽
+    const yawT = playing && !busy && !grab ? yawFor(gO - clamp01(progress) * (gO - gI)) : grab ? yaw : cueArm ? yawFor(gO) : playing && !busy ? yaw : 0;
     const far = Math.abs(yawT - yaw) > 0.012;
     // 들림: 옮길 땐 LIFT_UP, 판 위에선 LIFT_ON(판 높이만큼), 쉴 땐 0. 큐로 띄워 둔 동안은 들린 채, 내릴 땐 기름 댐퍼처럼 천천히
     const liftT = far ? LIFT_UP : cueArm && cue === 'lead' ? LIFT_UP : yawT !== 0 ? LIFT_ON : 0;
@@ -969,6 +1002,9 @@ function start() {
       const ry = disc.rotation.y - parts.platter.rotation.y;
       record = disc; record.position.set(0, REC_Y, 0); record.rotation.set(0, ry, 0); parts.platter.add(record);
       labelKey = d.key; vel = 0;
+      kindOn();
+      // 장면에 남은 판(옛 판 등)이 있으면 치운다
+      for (const o of [...scene.children]) if (o !== d.old && o.userData && o.userData.R) scene.remove(o);
     }
     if (t >= 1) { scene.remove(d.sleeve); drop = null; }
   }
@@ -980,11 +1016,12 @@ function start() {
   let pre = null; // { k, disc, sleeve, L }
   let lastDropV = -1;
   function build(a, slam, img) {
-    const disc = makeRecord();
     const L = { name: a.name, artist: a.artist, img: a.img, m: a.m, tracks: a.tracks || null };
+    const K = kindOf(L), disc = makeRecord(K);
     if (a.m) { drawRecord(disc.userData.R, L, null); loadImg(lblSrc(L)).then((im) => im && drawRecord(disc.userData.R, L, im)); }
     else { drawRecord(disc.userData.R, L, img); if (!img && a.img) loadImg(a.img).then((im) => im && drawRecord(disc.userData.R, L, im)); }
     const sleeve = new THREE.Mesh(new THREE.BoxGeometry(slam ? 1.24 : 1.26, slam ? 1.3 : 1.26, slam ? 0.03 : 0.012), slam ? [side, side, side, side, clipMat(a, img), side] : [side, side, side, side, coverMat(img, a), side]);
+    if (K.big) sleeve.scale.set(K.s * 1.04, K.s * 1.04, 1); // 7인치 슬리브(7¼인치)
     // 미리 GPU에 올려 둔다(처음 그릴 때 멈칫하지 않게)
     renderer.initTexture && [disc.userData.R.t, sleeve.material[4].map].forEach((t) => t && renderer.initTexture(t));
     return { disc, sleeve, L };
@@ -997,7 +1034,9 @@ function start() {
   };
   D.drop = (a, slam) => {
     ++preparing; idle = 0; coverT = 0;
-    if (drop) { scene.remove(drop.sleeve); if (!drop.handed) scene.remove(drop.disc); drop = null; }
+    // 판을 가는 도중에 또 갈면(잡지가 열려 3D가 멈춘 동안 등) 옛 판이 장면에 남아 새 판과 겹쳤다(2026-11-13) → 옛 판은 이어받아 사라지게
+    let carry = null;
+    if (drop) { scene.remove(drop.sleeve); if (!drop.handed) scene.remove(drop.disc); carry = drop.old; drop = null; }
     const k = preKey(a, slam);
     const P = pre && pre.k === k ? pre : build(a, slam, imgReady.get(a.img) || null);
     pre = null;
@@ -1006,6 +1045,7 @@ function start() {
     // 옛 판: 플래터에서 떼어 장면에 두고 사라지게
     let old = null;
     if (record) { old = record; const wpos = new THREE.Vector3(); old.getWorldPosition(wpos); old.parent.remove(old); old.position.copy(wpos); scene.add(old); record = null; }
+    if (carry && carry !== old) { if (old) scene.remove(carry); else old = carry; }
     label = L;
     // 앨범은 판 갈기 모션 0~4 중 바로 전과 다른 하나(D._dropV로 고정 가능: 화면 확인용)
     let v = 0;
@@ -1049,7 +1089,8 @@ function start() {
   D._dbg = () => ({ scene, parts, record, cam });
   D.setVolume = (v) => { if (!dragCtl) volume = v; };
   D.flashGap = (f) => {
-    const r = GO_R - Math.min(1, Math.max(0, f)) * (GO_R - GI_R);
+    const rk = recK(), gO = rk.r * rk.go / 512, gI = rk.r * rk.gi / 512;
+    const r = gO - Math.min(1, Math.max(0, f)) * (gO - gI);
     const m = new THREE.Mesh(new THREE.RingGeometry(r - 0.006, r + 0.006, 160), new THREE.MeshBasicMaterial({ color: 0xffe2b0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     m.rotation.x = -Math.PI / 2; m.position.set(PLATTER.x, REC_Y + 0.008, PLATTER.z); scene.add(m); fx.gaps.push({ m, t0: performance.now() });
   };
