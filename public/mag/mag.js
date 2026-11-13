@@ -9,6 +9,7 @@ const LS = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 const BASE = '/mag/issues/';
+let serials = [];
 let root, sh, list = [], cur = null, spreads = [], state = 'home', tab = 'shelf', k = 0, wide = false, leaves = [], torn = false, faces = [];
 const issueCache = new Map();
 const $ = (s) => sh.querySelector(s);
@@ -72,6 +73,19 @@ h2{margin:0 0 6px;font-family:'Noto Serif KR',Georgia,serif;font-weight:900;font
 .mini.new .cv::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,transparent 30%,rgba(255,255,255,.35) 38%,transparent 46%),rgba(220,228,236,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
 .mini small{display:block;margin-top:8px;font-size:12px;color:#cfc6b6;line-height:1.4}
 .mini small b{color:#f3eee6;font-weight:700}
+/* 연재 */
+.ser{width:min(760px,100%);margin:0 auto 30px;background:rgba(251,250,246,.06);border:1px solid rgba(233,226,214,.18);border-radius:14px;padding:18px 18px 12px}
+.ser h3{margin:0;font-family:'Noto Serif KR',Georgia,serif;font-weight:900;font-size:21px;color:#f3eee6;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ser h3 small{font-family:monospace;font-weight:400;font-size:12px;letter-spacing:.12em;color:var(--sc,#cfc6b6)}
+.ser p{margin:6px 0 12px;color:#b9b0a2;font-size:14px;line-height:1.55}
+.ser .ep{display:flex;width:100%;align-items:baseline;gap:12px;text-align:left;background:none;border:0;border-top:1px solid rgba(233,226,214,.14);padding:12px 2px;min-height:48px;cursor:pointer;color:#f3eee6;font-size:15px}
+.ser .ep b{font-family:monospace;color:var(--sc,#cfc6b6);min-width:3.2em}
+.ser .ep small{margin-left:auto;color:#8f877b;font-size:12px;white-space:nowrap}
+.ser .ep:focus-visible{outline:2px solid #f59ad6;outline-offset:2px}
+.ser .nx{border-top:1px dashed rgba(233,226,214,.25);padding:12px 2px 4px;color:#b9b0a2;font-size:14px}
+.ser .nx b{color:#f3eee6}
+.rdser{margin:0 0 6px;padding:14px 16px;border-radius:12px;border:1px solid var(--rd-rule,rgba(0,0,0,.15));font-size:15px;line-height:1.5}
+.rdser b{display:block;font-size:12px;letter-spacing:.12em;font-family:monospace;color:var(--rd-accent,#2bb3d9);margin-bottom:4px}
 /* 상자 */
 .boxv{display:flex;align-items:center;justify-content:center}
 .box{position:relative;width:var(--bw);height:calc(var(--bw)*1.12);touch-action:none;cursor:ew-resize;perspective:1400px}
@@ -152,7 +166,7 @@ function ensureRoot() {
   root = document.createElement('div'); root.id = 'magRoot';
   sh = root.attachShadow({ mode: 'open' });
   sh.innerHTML = `<style>${CSS}</style><div class="wrapall">
-    <div class="mbar"><div class="tabs" role="tablist"><button class="chip" data-t="shelf" type="button" aria-pressed="true">책장</button></div>
+    <div class="mbar"><div class="tabs" role="tablist"><button class="chip" data-t="shelf" type="button" aria-pressed="true">책장</button><button class="chip" data-t="serial" type="button" aria-pressed="false">연재</button></div>
       <div class="tabs"><button class="chip" id="rdBtn" type="button" hidden>본문 읽기</button><button class="chip" id="back" type="button" hidden>← 목록</button><button class="chip" id="close" type="button" aria-label="잡지 닫기">닫기</button></div></div>
     <section class="view" id="vMail"></section>
     <section class="view" id="vShelf" hidden></section>
@@ -198,6 +212,7 @@ function show(id) { for (const v of sh.querySelectorAll('.view')) v.hidden = v.i
 async function loadList() {
   const r = await fetch(BASE + 'index.json', { cache: 'no-cache' });
   const k = new Date(Date.now() + 9 * 3600e3), ym = k.toISOString().slice(0, 7), mon = k.getUTCMonth() + 1;
+  serials = await fetch(BASE.replace('issues/', '') + 'serials.json', { cache: 'no-cache' }).then((x) => x.json()).then((j) => j.serials || []).catch(() => []);
   list = ((await r.json()).issues || []).map((x) => x.dynamic ? { ...x, id: `${x.mag}-${ym}`, vol: `${k.getUTCFullYear()}.${String(mon).padStart(2, '0')}`, date: `${ym.replace('-', '.')}.01`, title: `나의 ${mon}월 — 내 청취 기록으로 짠 호` } : x);
 }
 async function loadIssue(it) {
@@ -239,6 +254,7 @@ async function home() {
   state = 'home'; $('#back').hidden = true; closeReader(true); $('#rdBtn').hidden = true;
   for (const b of sh.querySelectorAll('[data-t]')) b.setAttribute('aria-pressed', String(b.dataset.t === tab));
   hint('');
+  if (tab === 'serial') { showSerials(); return; }
   if (tab === 'mail') {
     show('vMail');
     const fresh = list.filter((x) => !opened()[x.id]);
@@ -264,6 +280,26 @@ async function home() {
       loadIssue(it).then((v) => { ensureCss(it, v); cv.innerHTML = `<div class="spw" style="width:100%">${v.sp[0]}</div>`; }).catch(() => {});
     }
   }
+}
+/* ── 연재: 호를 넘어 이어지는 코너. 목록은 /mag/serials.json (예약 편집 세션이 회차를 더함) ── */
+function showSerials() {
+  show('vShelf');
+  const col = (m) => (list.find((x) => x.mag === m) || {}).color || '#cfc6b6';
+  const live = serials.filter((s) => s.episodes.length || s.next);
+  $('#vShelf').innerHTML = `<h2>연재</h2><p class="sub">호를 넘어 이어지는 코너. 회차를 누르면 그 글부터 엽니다.</p>${live.map((s) => `
+    <section class="ser" style="--sc:${col(s.mag)}"><h3>${s.title}<small>${s.name} · 글 ${s.writer}</small></h3><p>${s.about}</p>
+      ${s.episodes.map((e) => `<button class="ep" type="button" data-ser="${s.id}" data-n="${e.n}"><b>${e.n}회</b><span>${e.title}</span><small>${e.date}</small></button>`).join('')}
+      ${s.next ? `<div class="nx">${s.episodes.length ? `다음 회 예고 · <b>${s.next.n}회 ${s.next.title}</b>` : `<b>${s.next.title}</b>`}${s.next.note ? ` — ${s.next.note}` : ''}</div>` : ''}</section>`).join('') || '<p class="empty">아직 연재가 없습니다</p>'}`;
+  for (const b of sh.querySelectorAll('[data-ser]')) b.addEventListener('click', () => openEpisode(b.dataset.ser, +b.dataset.n));
+}
+const serialOf = (issue, art) => { for (const s of serials) { const i = s.episodes.findIndex((e) => e.issue === issue && e.art === art); if (i >= 0) return { s, i }; } return null; };
+async function openEpisode(sid, n) {
+  const s = serials.find((x) => x.id === sid), e = s && s.episodes.find((x) => x.n === n);
+  const it = e && list.find((x) => x.id === e.issue);
+  if (!it) { toast('그 호를 찾지 못했습니다'); return; }
+  if (!opened()[it.id]) { openParcel(it); toast('새 호입니다. 상자부터 열어 주세요'); return; }
+  await openRead(it);
+  openReader(e.art);
 }
 function ensureCss(it, v) {
   if (sh.querySelector(`style[data-iss="${it.id}"]`)) return;
@@ -486,8 +522,11 @@ function openReader(id, at) {
   const a = arts[i], nx = arts[i + 1], rd = $('#rd'), col = $('#rdCol');
   $('#rdSheet').className = `rdsheet iss iss-${cur.id}`;
   $('#rdTitle').textContent = a.title;
-  col.innerHTML = `<article class="reader">${a.html}</article><div class="rdend">${nx ? `<button type="button" data-next="${nx.id}"><small>다음 기사</small>${nx.title}</button>` : ''}<button type="button" class="alt" data-back>지면으로 돌아가기</button></div>`;
+  const so = serialOf(cur.id, id), sp = so && so.s.episodes[so.i - 1], sn = so && so.s.episodes[so.i + 1];
+  const serHTML = so ? `<div class="rdser"><b>연재 '${so.s.title}' ${so.s.episodes[so.i].n}회</b>${sn ? '' : so.s.next ? `다음 회 예고: ${so.s.next.n}회 ${so.s.next.title}` : ''}</div>${sp ? `<button type="button" class="alt" data-ep="${sp.n}"><small>지난 회</small>${sp.n}회 ${sp.title}</button>` : ''}${sn ? `<button type="button" data-ep="${sn.n}"><small>다음 회</small>${sn.n}회 ${sn.title}</button>` : ''}` : '';
+  col.innerHTML = `<article class="reader">${a.html}</article><div class="rdend">${serHTML}${nx ? `<button type="button" data-next="${nx.id}"><small>다음 기사</small>${nx.title}</button>` : ''}<button type="button" class="alt" data-back>지면으로 돌아가기</button></div>`;
   col.querySelector('[data-back]').onclick = closeReader;
+  for (const b of col.querySelectorAll('[data-ep]')) b.onclick = () => { closeReader(true); openEpisode(so.s.id, +b.dataset.ep); };
   const nb = col.querySelector('[data-next]'); if (nb) nb.onclick = () => openReader(nb.dataset.next);
   const fresh = rd.hidden;
   rd.hidden = false; if (fresh) requestAnimationFrame(() => rd.classList.add('on'));
@@ -521,6 +560,14 @@ export async function open() {
   try { await loadList(); } catch { list = []; }
   tab = 'shelf';
   home();
+}
+// 그 호의 기사 하나를 읽기 모드로 연다(연재 목록·검사 스크립트가 씀). 안 연 호면 상자부터
+export async function openArticle(id, art) {
+  if (!root || root.hidden) await open();
+  const it = list.find((x) => x.id === id); if (!it) return;
+  if (!opened()[it.id]) { openParcel(it); return; }
+  if (!cur || cur.id !== id || state !== 'read') await openRead(it);
+  openReader(art);
 }
 // 신간 팝업에서: 그 호를 바로 연다(안 연 호면 상자부터)
 export async function openIssue(id) {

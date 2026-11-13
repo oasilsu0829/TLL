@@ -130,7 +130,16 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
 - 취재 노트·설계도·데스크 기록 `docs/magazine/issues/fb-02/notes.md`, 편집부 기억 `docs/magazine/memory/feedback.md`, 바이블 맨 위 '개편' 항목
 - 사진 없음: 이 세션은 이미지 호스트(Openverse·Wikimedia·Unsplash)와 WebFetch가 막혀 웹 검색 요약으로만 취재했다. 표지는 신발 상자 라벨 타이포 + CSS/SVG 그림(지도·연표·상상 평면도·분홍 집). 네트워크가 열린 세션에서 사진을 넣을지는 사용자 의견을 보고 정할 것
 - 검증: 로컬(Playwright, 390×844 · 1180×820)에서 18쪽 넘김, 넘치는 글 0, 읽기 모드 열기·다음 기사·닫기, 상자·비닐 뜯기, 책장 표지, 예전 fb-01 열림 확인. 실제 폰·Spotify 부록 재생은 미확인
-- 다음: 사용자 의견 받기 → Drop · Cypher도 판형 2로. 예약 편집 세션 자동화는 그 뒤
+- 다음: 사용자 의견 받기. Drop · Cypher는 예약 편집 세션이 판형 2로 낸다(아래)
+
+## 발행 시스템 (2026-11-13, 사용자 결정: 연재 시스템 '둘 다' + 예약 세션이 만든 호는 '바로 발행')
+- 규칙 문서 `docs/magazine/system.md` 하나가 예약 편집 세션의 지시서. 순환: 2026-11-09 주 = 0, n%3 → 0 Drop(금) · 1 feedback(월) · 2 Cypher(수). 차례가 아니거나 같은 날짜 호가 있으면 아무것도 안 바꾸고 끝
+- 예약 작업 3개(이 계정, 매주, 새 세션): Drop 금 18:47 · feedback 일 21:43 · Cypher 화 21:41 (한국 시각). 프롬프트는 'system.md대로 <잡지> 다음 호'. 첫 실제 발행 = Cypher 11/24 밤(11/25 자)
+- 발행 = 브랜치 mag/<id> → PR → 바로 병합(squash, 사용자 허락). 관문은 `node scripts/mag-check.mjs <id>`(구조·금지어·점수 표기·가사 의심 인용·출처 10곳·연재 회차·폰/태블릿 넘침·읽기 모드·스크립트 오류). 오류가 남으면 '[발행 보류]' PR만 두고 끝
+- 사진 `python3 -I scripts/mag-photo.py <원본> <id> <이름> --credit --src --look plain|duo|halftone|riso|xerox` → webp + docs/magazine/issues/<id>/credits.json. ND 라이선스는 거부
+- 연재 `public/mag/serials.json`: feedback '방'(윤서해, 1회 fb-02) · Drop '정전 해부'(고한석) · Cypher '언더그라운드 연대기'(박지후). 앱 책장 위 '연재' 탭(회차 누르면 그 글을 읽기 모드로, mag.js openArticle), 연재 글 끝에 지난 회·다음 회(예고)
+- 편집부 기억 `docs/magazine/memory/<feedback|drop|cypher>.md`, 바이블마다 맨 위 '개편' 항목(점수 없음, 필진, 연재)
+- 기본 브랜치(claude/practical-mccarthy-1catzl)에 이 시스템이 병합돼 있어야 예약 세션이 돈다
 
 ## 사용자 선호
 - 답변은 짧고 직접적으로. 이모지 쓰지 않기. 한국어
