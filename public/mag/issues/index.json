@@ -40,6 +40,74 @@
    ]
   },
   {
+   "id": "drop-02",
+   "dir": "drop-02",
+   "mag": "drop",
+   "name": "Drop",
+   "vol": "Vol.02",
+   "date": "2026.11.13",
+   "fmt": 2,
+   "title": "빈 홀의 피아노 — Brad Mehldau [Fantasy & Reveries]",
+   "publisher": "드롭 레코드",
+   "color": "#f59ad6",
+   "singles": 12,
+   "crate": {
+    "id": "c-pub-drop",
+    "name": "드롭 레코드",
+    "o": 901
+   },
+   "tracks": [
+    {
+     "t": "Fantasy for Piano",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Fourteen Reveries: 1",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Fourteen Reveries: 6",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Fourteen Reveries: 7",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Fourteen Reveries: 14",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "River Man",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Exit Music (For a Film)",
+     "a": "Brad Mehldau"
+    },
+    {
+     "t": "Exit Music (For a Film)",
+     "a": "Radiohead"
+    },
+    {
+     "t": "So What",
+     "a": "Miles Davis"
+    },
+    {
+     "t": "Flamenco Sketches",
+     "a": "Miles Davis"
+    },
+    {
+     "t": "Hares on the Mountain",
+     "a": "Radie Peat"
+    },
+    {
+     "t": "I Love You",
+     "a": "Snoh Aalegra"
+    }
+   ]
+  },
+  {
    "id": "fb-01",
    "dir": "fb-01",
    "mag": "fb",
@@ -181,6 +249,74 @@
     {
      "t": "Zilla",
      "a": "Westside Gunn"
+    }
+   ]
+  },
+  {
+   "id": "cy-02",
+   "dir": "cy-02",
+   "mag": "cy",
+   "name": "Cypher",
+   "vol": "Vol.02",
+   "date": "2026.11.18",
+   "fmt": 2,
+   "title": "피처링 0, 이름 하나 — 김하온 [i+em]",
+   "publisher": "사이퍼 미디어",
+   "color": "#b0201e",
+   "singles": 12,
+   "crate": {
+    "id": "c-pub-cy",
+    "name": "사이퍼 미디어",
+    "o": 903
+   },
+   "tracks": [
+    {
+     "t": "Shot Caller",
+     "a": "HAON"
+    },
+    {
+     "t": "Platinum",
+     "a": "HAON"
+    },
+    {
+     "t": "Hellraiser",
+     "a": "HAON"
+    },
+    {
+     "t": "Thanatos",
+     "a": "HAON"
+    },
+    {
+     "t": "Life Goes On",
+     "a": "HAON"
+    },
+    {
+     "t": "Viva La Vida",
+     "a": "HAON"
+    },
+    {
+     "t": "꼴통",
+     "a": "HAON"
+    },
+    {
+     "t": "Chill",
+     "a": "HAON"
+    },
+    {
+     "t": "Yarrr",
+     "a": "HAON"
+    },
+    {
+     "t": "Ring My Bell",
+     "a": "Dynamic Duo"
+    },
+    {
+     "t": "Zilla",
+     "a": "Westside Gunn"
+    },
+    {
+     "t": "Beautician",
+     "a": "ZelooperZ"
     }
    ]
   },

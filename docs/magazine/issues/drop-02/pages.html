@@ -1,0 +1,635 @@
+<!--
+Drop Vol.02 지면 (판형 2: 2:3, 쪽마다 <template class="pg">). 단위 cqw = 쪽 폭의 1%(쪽 높이 = 150cqw).
+글은 articles.md에서 {{p ...}}로 가져온다. 만들기: python3 scripts/mag-issue.py docs/magazine/issues/drop-02
+같은 Shadow DOM에 다른 판형 2 호(fb-02 등)의 CSS가 함께 들어온다. 그래서 이 호의 규칙은 모두 .iss-drop-02 아래에 걸고,
+공용 이름(.x2 .x-in .x-rh .x-folio .x-more .x-txt)은 속성을 전부 다시 정한다. 이 호만의 장치는 d- 접두어.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+:root{
+  --paper:#fbfaf6; --ink:#121212; --mute:#6b665e; --rule:rgba(18,18,18,.16);
+  --pink:#f59ad6; --pink2:#b8306f; --blue:#2a2fb0; --orange:#f08a16; --navy:#16185a; --hall:#1b1a22;
+  --dl:'Archivo Black',sans-serif; --dk:'Black Han Sans',sans-serif; --it:'Instrument Serif',Georgia,serif; --body:'Noto Serif KR',Georgia,serif; --ui:'Noto Sans KR',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  --rd-bg:#fbfaf6; --rd-ink:#151515; --rd-accent:#b8306f; --rd-rule:rgba(18,18,18,.14); --rd-on:#fff; --rd-hit:rgba(245,154,214,.28);
+}
+/* ── 지면 공용 ── */
+.iss-drop-02 .x2{position:absolute;inset:0;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size;font-family:var(--body);-webkit-font-smoothing:antialiased}
+.iss-drop-02 .x2::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;opacity:.35;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .4  0 0 0 0 .42  0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.iss-drop-02 .x2 *{box-sizing:border-box}
+.iss-drop-02 .x2 :is(h1,h2,h3){color:inherit;text-align:left;font-weight:400}
+.iss-drop-02 .x2 .x-in{position:absolute;left:7cqw;right:7cqw;top:12cqw;bottom:12cqw;display:flex;flex-direction:column}
+.iss-drop-02 .x2 .x-rh{position:absolute;left:7cqw;right:7cqw;top:4.6cqw;display:flex;justify-content:space-between;align-items:baseline;font:400 2.2cqw/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);border-bottom:.5cqw solid var(--ink);padding-bottom:1.5cqw}
+.iss-drop-02 .x2 .x-rh b{font:400 3cqw/1 var(--dl);letter-spacing:-.02em;text-transform:none;color:var(--ink)}
+.iss-drop-02 .x2 .x-rh b i{font-style:normal;color:var(--pink2)}
+.iss-drop-02 .x2 .x-folio{position:absolute;left:7cqw;right:7cqw;bottom:4.6cqw;display:flex;justify-content:space-between;font:400 2.2cqw/1 var(--mono);letter-spacing:.08em;color:var(--mute)}
+.iss-drop-02 .x2 .x-folio span:first-child{font:400 2.6cqw/1 var(--dl);color:var(--ink)}
+.iss-drop-02 .x2 .x-txt{font:400 3.45cqw/1.74 var(--body);word-break:keep-all;color:#1d1c1a}
+.iss-drop-02 .x2 .x-txt p{margin:0 0 2.3cqw}
+.iss-drop-02 .x2 .x-txt .note{font:400 2.9cqw/1.6 var(--ui);color:var(--mute)}
+.iss-drop-02 .x2 .x-txt ul{margin:0;padding:0;list-style:none}
+.iss-drop-02 .x2 .x-txt li{padding:1.8cqw 0;border-top:.2cqw solid var(--rule);font:400 3cqw/1.55 var(--ui)}
+.iss-drop-02 .x2 .x-txt .pull,.iss-drop-02 .x2 .x-txt blockquote{margin:0}
+.iss-drop-02 .x2 .x-more{margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:1.6cqw;border:0;border-radius:0;background:var(--ink);color:var(--paper);font:700 3.1cqw/1 var(--ui);padding:3.2cqw 4.4cqw;cursor:pointer;min-height:11cqw;box-shadow:1cqw 1cqw 0 var(--pink)}
+.iss-drop-02 .x2 .x-more i{font-style:normal;font-size:2.3cqw;color:var(--pink)}
+.iss-drop-02 .x2 .x-more:focus-visible{outline:.6cqw solid var(--blue);outline-offset:.8cqw}
+.iss-drop-02 .x2.d-dark .x-more{background:var(--pink);color:var(--ink);box-shadow:1cqw 1cqw 0 rgba(255,255,255,.25)}
+.iss-drop-02 .x2.d-dark .x-more i{color:var(--ink)}
+.iss-drop-02 .x2 .d-row{display:flex;gap:3cqw;flex-wrap:wrap;margin-top:auto;align-items:flex-end}
+.iss-drop-02 .x2 .d-row .x-more{margin-top:0}
+/* 글자 장치 */
+.iss-drop-02 .x2 .d-kick{font:600 2.4cqw/1.3 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--pink2)}
+.iss-drop-02 .x2 .d-h{font:400 9.6cqw/1.08 var(--dk);letter-spacing:-.01em;margin:2cqw 0 0;word-break:keep-all}
+.iss-drop-02 .x2 .d-h2{font:400 6.6cqw/1.15 var(--dk);margin:0;word-break:keep-all}
+.iss-drop-02 .x2 .d-en{font:italic 400 4.6cqw/1.1 var(--it);color:var(--mute)}
+.iss-drop-02 .x2 .d-dek{font:500 3.3cqw/1.6 var(--ui);color:#3b3833;margin:2.4cqw 0 0;word-break:keep-all}
+.iss-drop-02 .x2 .d-by{font:400 2.4cqw/1.5 var(--mono);color:var(--mute);margin-top:2cqw;letter-spacing:.04em}
+.iss-drop-02 .x2 .d-cap{font:400 2.45cqw/1.5 var(--ui);color:var(--mute);word-break:keep-all;margin:0}
+.iss-drop-02 .x2 .d-cap b{color:var(--ink);font-weight:700}
+.iss-drop-02 .x2 .d-drop>p:first-child::first-letter{float:left;font:400 13cqw/.82 var(--dk);padding:1.2cqw 2cqw 0 0;color:var(--pink2)}
+.iss-drop-02 .x2 .d-pull{font:400 5.6cqw/1.32 var(--dk);word-break:keep-all;border-top:1.2cqw solid var(--ink);padding:2.6cqw 0 0;margin:1cqw 0 3cqw}
+.iss-drop-02 .x2 .d-pull p,.iss-drop-02 .x2 .d-pull blockquote{margin:0;font:inherit}
+.iss-drop-02 .x2 .d-big{font:400 23cqw/.86 var(--dl);letter-spacing:-.06em;margin:0}
+.iss-drop-02 .x2 .d-big s{text-decoration:line-through;text-decoration-color:var(--pink2);text-decoration-thickness:2.4cqw}
+.iss-drop-02 .x2 .d-big small{font:400 4cqw/1 var(--mono);letter-spacing:0;color:var(--mute);margin-left:2cqw;vertical-align:.8em}
+.iss-drop-02 .x2 .d-box{border:.4cqw solid var(--ink);padding:3cqw 3.4cqw;margin:2.4cqw 0;background:#fff}
+.iss-drop-02 .x2 .d-box h3{margin:0 0 1.4cqw;font:400 4.6cqw/1.2 var(--dk)}
+.iss-drop-02 .x2 .d-box h3 small{font:italic 400 3.4cqw/1 var(--it);color:var(--mute);margin-left:1.2cqw}
+.iss-drop-02 .x2 .d-box .x-txt{font-size:3cqw;line-height:1.65}
+.iss-drop-02 .x2 .d-box .x-txt p{margin:0 0 1.4cqw}
+.iss-drop-02 .x2 .d-why{font:500 2.7cqw/1.5 var(--ui);background:var(--pink);padding:1.6cqw 2.2cqw;margin:1cqw 0 0;word-break:keep-all}
+.iss-drop-02 .x2 .d-why b{font:600 2.1cqw/1 var(--mono);letter-spacing:.12em;margin-right:1.4cqw}
+.iss-drop-02 .x2 svg text{font-family:var(--ui)}
+
+/* 0 표지 */
+.iss-drop-02 .x2.d-cover{background:var(--paper)}
+.iss-drop-02 .x2 .d-top{position:absolute;left:5cqw;right:5cqw;top:3.4cqw;display:flex;justify-content:space-between;font:600 2.2cqw/1 var(--mono);letter-spacing:.12em}
+.iss-drop-02 .x2 .d-mast{position:absolute;left:3.4cqw;top:5.6cqw;margin:0;font:400 31cqw/.8 var(--dl);letter-spacing:-.075em;color:var(--ink)}
+.iss-drop-02 .x2 .d-mast::before{content:"Drop";position:absolute;left:1.3cqw;top:1.1cqw;color:var(--pink);z-index:-1}
+.iss-drop-02 .x2 .d-mtag{position:absolute;left:5cqw;right:5cqw;top:34cqw;margin:0;display:flex;justify-content:space-between;align-items:baseline;font:500 2.4cqw/1.3 var(--ui);color:var(--ink);border-top:.35cqw solid var(--ink);padding-top:1.2cqw}
+.iss-drop-02 .x2 .d-mtag b{font:400 3.2cqw/1 var(--dk);color:var(--pink2)}
+.iss-drop-02 .x2 .d-keys{position:absolute;left:5cqw;right:5cqw;top:39.5cqw;height:56cqw}
+.iss-drop-02 .x2 .d-cvh{position:absolute;left:5cqw;right:5cqw;top:97cqw;margin:0;font:400 14.6cqw/1 var(--dk);letter-spacing:-.02em}
+.iss-drop-02 .x2 .d-cvh em{font-style:normal;color:var(--pink2)}
+.iss-drop-02 .x2 .d-cvn{position:absolute;left:5cqw;top:113cqw;font:italic 400 6cqw/1 var(--it)}
+.iss-drop-02 .x2 .d-cvn b{font:400 3cqw/1 var(--dl);font-style:normal;letter-spacing:.02em;margin-right:1.6cqw}
+.iss-drop-02 .x2 .d-stk{position:absolute;right:8cqw;top:43cqw;width:21cqw;height:21cqw;border-radius:50%;background:var(--orange);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:400 3.7cqw/1.08 var(--dk);transform:rotate(-10deg);box-shadow:.6cqw .8cqw 0 var(--ink)}
+.iss-drop-02 .x2 .d-stk small{font:600 1.8cqw/1 var(--mono);letter-spacing:.1em;margin-top:1cqw}
+.iss-drop-02 .x2 .d-cvl{position:absolute;left:5cqw;right:5cqw;top:121cqw;display:grid;grid-template-columns:1fr 1fr 1fr;gap:3cqw;border-top:.6cqw solid var(--ink);padding-top:2cqw}
+.iss-drop-02 .x2 .d-cvl div{font:500 2.35cqw/1.4 var(--ui);word-break:keep-all}
+.iss-drop-02 .x2 .d-cvl b{display:block;font:600 1.9cqw/1.2 var(--mono);letter-spacing:.1em;color:var(--pink2);margin-bottom:.6cqw}
+.iss-drop-02 .x2 .d-bar{position:absolute;right:5cqw;bottom:3.2cqw;width:24cqw;background:#fff;padding:1.2cqw 1.4cqw .8cqw;border:.2cqw solid var(--ink)}
+.iss-drop-02 .x2 .d-bar i{display:block;height:5cqw;background:repeating-linear-gradient(90deg,#121212 0 .3cqw,transparent .3cqw .6cqw,#121212 .6cqw .8cqw,transparent .8cqw 1.4cqw,#121212 1.4cqw 2cqw,transparent 2cqw 2.3cqw,#121212 2.3cqw 2.5cqw,transparent 2.5cqw 3.2cqw)}
+.iss-drop-02 .x2 .d-bar span{display:flex;justify-content:space-between;font:400 1.6cqw/1 var(--mono);margin-top:.7cqw}
+.iss-drop-02 .x2 .d-lp{position:absolute;left:5cqw;bottom:3.4cqw;display:flex;align-items:center;gap:2cqw;font:600 2.1cqw/1.3 var(--mono);letter-spacing:.06em}
+.iss-drop-02 .x2 .d-lp i{width:7.4cqw;height:7.4cqw;border-radius:50%;background:radial-gradient(circle,var(--paper) 0 9%,var(--pink) 9% 33%,#121212 33% 37%,#2b2b2b 37% 41%,#121212 41%)}
+
+/* 1 차례 */
+.iss-drop-02 .x2 .d-toc{list-style:none;margin:2.6cqw 0 0;padding:0}
+.iss-drop-02 .x2 .d-toc li{display:grid;grid-template-columns:12cqw 1fr;gap:2cqw;padding:1.3cqw 0;border-top:.2cqw solid var(--rule);align-items:baseline}
+.iss-drop-02 .x2 .d-toc li:first-child{border-top:.6cqw solid var(--ink)}
+.iss-drop-02 .x2 .d-toc li b{font:400 5.4cqw/1 var(--dl);letter-spacing:-.04em}
+.iss-drop-02 .x2 .d-toc li.k b{color:var(--pink2)}
+.iss-drop-02 .x2 .d-toc li span{font:700 3.1cqw/1.3 var(--ui)}
+.iss-drop-02 .x2 .d-toc li small{display:block;font:400 2.5cqw/1.4 var(--ui);color:var(--mute);margin-top:.5cqw}
+.iss-drop-02 .x2 .d-how{margin-top:auto;border:.4cqw solid var(--ink);padding:2.8cqw 3.2cqw;font:500 2.75cqw/1.55 var(--ui);background:#fff;box-shadow:1cqw 1cqw 0 var(--pink)}
+.iss-drop-02 .x2 .d-how b{font:400 3cqw/1 var(--dk);margin-right:1cqw}
+
+/* 4 커버 첫 쪽 — 빈 홀 */
+.iss-drop-02 .x2.d-dark{background:var(--hall);color:#ecebf2}
+.iss-drop-02 .x2.d-dark::after{opacity:.2;mix-blend-mode:screen}
+.iss-drop-02 .x2.d-dark .x-rh{color:#9a98ab;border-color:#ecebf2}
+.iss-drop-02 .x2.d-dark .x-rh b{color:#ecebf2}
+.iss-drop-02 .x2.d-dark .x-folio,.iss-drop-02 .x2.d-dark .x-folio span:first-child{color:#9a98ab}
+.iss-drop-02 .x2.d-dark .x-txt{color:#dcdbe6}
+.iss-drop-02 .x2.d-dark .d-kick{color:var(--pink)}
+.iss-drop-02 .x2.d-dark .d-dek{color:#c9c7d6}
+.iss-drop-02 .x2.d-dark .d-by,.iss-drop-02 .x2.d-dark .d-cap{color:#9a98ab}
+.iss-drop-02 .x2 .d-hall{display:block;width:100%;height:auto;margin:0 0 2cqw}
+
+/* 5 사실 상자 */
+.iss-drop-02 .x2 .d-facts{display:grid;grid-template-columns:auto 1fr;gap:1.1cqw 3cqw;font:400 2.65cqw/1.45 var(--ui);border-top:.6cqw solid var(--ink);border-bottom:.2cqw solid var(--ink);padding:2.2cqw 0;margin:1.6cqw 0 2.4cqw}
+.iss-drop-02 .x2 .d-facts dt{font:600 2.2cqw/1.6 var(--mono);color:var(--mute);letter-spacing:.08em}
+.iss-drop-02 .x2 .d-facts dd{margin:0;font-weight:500}
+
+/* 8 연표 */
+.iss-drop-02 .x2 .d-tl{list-style:none;margin:2.4cqw 0 0;padding:0;position:relative}
+.iss-drop-02 .x2 .d-tl::before{content:"";position:absolute;left:14.4cqw;top:1cqw;bottom:1cqw;width:.4cqw;background:var(--ink)}
+.iss-drop-02 .x2 .d-tl li{display:grid;grid-template-columns:12cqw 1fr;gap:5cqw;padding:1.05cqw 0;position:relative}
+.iss-drop-02 .x2 .d-tl li::before{content:"";position:absolute;left:13.3cqw;top:2.1cqw;width:2.6cqw;height:2.6cqw;background:var(--paper);border:.45cqw solid var(--ink)}
+.iss-drop-02 .x2 .d-tl li.s::before{background:var(--pink)}
+.iss-drop-02 .x2 .d-tl li.now::before{background:var(--orange);border-radius:50%;width:3.2cqw;height:3.2cqw;left:13cqw}
+.iss-drop-02 .x2 .d-tl b{font:400 3.4cqw/1.3 var(--dl);text-align:right;letter-spacing:-.03em}
+.iss-drop-02 .x2 .d-tl span{font:italic 400 4.1cqw/1.2 var(--it)}
+.iss-drop-02 .x2 .d-tl small{display:block;font:400 2.35cqw/1.4 var(--ui);color:var(--mute);font-style:normal;margin-top:.3cqw}
+.iss-drop-02 .x2 .d-key{display:flex;gap:4cqw;font:400 2.3cqw/1 var(--ui);color:var(--mute);margin:1.6cqw 0 2cqw}
+.iss-drop-02 .x2 .d-key i{display:inline-block;width:2.4cqw;height:2.4cqw;border:.4cqw solid var(--ink);vertical-align:-.3cqw;margin-right:1cqw}
+
+/* 9 두 판 비교 */
+.iss-drop-02 .x2 .d-vs{width:100%;border-collapse:collapse;margin:2cqw 0 2.4cqw;font:400 2.65cqw/1.35 var(--ui)}
+.iss-drop-02 .x2 .d-vs th{font:400 3.2cqw/1.15 var(--dl);text-align:left;padding:1.4cqw 1cqw;border-bottom:.6cqw solid var(--ink);letter-spacing:-.02em}
+.iss-drop-02 .x2 .d-vs th small{display:block;font:italic 400 3cqw/1 var(--it);letter-spacing:0;color:var(--mute);margin-top:.6cqw}
+.iss-drop-02 .x2 .d-vs td{padding:1.5cqw 1cqw;border-bottom:.2cqw solid var(--rule);vertical-align:top;word-break:keep-all}
+.iss-drop-02 .x2 .d-vs td:first-child{font:600 2.1cqw/1.5 var(--mono);color:var(--mute);letter-spacing:.06em;width:18cqw}
+.iss-drop-02 .x2 .d-vs td.hi{background:var(--pink);font-weight:700}
+
+/* 10 곡 길이 그래프 */
+.iss-drop-02 .x2 .d-bars{position:relative;margin:2cqw 0 1.4cqw}
+.iss-drop-02 .x2 .d-bars .r{display:grid;grid-template-columns:9cqw 1fr 9cqw;align-items:center;gap:1.6cqw;height:3.65cqw}
+.iss-drop-02 .x2 .d-bars .r b{font:600 2.1cqw/1 var(--mono);text-align:right;color:var(--mute)}
+.iss-drop-02 .x2 .d-bars .r i{display:block;height:2.5cqw;background:var(--ink);width:var(--w)}
+.iss-drop-02 .x2 .d-bars .r.f i{background:var(--pink2)}
+.iss-drop-02 .x2 .d-bars .r.mid i{background:linear-gradient(90deg,var(--ink) 0 var(--m),var(--orange) var(--m))}
+.iss-drop-02 .x2 .d-bars .r span{font:400 2.1cqw/1 var(--mono)}
+.iss-drop-02 .x2 .d-bars .r.f b,.iss-drop-02 .x2 .d-bars .r.f span{color:var(--pink2)}
+.iss-drop-02 .x2 .d-axis{display:flex;justify-content:space-between;font:400 1.9cqw/1 var(--mono);color:var(--mute);margin-left:10.6cqw;margin-right:10.6cqw;border-top:.2cqw solid var(--ink);padding-top:.8cqw}
+.iss-drop-02 .x2 .d-strip{display:flex;height:5cqw;margin:2.6cqw 0 .6cqw;border:.3cqw solid var(--ink);position:relative}
+.iss-drop-02 .x2 .d-strip i{display:block;height:100%;border-right:.2cqw solid var(--paper);background:var(--ink)}
+.iss-drop-02 .x2 .d-strip i.f{background:var(--pink2)}
+.iss-drop-02 .x2 .d-strip i.l{background:var(--orange)}
+.iss-drop-02 .x2 .d-strip::after{content:"";position:absolute;left:50%;top:-1.6cqw;bottom:-1.6cqw;width:.5cqw;background:var(--blue)}
+.iss-drop-02 .x2 .d-sl{display:flex;justify-content:space-between;font:400 2cqw/1.3 var(--mono);color:var(--mute)}
+.iss-drop-02 .x2 .d-sl b{color:var(--blue);font-weight:600}
+
+/* 11 7/4 */
+.iss-drop-02 .x2 .d-beats{display:flex;flex-direction:column;gap:2cqw;margin:2.6cqw 0}
+.iss-drop-02 .x2 .d-beats .m{display:flex;align-items:center;gap:1.2cqw}
+.iss-drop-02 .x2 .d-beats .m span{font:600 2.2cqw/1 var(--mono);width:13cqw;color:var(--mute)}
+.iss-drop-02 .x2 .d-beats .g{display:flex;gap:.8cqw;padding:1cqw;border:.35cqw solid var(--ink);border-radius:99cqw;margin-right:.6cqw}
+.iss-drop-02 .x2 .d-beats .g i{width:5.2cqw;height:5.2cqw;border-radius:50%;background:var(--ink)}
+.iss-drop-02 .x2 .d-beats .g i:first-child{background:var(--pink2)}
+
+/* 12 몽상 */
+.iss-drop-02 .x2.d-pinkp{background:var(--pink)}
+.iss-drop-02 .x2.d-pinkp .x-rh{border-color:var(--ink);color:#4a2a3b}
+.iss-drop-02 .x2.d-pinkp .x-folio{color:#4a2a3b}
+.iss-drop-02 .x2.d-pinkp .x-more{box-shadow:1cqw 1cqw 0 var(--paper)}
+.iss-drop-02 .x2 .d-moods{list-style:none;margin:2cqw 0 3cqw;padding:0;display:flex;flex-wrap:wrap;gap:1.6cqw 2.4cqw}
+.iss-drop-02 .x2 .d-moods li{font:400 7.2cqw/1 var(--dk)}
+.iss-drop-02 .x2 .d-moods li:nth-child(even){font:italic 400 7.6cqw/1 var(--it)}
+
+/* 13 녹음 기록지 */
+.iss-drop-02 .x2 .d-sheet{background:#fff;border:.4cqw solid var(--ink);margin:2.2cqw 0 2.4cqw;font:400 2.5cqw/1.35 var(--mono)}
+.iss-drop-02 .x2 .d-sheet .h{display:flex;justify-content:space-between;background:var(--ink);color:var(--paper);padding:1.4cqw 2cqw;font:600 2.2cqw/1 var(--mono);letter-spacing:.12em}
+.iss-drop-02 .x2 .d-sheet .r{display:grid;grid-template-columns:19cqw 1fr;border-top:.2cqw solid var(--rule)}
+.iss-drop-02 .x2 .d-sheet .r b{padding:1.3cqw 2cqw;color:var(--mute);font-weight:400;letter-spacing:.06em;border-right:.2cqw solid var(--rule)}
+.iss-drop-02 .x2 .d-sheet .r span{padding:1.3cqw 2cqw;color:var(--ink);font-weight:600;word-break:keep-all}
+.iss-drop-02 .x2 .d-sheet .r.p span{background:var(--pink)}
+
+/* 15 원본을 들어라 */
+.iss-drop-02 .x2.d-bluep{background:var(--navy);color:#eef0ff}
+.iss-drop-02 .x2.d-bluep::after{opacity:.18;mix-blend-mode:screen}
+.iss-drop-02 .x2.d-bluep .x-rh{color:#a9aee8;border-color:#eef0ff}
+.iss-drop-02 .x2.d-bluep .x-rh b{color:#eef0ff}
+.iss-drop-02 .x2.d-bluep .x-folio,.iss-drop-02 .x2.d-bluep .x-folio span:first-child{color:#a9aee8}
+.iss-drop-02 .x2.d-bluep .x-txt{color:#dfe2ff}
+.iss-drop-02 .x2.d-bluep .d-kick{color:var(--pink)}
+.iss-drop-02 .x2.d-bluep .d-cap{color:#a9aee8}
+.iss-drop-02 .x2.d-bluep .x-more{background:var(--pink);color:var(--ink);box-shadow:1cqw 1cqw 0 #eef0ff}
+.iss-drop-02 .x2.d-bluep .x-more i{color:var(--ink)}
+.iss-drop-02 .x2 .d-side{display:grid;grid-template-columns:1fr 1fr;gap:3cqw;margin:2.4cqw 0}
+.iss-drop-02 .x2 .d-side div{border-top:.8cqw solid #eef0ff;padding-top:1.6cqw}
+.iss-drop-02 .x2 .d-side b{display:block;font:400 3.2cqw/1 var(--dl);letter-spacing:-.02em;margin-bottom:.6cqw}
+.iss-drop-02 .x2 .d-side small{display:block;font:600 2cqw/1.3 var(--mono);color:var(--pink);letter-spacing:.08em;margin-bottom:1.2cqw}
+.iss-drop-02 .x2 .d-side i{display:block;font:italic 400 4.1cqw/1.25 var(--it)}
+
+/* 16 연재 */
+.iss-drop-02 .x2 .d-ser{display:flex;align-items:flex-end;gap:3cqw;margin-bottom:1cqw}
+.iss-drop-02 .x2 .d-ser b{font:400 19cqw/.8 var(--dl);letter-spacing:-.06em;color:var(--paper);-webkit-text-stroke:.45cqw var(--ink)}
+.iss-drop-02 .x2 .d-ser span{font:600 2.4cqw/1.5 var(--mono);letter-spacing:.12em;color:var(--mute);padding-bottom:1cqw}
+.iss-drop-02 .x2 .d-route{display:block;width:100%;height:auto;margin:1.6cqw 0 1.2cqw}
+
+/* 18 편집 노트 */
+.iss-drop-02 .x2 .d-nums{display:grid;grid-template-columns:repeat(3,1fr);margin:2.4cqw 0;border-top:.6cqw solid var(--ink)}
+.iss-drop-02 .x2 .d-nums div{padding:2.4cqw 1cqw 2.2cqw;border-bottom:.2cqw solid var(--rule);border-right:.2cqw solid var(--rule)}
+.iss-drop-02 .x2 .d-nums div:nth-child(3n){border-right:0}
+.iss-drop-02 .x2 .d-nums b{display:block;font:400 9cqw/1 var(--dl);letter-spacing:-.05em}
+.iss-drop-02 .x2 .d-nums span{display:block;font:500 2.4cqw/1.4 var(--ui);margin-top:1cqw;word-break:keep-all}
+.iss-drop-02 .x2 .d-colo{margin-top:2.4cqw;font:400 2.3cqw/1.7 var(--mono);color:var(--mute);border-top:.2cqw solid var(--rule);padding-top:2cqw}
+.iss-drop-02 .x2 .d-colo b{color:var(--ink);font-weight:600}
+
+/* 19 부록 LP */
+.iss-drop-02 .x2 .single7{position:absolute;width:var(--w);aspect-ratio:1;transform:rotate(var(--r));cursor:pointer}
+.iss-drop-02 .x2 .single7 .sl{position:absolute;inset:0;background:#e9d9e3}
+.iss-drop-02 .x2 .single7 .bg{position:absolute;inset:-4% -4% -7%}
+.iss-drop-02 .x2 .single7 .tp{position:absolute;height:calc(var(--w)*.16);background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.iss-drop-02 .x2 .single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 3cqw);text-align:center;font:700 3cqw/1.4 var(--ui);color:var(--ink)}
+.iss-drop-02 .x2 .single7 .c2 small{display:block;color:var(--mute);font-weight:400;font-size:2.5cqw}
+.iss-drop-02 .x2 .d-lpl{list-style:none;margin:2cqw 0 0;padding:0;columns:2;column-gap:5cqw}
+.iss-drop-02 .x2 .d-lpl li{break-inside:avoid;padding:1.15cqw 0;border-top:.2cqw solid var(--rule);font:400 2.4cqw/1.35 var(--ui)}
+.iss-drop-02 .x2 .d-lpl li b{display:block;font:600 2.1cqw/1.3 var(--mono);color:var(--pink2)}
+.iss-drop-02 .x2 .d-lpl li i{font:italic 400 3.5cqw/1.15 var(--it)}
+
+/* ── 읽기 모드 ── */
+.iss-drop-02 .x2r{font-family:var(--body);color:var(--rd-ink)}
+.iss-drop-02 .x2r :is(h1,h2){text-align:left}
+.iss-drop-02 .x2r .rhead{margin:0 0 1.8em;padding-bottom:1.1em;border-bottom:6px solid var(--rd-ink)}
+.iss-drop-02 .x2r h1{font:400 1.75em/1.25 var(--dk);margin:0;word-break:keep-all}
+.iss-drop-02 .x2r .by{margin:.7em 0 0;font:400 .75em/1.4 var(--mono);letter-spacing:.06em;color:#6b665e}
+.iss-drop-02 .x2r h2{font:400 1.2em/1.35 var(--dk);margin:2.2em 0 .8em;color:var(--rd-ink);padding-left:.6em;border-left:.32em solid var(--pink)}
+.iss-drop-02 .x2r p{margin:0 0 1.15em}
+.iss-drop-02 .x2r .pull{margin:1.6em 0;padding:.8em 0 0;border-top:6px solid var(--rd-ink);font:400 1.22em/1.5 var(--dk)}
+.iss-drop-02 .x2r .note{font-family:var(--ui);font-size:.9em;color:#4c4740;background:#fbe3f1;padding:.8em 1em;border-left:4px solid var(--rd-accent)}
+.iss-drop-02 .x2r ul{margin:0 0 1.2em;padding:0;list-style:none}
+.iss-drop-02 .x2r li{padding:.6em 0;border-top:1px solid var(--rd-rule);font-family:var(--ui);font-size:.88em;line-height:1.6;overflow-wrap:anywhere}
+.iss-drop-02 .x2r a{color:var(--rd-accent)}
+.iss-drop-02 .x2r .alb{white-space:nowrap}
+</style>
+
+<!-- 0 표지 -->
+<template class="pg"><div class="x2 d-cover" data-art="cover" data-at="s0">
+  <div class="d-top"><span>FRI 2026.11.13</span><span>VOL.02</span><span>드롭 레코드</span></div>
+  <h1 class="d-mast" aria-label="Drop">Drop</h1>
+  <p class="d-mtag"><b>숫자를 뗀 첫 호</b><span>10년 뒤에도 꺼낼 판을 찾는 금요일의 잡지</span></p>
+  <svg class="d-keys" viewBox="0 0 100 64" role="img" aria-label="열다섯 개의 막대. 막대 높이는 이 앨범 열다섯 트랙의 길이. 첫 막대(11분 11초)가 가장 높다">
+    <g transform="translate(0,60)">
+      <rect x="0" y="-55.9" width="5.6" height="55.9" fill="#b8306f"/>
+      <rect x="6.6" y="-8.4" width="5.6" height="8.4" fill="#121212"/>
+      <rect x="13.2" y="-7.5" width="5.6" height="7.5" fill="#121212"/>
+      <rect x="19.8" y="-9" width="5.6" height="9" fill="#121212"/>
+      <rect x="26.4" y="-16.8" width="5.6" height="16.8" fill="#121212"/>
+      <rect x="33" y="-5.8" width="5.6" height="5.8" fill="#121212"/>
+      <rect x="39.6" y="-30.4" width="5.6" height="30.4" fill="#f08a16"/>
+      <rect x="46.2" y="-16.3" width="5.6" height="16.3" fill="#121212"/>
+      <rect x="52.8" y="-11" width="5.6" height="11" fill="#121212"/>
+      <rect x="59.4" y="-12.1" width="5.6" height="12.1" fill="#121212"/>
+      <rect x="66" y="-7.3" width="5.6" height="7.3" fill="#121212"/>
+      <rect x="72.6" y="-8.8" width="5.6" height="8.8" fill="#121212"/>
+      <rect x="79.2" y="-19.3" width="5.6" height="19.3" fill="#121212"/>
+      <rect x="85.8" y="-12" width="5.6" height="12" fill="#121212"/>
+      <rect x="92.4" y="-29.2" width="5.6" height="29.2" fill="#121212"/>
+      <line x1="0" y1="0" x2="98" y2="0" stroke="#121212" stroke-width=".6"/>
+    </g>
+    <text x="7" y="9" font-size="2.6" fill="#b8306f" font-family="IBM Plex Mono">FANTASY 11:11</text>
+    <text x="0" y="63.6" font-size="2.2" fill="#6b665e" font-family="IBM Plex Mono">막대 높이 = 트랙 길이 · 15 TRACKS · 49:55</text>
+  </svg>
+  <div class="d-stk">이번 주의<br>한 장<small>RECORD OF THE WEEK</small></div>
+  <h2 class="d-cvh">빈 홀의 <em>피아노</em></h2>
+  <div class="d-cvn"><b>BRAD MEHLDAU</b>Fantasy &amp; Reveries</div>
+  <div class="d-cvl">
+    <div><b>COVER</b>550석 홀에서 혼자 친 열다섯 트랙</div>
+    <div><b>원본을 들어라</b>[Kind of Blue], 여섯이 한 방에서</div>
+    <div><b>새 연재 · 정전 해부 01</b>[OK Computer], 집 한 채를 빌린 판</div>
+  </div>
+  <div class="d-lp"><i></i><span>부록 LP 1장<br>이 호의 노래 12곡</span></div>
+  <div class="d-bar"><i></i><span><b>DROP</b><span>₩0</span><span>02</span></span></div>
+</div></template>
+
+<!-- 1 차례 -->
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>contents · vol.02</span></div>
+  <div class="x-in">
+    <h2 class="d-h" style="margin-top:0">차례 <span class="d-en">contents</span></h2>
+    <ol class="d-toc">
+      <li><b>02</b><span>편집장의 글<small>숫자를 떼어 낸 첫 금요일</small></span></li>
+      <li><b>03</b><span>이번 주 단평<small>래디 핏 · 스노 알레그라</small></span></li>
+      <li class="k"><b>04</b><span>이번 주의 한 장 — 빈 홀의 피아노<small>브래드 멜다우 [Fantasy &amp; Reveries] · 4–14쪽 · 글 고한석</small></span></li>
+      <li><b>15</b><span>원본을 들어라<small>마일스 데이비스 [Kind of Blue] (1959)</small></span></li>
+      <li><b>16</b><span>새 연재 '정전 해부' 1회<small>라디오헤드 [OK Computer] (1997)</small></span></li>
+      <li><b>17</b><span>공연 · 발매 소식</span></li>
+      <li><b>18</b><span>편집 노트 · 출처 · 판권</span></li>
+      <li><b>19</b><span>부록 LP<small>이 호에서 이름이 나온 노래 12곡</small></span></li>
+    </ol>
+    <div class="d-how"><b>읽는 법</b> 지면은 넘겨 보고, 긴 글은 검은 단추 <b>▶</b>를 누르세요. 큰 글씨 본문이 아래에서 올라옵니다. 위 줄의 '본문 읽기'로도 열립니다.</div>
+  </div>
+  <div class="x-folio"><span>01</span><span>2026.11.13 FRI</span></div>
+</div></template>
+
+<!-- 2 편집장의 글 -->
+<template class="pg"><div class="x2" data-art="letter" data-at="a">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>editor's letter</span></div>
+  <div class="x-in">
+    <p class="d-big" aria-label="6.5에 줄을 그음"><s>6.5</s><small>→ 없음</small></p>
+    <div class="d-kick">editor's letter · 편집장의 글</div>
+    <h2 class="d-h2" style="margin:1.4cqw 0 3cqw">숫자를 떼어 낸 첫 금요일</h2>
+    <div class="x-txt d-drop">{{p letter a.1-2}}</div>
+    {{more letter a.2 편집장의 글 이어 읽기}}
+  </div>
+  <div class="x-folio"><span>02</span><span>고한석 · 편집장</span></div>
+</div></template>
+
+<!-- 3 이번 주 단평 -->
+<template class="pg"><div class="x2" data-art="briefs" data-at="b0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>short takes</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">이번 주 단평</h2>
+    <p class="d-cap" style="margin:1cqw 0 0">판정 없이 사실과, 이 판을 들을 이유 한 줄.</p>
+    <div class="d-box"><h3>래디 핏 <small>No Human Tongue Can Tell</small></h3><div class="x-txt">{{p briefs b0.2}}</div><p class="d-why"><b>WHY</b>포크 전통의 노래를 모든 파트를 혼자 쌓는 방식으로 다시 녹음하려 한 판.</p></div>
+    <div class="d-box"><h3>스노 알레그라 <small>Legendary Love</small></h3><div class="x-txt">{{p briefs b1.3}}</div><p class="d-why"><b>WHY</b>원본을 연주한 세대가 직접 와서 친 곡이 있다.</p></div>
+    {{more briefs b0.1 두 판 이어 읽기}}
+  </div>
+  <div class="x-folio"><span>03</span><span>단평 데스크</span></div>
+</div></template>
+
+<!-- 4 커버 첫 쪽 — 빈 홀 -->
+<template class="pg"><div class="x2 d-dark" data-art="cover" data-at="s0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>record of the week</span></div>
+  <div class="x-in">
+    <svg class="d-hall" viewBox="0 0 100 62" role="img" aria-label="550석 홀의 개략도. 부채꼴로 놓인 빈 의자들 앞, 무대에 그랜드 피아노 한 대">
+      <defs><radialGradient id="d2sp" cx="50%" cy="20%" r="60%"><stop offset="0" stop-color="#f59ad6" stop-opacity=".32"/><stop offset="1" stop-color="#f59ad6" stop-opacity="0"/></radialGradient></defs>
+      <rect x="0" y="0" width="100" height="62" fill="url(#d2sp)"/>
+      <g fill="#ecebf2" opacity=".5">
+        <g id="d2rw"><circle cx="20" cy="30" r=".55"/><circle cx="23" cy="30.6" r=".55"/><circle cx="26" cy="31.1" r=".55"/><circle cx="29" cy="31.5" r=".55"/><circle cx="32" cy="31.8" r=".55"/><circle cx="35" cy="32" r=".55"/><circle cx="38" cy="32.2" r=".55"/><circle cx="41" cy="32.3" r=".55"/><circle cx="44" cy="32.4" r=".55"/><circle cx="47" cy="32.4" r=".55"/><circle cx="50" cy="32.4" r=".55"/><circle cx="53" cy="32.4" r=".55"/><circle cx="56" cy="32.4" r=".55"/><circle cx="59" cy="32.3" r=".55"/><circle cx="62" cy="32.2" r=".55"/><circle cx="65" cy="32" r=".55"/><circle cx="68" cy="31.8" r=".55"/><circle cx="71" cy="31.5" r=".55"/><circle cx="74" cy="31.1" r=".55"/><circle cx="77" cy="30.6" r=".55"/><circle cx="80" cy="30" r=".55"/></g>
+        <use href="#d2rw" transform="translate(0 3)"/><use href="#d2rw" transform="translate(0 6)"/><use href="#d2rw" transform="translate(0 9)"/><use href="#d2rw" transform="translate(0 12)"/><use href="#d2rw" transform="translate(0 15)"/><use href="#d2rw" transform="translate(0 18)"/><use href="#d2rw" transform="translate(0 21)"/><use href="#d2rw" transform="translate(0 24)"/>
+      </g>
+      <path d="M14 22 Q50 26 86 22" fill="none" stroke="#ecebf2" stroke-width=".5" opacity=".6"/>
+      <g transform="translate(44 9)">
+        <path d="M0 6 C0 2 3 0 7 0 L9 0 C12 0 13 2 13 4 C13 6 11.5 6.6 10 7.4 C8.5 8.4 8 10 6 10 L0 10 Z" fill="#121212" stroke="#f59ad6" stroke-width=".5"/>
+        <rect x="0" y="9.6" width="6.2" height="1.6" fill="#ecebf2"/>
+        <circle cx="3" cy="13" r=".9" fill="#ecebf2"/>
+      </g>
+      <text x="50" y="5" text-anchor="middle" font-size="2.4" fill="#f59ad6" font-family="IBM Plex Mono" letter-spacing=".3">STAGE · HAMBURG STEINWAY D</text>
+      <text x="2" y="60" font-size="2.2" fill="#9a98ab" font-family="IBM Plex Mono">CASALS FORUM · 550 SEATS · AUDIENCE 0</text>
+    </svg>
+    <div class="d-kick">record of the week · 이번 주의 한 장</div>
+    <h2 class="d-h" style="font-size:12cqw">빈 홀의 피아노</h2>
+    <p class="d-dek">브래드 멜다우의 [Fantasy &amp; Reveries]는 550석 빈 홀에서 이틀 동안 자기 곡만 친 기록이다. 그 판이 기대는 원본과, 원본과 다른 세 가지.</p>
+    <p class="d-by">글 고한석 · 홀 그림은 편집부의 개략도(실제 좌석 배치 아님)</p>
+    {{more cover s0.1 처음부터 읽기}}
+  </div>
+  <div class="x-folio"><span>04</span><span>이번 주의 한 장</span></div>
+</div></template>
+
+<!-- 5 크레딧 한 줄 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>brad mehldau — fantasy &amp; reveries</span></div>
+  <div class="x-in">
+    <div class="x-txt d-drop">{{p cover s0.1-2}}</div>
+    <dl class="d-facts"><dt>앨범</dt><dd>[Fantasy &amp; Reveries] · 15트랙 · 49분 55초</dd><dt>발매</dt><dd>2026년 11월 13일 · Nonesuch</dd><dt>연주</dt><dd>브래드 멜다우, 피아노 (1–15)</dd><dt>녹음</dt><dd>2025년 12월 11–12일 · 카살스 포룸, 크론베르크</dd></dl>
+    {{more cover s1.1 왜 이 판인가}}
+  </div>
+  <div class="x-folio"><span>05</span><span>장면은 크레딧으로 그린 상상</span></div>
+</div></template>
+
+<!-- 6 왜 이 판인가 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s1">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>01 · 왜 이 판인가</span></div>
+  <div class="x-in">
+    <p class="d-big">49:55</p>
+    <p class="d-cap" style="margin:1.4cqw 0 3cqw"><b>50분 규칙</b> 이 지면은 50분을 넘는 앨범에 뺄 곡을 묻는다. 이 판은 5초 모자라게 선 안이다. 애플 뮤직의 곡 길이를 더한 값.</p>
+    <div class="x-txt">{{p cover s1.3}}</div>
+    {{more cover s1.4 고른 이유 셋 이어 읽기}}
+  </div>
+  <div class="x-folio"><span>06</span><span>이번 주의 한 장</span></div>
+</div></template>
+
+<!-- 7 1970 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s2">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>02 · 1970, 그리고 옮겨 적기</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">옮겨 적던 아이</h2>
+    <div class="x-txt" style="margin-top:3cqw">{{p cover s2.2-3}}</div>
+    <div class="d-pull">{{p cover s2.4}}</div>
+    {{more cover s2.1 잭슨빌에서 뉴욕까지 이어 읽기}}
+  </div>
+  <div class="x-folio"><span>07</span><span>이번 주의 한 장</span></div>
+</div></template>
+
+<!-- 8 혼자 친 판들 · 연표 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s4">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>03 · 혼자 친 판들</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">트리오 다음, 혼자</h2>
+    <ol class="d-tl">
+      <li><b>1995</b><span>Introducing Brad Mehldau<small>워너 브러더스 · 그레나디어, 로시와 트리오</small></span></li>
+      <li><b>1998</b><span>Songs: The Art of the Trio Vol. 3<small>'River Man', 'Exit Music (For a Film)'</small></span></li>
+      <li class="s"><b>1999</b><span>Elegiac Cycle<small>첫 솔로 · 독일 낭만주의</small></span></li>
+      <li class="s"><b>2004</b><span>Live in Tokyo<small>논서치 첫 판 · 2003년 공연</small></span></li>
+      <li class="s"><b>2015</b><span>10 Years Solo Live<small>2004–14 유럽 공연</small></span></li>
+      <li class="s"><b>2018</b><span>After Bach<small>바흐에서 영감 받은 의뢰곡 + 원곡</small></span></li>
+      <li class="s"><b>2020</b><span>Suite: April 2020<small>봉쇄 중 암스테르담 · 이 판의 원본</small></span></li>
+      <li class="s"><b>2024</b><span>After Bach II · Après Fauré</span></li>
+      <li class="now"><b>2026</b><span>Fantasy &amp; Reveries<small>남의 곡 0 · 11월 13일</small></span></li>
+    </ol>
+    <div class="d-key"><span><i></i>트리오</span><span><i style="background:var(--pink)"></i>솔로 피아노</span></div>
+    <div class="d-row">{{more cover s3.1 트리오의 시대}}{{more cover s4.1 혼자 친 판들}}</div>
+  </div>
+  <div class="x-folio"><span>08</span><span>솔로 판은 일부만 골라 적음</span></div>
+</div></template>
+
+<!-- 9 원본은 2020년 4월에 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s5">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>04 · 원본은 2020년 4월에</span></div>
+  <div class="x-in">
+    <div class="d-kick">the original</div>
+    <h2 class="d-h2" style="margin-top:1cqw">이 판이 기대는 판</h2>
+    <table class="d-vs">
+      <thead><tr><th></th><th>2020<small>Suite: April 2020</small></th><th>2026<small>Fantasy &amp; Reveries</small></th></tr></thead>
+      <tbody>
+        <tr><td>트랙</td><td>15</td><td>15</td></tr>
+        <tr><td>남의 곡</td><td>3 (닐 영 · 빌리 조엘 · 제롬 컨)</td><td class="hi">0</td></tr>
+        <tr><td>가장 긴 곡</td><td>4분 안</td><td class="hi">11분 11초</td></tr>
+        <tr><td>녹음</td><td>2020.04.23–24<br>파워 사운드, 암스테르담</td><td>2025.12.11–12<br>카살스 포룸, 크론베르크</td></tr>
+        <tr><td>마지막 곡</td><td>해결 안 된 화음으로 끝(재즈 저널)</td><td>'Reverie 14' · 5분 50초</td></tr>
+      </tbody>
+    </table>
+    <div class="x-txt">{{p cover s5.3}}</div>
+    {{more cover s5.1 원본 이야기 읽기}}
+  </div>
+  <div class="x-folio"><span>09</span><span>이번 주의 한 장</span></div>
+</div></template>
+
+<!-- 10 열다섯 트랙의 배치 · 그래프 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s6">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>05 · 열다섯 트랙의 배치</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">판의 허리에 가장 긴 몽상</h2>
+    <div class="d-bars" role="img" aria-label="트랙 길이 막대그래프. 판타지 11분 11초, 몽상 1번부터 14번까지 1분 9초에서 6분 5초. 판의 한가운데 24분 57초는 몽상 6번 안에 있다">
+      <div class="r f"><b>F</b><i style="--w:100%"></i><span>11:11</span></div>
+      <div class="r"><b>R1</b><i style="--w:15%"></i><span>1:41</span></div>
+      <div class="r"><b>R2</b><i style="--w:13.4%"></i><span>1:30</span></div>
+      <div class="r"><b>R3</b><i style="--w:16.1%"></i><span>1:48</span></div>
+      <div class="r"><b>R4</b><i style="--w:30%"></i><span>3:21</span></div>
+      <div class="r"><b>R5</b><i style="--w:10.3%"></i><span>1:09</span></div>
+      <div class="r mid"><b>R6</b><i style="--w:54.4%;--m:70.5%"></i><span>6:05</span></div>
+      <div class="r"><b>R7</b><i style="--w:29.1%"></i><span>3:15</span></div>
+      <div class="r"><b>R8</b><i style="--w:19.7%"></i><span>2:12</span></div>
+      <div class="r"><b>R9</b><i style="--w:21.6%"></i><span>2:25</span></div>
+      <div class="r"><b>R10</b><i style="--w:13%"></i><span>1:27</span></div>
+      <div class="r"><b>R11</b><i style="--w:15.6%"></i><span>1:45</span></div>
+      <div class="r"><b>R12</b><i style="--w:34.6%"></i><span>3:52</span></div>
+      <div class="r"><b>R13</b><i style="--w:21.5%"></i><span>2:24</span></div>
+      <div class="r"><b>R14</b><i style="--w:52.2%"></i><span>5:50</span></div>
+    </div>
+    <div class="d-strip" aria-hidden="true"><i class="f" style="width:22.4%"></i><i style="width:3.4%"></i><i style="width:3%"></i><i style="width:3.6%"></i><i style="width:6.7%"></i><i style="width:2.3%"></i><i class="l" style="width:12.2%"></i><i style="width:6.5%"></i><i style="width:4.4%"></i><i style="width:4.8%"></i><i style="width:2.9%"></i><i style="width:3.5%"></i><i style="width:7.7%"></i><i style="width:4.8%"></i><i style="width:11.7%;border-right:0"></i></div>
+    <div class="d-sl"><span>0:00</span><b>24:57 · 판의 한가운데 (R6 안)</b><span>49:55</span></div>
+    <p class="d-cap" style="margin-top:1.6cqw">F = 'Fantasy for Piano', R = 'Fourteen Reveries'. 위 막대는 곡 길이, 아래 띠는 판 전체의 시간 순서. 길이는 애플 뮤직 목록. LP의 실제 면 나눔은 확인하지 못했다.</p>
+    {{more cover s6.1 배치 읽기}}
+  </div>
+  <div class="x-folio"><span>10</span><span>데이터 · 편집부</span></div>
+</div></template>
+
+<!-- 11 판타지, 7/4 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s7">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>06 · 판타지, 7/4</span></div>
+  <div class="x-in">
+    <p class="d-big" style="font-size:28cqw">7<span style="color:var(--pink2)">/</span>4</p>
+    <div class="d-beats" role="img" aria-label="한 마디 일곱 박을 2+2+3, 3+2+2, 2+3+2로 묶은 예시">
+      <div class="m"><span>2+2+3</span><span class="g"><i></i><i></i></span><span class="g"><i></i><i></i></span><span class="g"><i></i><i></i><i></i></span></div>
+      <div class="m"><span>3+2+2</span><span class="g"><i></i><i></i><i></i></span><span class="g"><i></i><i></i></span><span class="g"><i></i><i></i></span></div>
+      <div class="m"><span>2+3+2</span><span class="g"><i></i><i></i></span><span class="g"><i></i><i></i><i></i></span><span class="g"><i></i><i></i></span></div>
+    </div>
+    <p class="d-cap" style="margin-bottom:2.6cqw"><b>편집부의 예시</b> '자유롭게 쪼갠 7/4'(라이너 노트)를 이렇게 읽었다. 곡의 실제 묶음은 악보로만 확인할 수 있다.</p>
+    <div class="x-txt">{{p cover s7.3}}</div>
+    {{more cover s7.1 판타지 해부 읽기}}
+  </div>
+  <div class="x-folio"><span>11</span><span>이번 주의 한 장</span></div>
+</div></template>
+
+<!-- 12 몽상, 혼자 -->
+<template class="pg"><div class="x2 d-pinkp" data-art="cover" data-at="s8">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>07 · 몽상, 혼자</span></div>
+  <div class="x-in">
+    <div class="d-kick" style="color:var(--ink)">fourteen reveries — liner note</div>
+    <ul class="d-moods" aria-label="라이너 노트가 꼽은 고독의 얼굴 다섯">
+      <li>황홀하게</li><li>placid</li><li>초조하게</li><li>lonely</li><li>들뜨게</li>
+    </ul>
+    <div class="x-txt">{{p cover s8.2}}</div>
+    {{more cover s8.1 몽상 이야기 이어 읽기}}
+  </div>
+  <div class="x-folio"><span>12</span><span>라이너 노트에서 옮김</span></div>
+</div></template>
+
+<!-- 13 녹음 기록지 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s9">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>08 · 녹음, 카살스 포룸</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">녹음 기록지</h2>
+    <div class="d-sheet" role="table" aria-label="레이블이 공개한 녹음 크레딧">
+      <div class="h"><span>SESSION SHEET</span><span>NONESUCH</span></div>
+      <div class="r p"><b>DATE</b><span>2025.12.11–12</span></div>
+      <div class="r"><b>VENUE</b><span>카살스 포룸 · 크론베르크 아카데미 · 550석 · 2022년 개관</span></div>
+      <div class="r"><b>PIANO</b><span>함부르크 스타인웨이 D</span></div>
+      <div class="r"><b>TECH</b><span>다니엘 브레히 (준비 · 조율)</span></div>
+      <div class="r"><b>ENG/MIX/MST</b><span>라이너 마이야르 · 에밀 베를리너 스튜디오, 베를린</span></div>
+      <div class="r"><b>PRODUCER</b><span>브래드 멜다우</span></div>
+      <div class="r"><b>DESIGN</b><span>존 갈 · 사진 에르베 에스카리오</span></div>
+      <div class="r p"><b>MUSICIANS</b><span>브래드 멜다우, 피아노 (1–15)</span></div>
+    </div>
+    <div class="x-txt">{{p cover s9.3}}</div>
+    {{more cover s9.1 녹음 이야기 읽기}}
+  </div>
+  <div class="x-folio"><span>13</span><span>크레딧 출처 논서치</span></div>
+</div></template>
+
+<!-- 14 반론 · 다시 빈 홀 -->
+<template class="pg"><div class="x2" data-art="cover" data-at="s10">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>09 · 반론, 그리고 다시 빈 홀</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">또 소품집이냐는 물음</h2>
+    <div class="x-txt" style="margin-top:2.6cqw">{{p cover s10.1}}</div>
+    <div class="d-pull" style="font-size:5cqw">{{p cover s11.2}}</div>
+    <div class="d-row">{{more cover s10.2 반론에 대한 답}}{{more cover s11.1 결론까지}}</div>
+  </div>
+  <div class="x-folio"><span>14</span><span>글 고한석</span></div>
+</div></template>
+
+<!-- 15 원본을 들어라 -->
+<template class="pg"><div class="x2 d-bluep" data-art="origin" data-at="o0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>listen to the original</span></div>
+  <div class="x-in">
+    <div class="d-kick">원본을 들어라 · 1959</div>
+    <h2 class="d-h" style="font-size:10.4cqw;margin-top:1.4cqw">여섯이 한 방에서</h2>
+    <p class="d-en" style="color:#a9aee8;margin-top:1cqw">Miles Davis — Kind of Blue</p>
+    <div class="d-side">
+      <div><b>SIDE ONE</b><small>1959.03.02</small><i>So What</i><i>Freddie Freeloader</i><i>Blue in Green</i></div>
+      <div><b>SIDE TWO</b><small>1959.04.22</small><i>All Blues</i><i>Flamenco Sketches</i></div>
+    </div>
+    <p class="d-cap" style="margin-bottom:2.4cqw">컬럼비아 30번가 스튜디오, 뉴욕 · 3트랙 테이프 · 드럼 지미 콥 · 프로듀서 어빙 타운센드</p>
+    <div class="x-txt">{{p origin o0.1}}</div>
+    {{more origin o0.2 원본 이야기 읽기}}
+  </div>
+  <div class="x-folio"><span>15</span><span>글 고한석</span></div>
+</div></template>
+
+<!-- 16 연재 정전 해부 1회 -->
+<template class="pg"><div class="x2" data-art="serial" data-at="c0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>series · canon autopsy</span></div>
+  <div class="x-in">
+    <div class="d-ser"><b>01</b><span>새 연재 '정전 해부'<br>정전 한 장, 만든 과정만</span></div>
+    <h2 class="d-h2" style="margin:2cqw 0 0">[OK Computer], 집 한 채를 빌린 판</h2>
+    <svg class="d-route" viewBox="0 0 100 40" role="img" aria-label="녹음 장소의 순서. 1995년 9월 Lucky 하루 녹음, 1996년 7월 캔드 어플로즈 헛간, 1996년 9월 세인트 캐서린스 코트 저택, 처치 크라우치 엔드, 1997년 1월 애비 로드 현악, 1997년 3월 6일 완성">
+      <path d="M5 26 H95" stroke="#121212" stroke-width="1.6"/>
+      <g font-family="IBM Plex Mono" font-size="2.3" fill="#6b665e" text-anchor="middle">
+        <circle cx="7" cy="26" r="2.4" fill="#fbfaf6" stroke="#121212" stroke-width=".8"/><text x="7" y="33">1995.09</text><text x="7" y="37" fill="#121212">'Lucky' 5시간</text>
+        <circle cx="25" cy="26" r="2.4" fill="#fbfaf6" stroke="#121212" stroke-width=".8"/><text x="25" y="33">1996.07</text><text x="25" y="37" fill="#121212">헛간</text>
+        <circle cx="45" cy="26" r="4" fill="#f59ad6" stroke="#121212" stroke-width=".9"/><text x="45" y="33">1996.09</text><text x="45" y="37" fill="#121212">저택</text>
+        <circle cx="63" cy="26" r="2.4" fill="#fbfaf6" stroke="#121212" stroke-width=".8"/><text x="63" y="33">추가 녹음</text><text x="63" y="37" fill="#121212">처치</text>
+        <circle cx="79" cy="26" r="2.4" fill="#fbfaf6" stroke="#121212" stroke-width=".8"/><text x="79" y="33">1997.01</text><text x="79" y="37" fill="#121212">애비 로드</text>
+        <circle cx="94" cy="26" r="2.4" fill="#121212"/><text x="92" y="33">1997.03.06</text><text x="92" y="37" fill="#121212">완성</text>
+      </g>
+      <g font-size="2.5" fill="#b8306f" font-family="IBM Plex Mono"><text x="31" y="12">돌계단 — 'Exit Music' 보컬</text><text x="31" y="16.5">무도회장 새벽 3시 — 'Let Down'</text><path d="M45 18 V21.5" stroke="#b8306f" stroke-width=".5"/></g>
+    </svg>
+    <p class="d-cap" style="margin-bottom:2cqw">세인트 캐서린스 코트, 배스 근처 · 제인 시모어 소유 · 앨범의 80%를 함께 라이브로(에드 오브라이언의 어림)</p>
+    <div class="x-txt">{{p serial c0.1}}</div>
+    {{more serial c1.1 1회 읽기}}
+  </div>
+  <div class="x-folio"><span>16</span><span>글 고한석 · 다음 회: Talk Talk</span></div>
+</div></template>
+
+<!-- 17 공연 · 발매 소식 -->
+<template class="pg"><div class="x2" data-art="live" data-at="l0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>dates</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">공연 · 발매 소식</h2>
+    <div class="x-txt" style="margin-top:2.6cqw">{{p live l0.1-4}}</div>
+    <div class="d-box" style="background:var(--pink);margin-top:auto"><h3>다음 Drop</h3><p class="d-cap" style="color:var(--ink)">세 잡지가 한 주씩 돌아간다. 다음 Drop은 12월 4일 금요일. 연재 '정전 해부' 2회는 Talk Talk [Spirit of Eden].</p></div>
+    {{more live l0.1 소식 전체}}
+  </div>
+  <div class="x-folio"><span>17</span><span>편집부</span></div>
+</div></template>
+
+<!-- 18 편집 노트 -->
+<template class="pg"><div class="x2" data-art="desk" data-at="d0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>desk notes</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">이번 호를 만든 방법</h2>
+    <div class="d-nums">
+      <div><b>17</b><span>출처</span></div>
+      <div><b>6</b><span>초고에서 지운 사실</span></div>
+      <div><b>0</b><span>점수</span></div>
+      <div><b>1</b><span>소리 묘사 문단 (출처 표시)</span></div>
+      <div><b>2</b><span>상상한 장면 (문장에 밝힘)</span></div>
+      <div><b>0</b><span>가사 인용</span></div>
+    </div>
+    <div class="x-txt" style="font-size:3cqw">{{p desk d1}}</div>
+    {{more desk d2 출처 17곳 전체 보기}}
+    <div class="d-colo"><b>Drop</b> Vol.02 · 2026년 11월 13일 금요일 · 드롭 레코드<br>편집장 고한석 · 단평 데스크 · 그림과 그래프 편집부<br>사진 없음: 이번 호는 타이포와 그림으로만 짰다</div>
+  </div>
+  <div class="x-folio"><span>18</span><span>판권</span></div>
+</div></template>
+
+<!-- 19 부록 LP -->
+<template class="pg"><div class="x2" style="background:#f3eef0">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>supplement</span></div>
+  <div class="x-in">
+    <div style="font:400 12cqw/1 var(--dl);letter-spacing:-.06em">supplement</div>
+    <p class="d-cap" style="margin:2cqw 0 0">이 호에서 이름이 나온 노래 12곡을 LP 한 장에 담아 투명 비닐째 붙였다. 테이프를 떼면 처음부터 재생되고, 드롭 레코드 크레이트에 꽂힌다.</p>
+  </div>
+  <div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:13cqw;top:46cqw;--r:3deg;--w:74cqw"><span class="sl"></span><span class="bg"></span><span class="tp" style="left:-8%;top:6%;width:40%;transform:rotate(-14deg)"></span><span class="tp" style="left:62%;top:76%;width:32%;transform:rotate(18deg)"></span><span class="c2">이 호의 노래 12곡, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div>
+  <div class="x-folio"><span>19</span><span>Drop Vol.02</span></div>
+</div></template>
+
+<!-- 20 라이너 노트 -->
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>Drop<i>.</i></b><span>liner notes</span></div>
+  <div class="x-in">
+    <h2 class="d-h2">A면 · B면</h2>
+    <p class="d-cap" style="margin:1cqw 0 0">기사에 나온 순서대로. 쪽수는 그 곡이 나온 지면.</p>
+    <ol class="d-lpl">
+      <li><b>A1 · 11쪽</b><i>Fantasy for Piano</i><br>Brad Mehldau</li>
+      <li><b>A2 · 10쪽</b><i>Reverie 1</i><br>Brad Mehldau</li>
+      <li><b>A3 · 10쪽</b><i>Reverie 6</i><br>판의 한가운데</li>
+      <li><b>A4 · 12쪽</b><i>Reverie 7</i><br>Brad Mehldau</li>
+      <li><b>A5 · 14쪽</b><i>Reverie 14</i><br>Brad Mehldau</li>
+      <li><b>A6 · 8쪽</b><i>River Man</i><br>Brad Mehldau Trio</li>
+      <li><b>B1 · 16쪽</b><i>Exit Music (For a Film)</i><br>Brad Mehldau Trio</li>
+      <li><b>B2 · 16쪽</b><i>Exit Music (For a Film)</i><br>Radiohead</li>
+      <li><b>B3 · 15쪽</b><i>So What</i><br>Miles Davis</li>
+      <li><b>B4 · 15쪽</b><i>Flamenco Sketches</i><br>Miles Davis</li>
+      <li><b>B5 · 3쪽</b><i>Hares on the Mountain</i><br>Radie Peat</li>
+      <li><b>B6 · 3쪽</b><i>I Love You</i><br>Snoh Aalegra</li>
+    </ol>
+    <p class="d-cap" style="margin-top:auto">곡은 Spotify에서 이름과 아티스트로 찾아 재생한다. 찾지 못한 곡은 건너뛴다.</p>
+  </div>
+  <div class="x-folio"><span>20</span><span>드롭 레코드</span></div>
+</div></template>

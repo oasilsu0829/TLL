@@ -62,7 +62,8 @@ if (!md) E(`원고 docs/magazine/issues/${it.dir}/articles.md 없음`);
 const text = md || ih.replace(/<[^>]+>/g, ' ');
 for (const w of banned) if (text.includes(w)) E(`금지어 '${w}'`);
 const scoreRe = [/볼륨\s*\d+\s*\/\s*11/, /\d\.\d\s*점/, /★/, /\b\d{1,2}\s*\/\s*11\b/, /\d(\.\d)?\s*\/\s*10\b/];
-for (const r of scoreRe) { const m = text.match(r); if (m) E(`점수 표기 '${m[0]}' (개편 뒤 점수 없음)`); }
+const noUrl = text.replace(/https?:\/\/\S+/g, ' '); // 주소 속 날짜(2026/10/22 등)를 점수로 잘못 읽지 않게
+for (const r of scoreRe) { const m = noUrl.match(r); if (m) E(`점수 표기 '${m[0]}' (개편 뒤 점수 없음)`); }
 const quotes = [...text.matchAll(/["“]([^"”\n]{12,240})["”]/g)].map((m) => m[1]).filter((q) => /[A-Za-z]/.test(q) && q.trim().split(/\s+/).length >= 3);
 if (quotes.length > 2) E(`따옴표 속 영어 문장 ${quotes.length}개 — 가사나 긴 인용인지 확인(직접 인용은 아티스트 한 문장씩만): ${quotes.slice(0, 3).join(' / ')}`);
 else for (const q of quotes) W(`직접 인용 확인: "${q}"`);

@@ -1,0 +1,556 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Jost:wght@500;700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+:root{
+  --paper:#efebe3; --ink:#121212; --mute:#6b665e; --rule:rgba(18,18,18,.17);
+  --red:#b0201e; --red2:#e23a2c; --steel:#8b939c; --night:#101012;
+  --dl:'Archivo Black',sans-serif; --jo:'Jost',sans-serif; --dk:'Black Han Sans',sans-serif; --it:'Instrument Serif',Georgia,serif; --body:'Noto Serif KR',Georgia,serif; --ui:'Noto Sans KR',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  --rd-bg:#f3efe7; --rd-ink:#141414; --rd-accent:#b0201e; --rd-rule:rgba(18,18,18,.14); --rd-on:#fff; --rd-hit:rgba(176,32,30,.16);
+}
+/* ── 지면 공용 ── */
+.iss-cy-02 .x2{position:absolute;inset:0;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size;font-family:var(--body);-webkit-font-smoothing:antialiased}
+.iss-cy-02 .x2::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .38  0 0 0 0 .35  0 0 0 .1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.iss-cy-02 .x2 *{box-sizing:border-box}
+.iss-cy-02 .x2 :is(h1,h2,h3){color:inherit;text-align:left;font-weight:400}
+.iss-cy-02 .x2 .x-in{position:absolute;left:7cqw;right:7cqw;top:12cqw;bottom:12cqw;display:flex;flex-direction:column}
+.iss-cy-02 .x2 .x-rh{position:absolute;left:7cqw;right:7cqw;top:4.4cqw;display:flex;justify-content:space-between;align-items:center;font:600 2.2cqw/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);border-bottom:0;padding-bottom:0}
+.iss-cy-02 .x2 .x-rh b{font:400 2.6cqw/1 var(--dl);letter-spacing:.02em;color:var(--paper);background:var(--red);padding:1cqw 1.6cqw;text-transform:uppercase}
+.iss-cy-02 .x2 .x-folio{position:absolute;left:7cqw;right:7cqw;bottom:4.6cqw;display:flex;justify-content:space-between;font:400 2.2cqw/1 var(--mono);letter-spacing:.08em;color:var(--mute);border-top:.25cqw solid var(--ink);padding-top:1.4cqw}
+.iss-cy-02 .x2 .x-folio span:first-child{font:900 2.8cqw/1 var(--jo);color:var(--red)}
+.iss-cy-02 .x2 .x-txt{font:400 3.45cqw/1.74 var(--body);word-break:keep-all;color:#1d1c1a}
+.iss-cy-02 .x2 .x-txt p{margin:0 0 2.3cqw}
+.iss-cy-02 .x2 .x-txt .note{font:400 2.9cqw/1.6 var(--ui);color:var(--mute)}
+.iss-cy-02 .x2 .x-txt ul{margin:0;padding:0;list-style:none}
+.iss-cy-02 .x2 .x-txt li{padding:1.8cqw 0;border-top:.2cqw solid var(--rule);font:400 3cqw/1.55 var(--ui)}
+.iss-cy-02 .x2 .x-txt .pull,.iss-cy-02 .x2 .x-txt blockquote{margin:0}
+.iss-cy-02 .x2 .x-more{margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:1.6cqw;border:.5cqw solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);font:700 3.1cqw/1 var(--ui);padding:3cqw 4.2cqw;cursor:pointer;min-height:11cqw;text-transform:none}
+.iss-cy-02 .x2 .x-more i{font-style:normal;font-size:2.3cqw;color:var(--red)}
+.iss-cy-02 .x2 .x-more:focus-visible{outline:.6cqw solid var(--red);outline-offset:.8cqw}
+.iss-cy-02 .x2.c-dark .x-more,.iss-cy-02 .x2.c-redp .x-more{background:transparent;border-color:var(--paper);color:var(--paper)}
+.iss-cy-02 .x2.c-dark .x-more i,.iss-cy-02 .x2.c-redp .x-more i{color:var(--paper)}
+.iss-cy-02 .x2 .c-row{display:flex;gap:3cqw;flex-wrap:wrap;margin-top:auto;align-items:flex-end}
+.iss-cy-02 .x2 .c-row .x-more{margin-top:0}
+/* 글자 장치 */
+.iss-cy-02 .x2 .c-kick{font:600 2.4cqw/1.3 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.iss-cy-02 .x2 .c-h{font:400 10cqw/1.06 var(--dk);margin:1.6cqw 0 0;word-break:keep-all}
+.iss-cy-02 .x2 .c-h2{font:400 6.8cqw/1.14 var(--dk);margin:0;word-break:keep-all}
+.iss-cy-02 .x2 .c-en{font:900 3.2cqw/1.1 var(--jo);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.iss-cy-02 .x2 .c-dek{font:500 3.3cqw/1.6 var(--ui);color:#3b3833;margin:2.4cqw 0 0;word-break:keep-all}
+.iss-cy-02 .x2 .c-by{font:400 2.4cqw/1.5 var(--mono);color:var(--mute);margin-top:2cqw;letter-spacing:.04em}
+.iss-cy-02 .x2 .c-cap{font:400 2.45cqw/1.5 var(--ui);color:var(--mute);word-break:keep-all;margin:0}
+.iss-cy-02 .x2 .c-cap b{color:var(--ink);font-weight:700}
+.iss-cy-02 .x2 .c-drop>p:first-child::first-letter{float:left;font:400 13cqw/.82 var(--dk);padding:1.2cqw 2cqw 0 0;color:var(--red)}
+.iss-cy-02 .x2 .c-pull{font:400 5.4cqw/1.34 var(--dk);word-break:keep-all;border-left:1.6cqw solid var(--red);padding:.6cqw 0 .6cqw 3cqw;margin:1cqw 0 3cqw}
+.iss-cy-02 .x2 .c-pull p,.iss-cy-02 .x2 .c-pull blockquote{margin:0;font:inherit}
+.iss-cy-02 .x2 .c-big{font:900 24cqw/.86 var(--jo);letter-spacing:-.05em;margin:0}
+.iss-cy-02 .x2 .c-box{border:.5cqw solid var(--ink);padding:3cqw 3.4cqw;margin:2.4cqw 0;background:#f8f5ef}
+.iss-cy-02 .x2 .c-box h3{margin:0 0 1.4cqw;font:400 4.6cqw/1.2 var(--dk)}
+.iss-cy-02 .x2 .c-box h3 small{font:900 2.4cqw/1 var(--jo);letter-spacing:.06em;color:var(--red);margin-left:1.2cqw;text-transform:uppercase}
+.iss-cy-02 .x2 .c-box .x-txt{font-size:3cqw;line-height:1.65}
+.iss-cy-02 .x2 .c-box .x-txt p{margin:0 0 1.4cqw}
+.iss-cy-02 .x2 .c-memo{font:500 2.6cqw/1.5 var(--ui);border-top:.25cqw dashed var(--ink);padding-top:1.4cqw;margin:.6cqw 0 0;word-break:keep-all}
+.iss-cy-02 .x2 .c-memo b{font:600 2.1cqw/1 var(--mono);letter-spacing:.12em;color:var(--red);margin-right:1.2cqw}
+.iss-cy-02 .x2 svg text{font-family:var(--ui)}
+
+/* 0 표지 */
+.iss-cy-02 .x2.c-cover{background:var(--paper)}
+.iss-cy-02 .x2 .c-top{position:absolute;left:5cqw;right:5cqw;top:3.4cqw;display:flex;justify-content:space-between;font:600 2.2cqw/1 var(--mono);letter-spacing:.12em}
+.iss-cy-02 .x2 .c-mast{position:absolute;left:4cqw;right:4cqw;top:6.6cqw;margin:0;font:400 20.4cqw/.84 var(--dl);letter-spacing:-.05em;color:var(--red);text-transform:uppercase}
+.iss-cy-02 .x2 .c-cred{position:absolute;left:5cqw;top:28.6cqw;width:56cqw;margin:0;padding:0;list-style:none;font:600 2.6cqw/1 var(--mono);color:var(--ink)}
+.iss-cy-02 .x2 .c-cred li{display:flex;gap:2cqw;align-items:baseline;padding:.62cqw 0;border-bottom:.2cqw solid var(--rule);white-space:nowrap}
+.iss-cy-02 .x2 .c-cred li i{font-style:normal;color:var(--mute);width:5cqw;flex:0 0 auto}
+.iss-cy-02 .x2 .c-cred li b{font-weight:600}
+.iss-cy-02 .x2 .c-cred li b em{font-style:normal;background:var(--ink);color:var(--paper);padding:0 .8cqw}
+.iss-cy-02 .x2 .c-zero{position:absolute;right:4cqw;top:34cqw;width:34cqw;text-align:center}
+.iss-cy-02 .x2 .c-zero b{display:block;font:900 44cqw/.78 var(--jo);color:var(--red);letter-spacing:-.06em}
+.iss-cy-02 .x2 .c-zero span{display:block;font:400 3.4cqw/1 var(--dl);letter-spacing:.04em;margin-top:1cqw}
+.iss-cy-02 .x2 .c-zero small{display:block;font:500 2.2cqw/1.4 var(--ui);color:var(--mute);margin-top:1cqw}
+.iss-cy-02 .x2 .c-cvh{position:absolute;left:5cqw;right:5cqw;top:87cqw;margin:0;font:400 12.6cqw/1.02 var(--dk);letter-spacing:-.02em}
+.iss-cy-02 .x2 .c-cvh em{font-style:normal;color:var(--red)}
+.iss-cy-02 .x2 .c-cvn{position:absolute;left:5cqw;top:113cqw;font:900 4.6cqw/1 var(--jo);letter-spacing:.02em}
+.iss-cy-02 .x2 .c-cvn span{font:italic 400 5.6cqw/1 var(--it);letter-spacing:0;margin-left:1.4cqw;color:var(--red)}
+.iss-cy-02 .x2 .c-cvl{position:absolute;left:5cqw;right:5cqw;top:120cqw;display:grid;grid-template-columns:1fr 1fr 1fr;gap:3cqw;border-top:.6cqw solid var(--ink);padding-top:2cqw}
+.iss-cy-02 .x2 .c-cvl div{font:500 2.35cqw/1.4 var(--ui);word-break:keep-all}
+.iss-cy-02 .x2 .c-cvl b{display:block;font:600 1.9cqw/1.2 var(--mono);letter-spacing:.1em;color:var(--red);margin-bottom:.6cqw}
+.iss-cy-02 .x2 .c-bar{position:absolute;right:5cqw;bottom:3.2cqw;width:24cqw;background:#fff;padding:1.2cqw 1.4cqw .8cqw;border:.2cqw solid var(--ink)}
+.iss-cy-02 .x2 .c-bar i{display:block;height:5cqw;background:repeating-linear-gradient(90deg,#121212 0 .3cqw,transparent .3cqw .7cqw,#121212 .7cqw 1.1cqw,transparent 1.1cqw 1.4cqw,#121212 1.4cqw 2.1cqw,transparent 2.1cqw 2.5cqw,#121212 2.5cqw 2.7cqw,transparent 2.7cqw 3.3cqw)}
+.iss-cy-02 .x2 .c-bar span{display:flex;justify-content:space-between;font:400 1.6cqw/1 var(--mono);margin-top:.7cqw}
+.iss-cy-02 .x2 .c-lp{position:absolute;left:5cqw;bottom:3.4cqw;display:flex;align-items:center;gap:2cqw;font:600 2.1cqw/1.3 var(--mono);letter-spacing:.06em}
+.iss-cy-02 .x2 .c-lp i{width:7.4cqw;height:7.4cqw;border-radius:50%;background:radial-gradient(circle,var(--paper) 0 9%,var(--red) 9% 33%,#121212 33% 37%,#2b2b2b 37% 41%,#121212 41%)}
+.iss-cy-02 .x2 .c-stamp{position:absolute;right:5cqw;top:5.6cqw;transform:rotate(8deg);border:.5cqw solid var(--ink);padding:1cqw 1.6cqw;font:600 2cqw/1.2 var(--mono);letter-spacing:.08em;background:var(--paper);text-align:center}
+
+/* 1 차례 */
+.iss-cy-02 .x2 .c-toc{list-style:none;margin:2.6cqw 0 0;padding:0}
+.iss-cy-02 .x2 .c-toc li{display:grid;grid-template-columns:12cqw 1fr;gap:2cqw;padding:1.3cqw 0;border-top:.2cqw solid var(--rule);align-items:baseline}
+.iss-cy-02 .x2 .c-toc li:first-child{border-top:.6cqw solid var(--ink)}
+.iss-cy-02 .x2 .c-toc li b{font:900 5.4cqw/1 var(--jo);letter-spacing:-.03em}
+.iss-cy-02 .x2 .c-toc li.k b{color:var(--red)}
+.iss-cy-02 .x2 .c-toc li span{font:700 3.1cqw/1.3 var(--ui)}
+.iss-cy-02 .x2 .c-toc li small{display:block;font:400 2.5cqw/1.4 var(--ui);color:var(--mute);margin-top:.5cqw}
+.iss-cy-02 .x2 .c-how{margin-top:auto;background:var(--ink);color:var(--paper);padding:2.8cqw 3.2cqw;font:500 2.75cqw/1.55 var(--ui)}
+.iss-cy-02 .x2 .c-how b{font:400 3cqw/1 var(--dk);color:var(--red2);margin-right:1cqw}
+
+/* 2 편집장의 글 */
+.iss-cy-02 .x2 .c-stars{display:block;width:70%;height:auto;margin:0 0 2cqw}
+
+/* 4 커버 첫 쪽 */
+.iss-cy-02 .x2.c-dark{background:var(--night);color:#ecebea}
+.iss-cy-02 .x2.c-dark::after{opacity:.22;mix-blend-mode:screen}
+.iss-cy-02 .x2.c-dark .x-rh{color:#97928b}
+.iss-cy-02 .x2.c-dark .x-folio{color:#97928b;border-color:#5a5650}
+.iss-cy-02 .x2.c-dark .x-txt{color:#dedbd6}
+.iss-cy-02 .x2.c-dark .c-dek{color:#cfcac2}
+.iss-cy-02 .x2.c-dark .c-by,.iss-cy-02 .x2.c-dark .c-cap{color:#97928b}
+.iss-cy-02 .x2.c-dark .c-kick{color:var(--red2)}
+.iss-cy-02 .x2 .c-sheet{list-style:none;margin:0 0 2.4cqw;padding:0;font:600 3cqw/1 var(--mono);counter-reset:n}
+.iss-cy-02 .x2 .c-sheet li{display:flex;gap:2.4cqw;padding:.85cqw 0;border-bottom:.2cqw solid rgba(236,235,234,.14);white-space:nowrap}
+.iss-cy-02 .x2 .c-sheet li::before{counter-increment:n;content:counter(n,decimal-leading-zero);color:#6f6a63;width:4.6cqw}
+.iss-cy-02 .x2 .c-sheet li b{color:var(--red2);font-weight:600}
+.iss-cy-02 .x2 .c-sheet li span{color:#8f8a83;margin-left:auto}
+
+/* 사실 상자 · 결승 표 */
+.iss-cy-02 .x2 .c-facts{display:grid;grid-template-columns:auto 1fr;gap:1.1cqw 3cqw;font:400 2.65cqw/1.45 var(--ui);border-top:.6cqw solid var(--ink);border-bottom:.2cqw solid var(--ink);padding:2.2cqw 0;margin:1.6cqw 0 2.4cqw}
+.iss-cy-02 .x2 .c-facts dt{font:600 2.2cqw/1.6 var(--mono);color:var(--mute);letter-spacing:.08em}
+.iss-cy-02 .x2 .c-facts dd{margin:0;font-weight:500}
+.iss-cy-02 .x2 .c-rank{list-style:none;margin:2cqw 0 2.6cqw;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:1.4cqw;align-items:end}
+.iss-cy-02 .x2 .c-rank li{text-align:center;font:500 2.3cqw/1.25 var(--ui);word-break:keep-all}
+.iss-cy-02 .x2 .c-rank li i{display:block;background:var(--ink);margin-bottom:1cqw;height:var(--h)}
+.iss-cy-02 .x2 .c-rank li:first-child i{background:var(--red)}
+.iss-cy-02 .x2 .c-rank li b{display:block;font:900 3.6cqw/1 var(--jo);margin-bottom:.6cqw}
+
+/* 7 연표 */
+.iss-cy-02 .x2 .c-tl{list-style:none;margin:2.4cqw 0 0;padding:0;position:relative}
+.iss-cy-02 .x2 .c-tl::before{content:"";position:absolute;left:16.4cqw;top:1cqw;bottom:1cqw;width:.5cqw;background:var(--ink)}
+.iss-cy-02 .x2 .c-tl li{display:grid;grid-template-columns:14cqw 1fr;gap:5cqw;padding:1.05cqw 0;position:relative}
+.iss-cy-02 .x2 .c-tl li::before{content:"";position:absolute;left:15.4cqw;top:2cqw;width:2.5cqw;height:2.5cqw;border-radius:50%;background:var(--paper);border:.5cqw solid var(--ink)}
+.iss-cy-02 .x2 .c-tl li.w::before{background:var(--red);border-color:var(--red)}
+.iss-cy-02 .x2 .c-tl li.lp::before{background:var(--ink)}
+.iss-cy-02 .x2 .c-tl b{font:900 2.9cqw/1.45 var(--jo);text-align:right}
+.iss-cy-02 .x2 .c-tl span{font:700 3cqw/1.35 var(--ui);word-break:keep-all}
+.iss-cy-02 .x2 .c-tl small{display:block;font:400 2.35cqw/1.4 var(--ui);color:var(--mute);margin-top:.3cqw}
+.iss-cy-02 .x2 .c-key{display:flex;gap:4cqw;font:400 2.3cqw/1 var(--ui);color:var(--mute);margin:1.6cqw 0 2cqw}
+.iss-cy-02 .x2 .c-key i{display:inline-block;width:2.4cqw;height:2.4cqw;border-radius:50%;border:.4cqw solid var(--ink);vertical-align:-.3cqw;margin-right:1cqw}
+
+/* 8 피처링 별자리 */
+.iss-cy-02 .x2 .c-fig{display:block;width:100%;height:auto;margin:1.6cqw 0 1.4cqw}
+
+/* 9 크레딧 지도 */
+.iss-cy-02 .x2.c-mapp{background:#f6f2ea}
+.iss-cy-02 .x2 .c-mx{width:100%;border-collapse:collapse;margin:2cqw 0 1.4cqw;table-layout:fixed}
+.iss-cy-02 .x2 .c-mx th{font:600 1.85cqw/1.1 var(--mono);color:var(--ink);height:15cqw;vertical-align:bottom;padding:0 0 1cqw;letter-spacing:.02em}
+.iss-cy-02 .x2 .c-mx th span{display:inline-block;transform:rotate(-62deg);transform-origin:0 100%;white-space:nowrap;margin-left:2.6cqw;width:0}
+.iss-cy-02 .x2 .c-mx th:first-child{width:25cqw}
+.iss-cy-02 .x2 .c-mx th.h{color:var(--red)}
+.iss-cy-02 .x2 .c-mx td{height:5.5cqw;border-top:.2cqw solid var(--rule);text-align:center;padding:0;font:400 2cqw/1 var(--mono)}
+.iss-cy-02 .x2 .c-mx td:first-child{text-align:left;font:600 2.35cqw/1.1 var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iss-cy-02 .x2 .c-mx td:first-child i{font:400 1.9cqw/1 var(--mono);font-style:normal;color:var(--mute);margin-right:1cqw}
+.iss-cy-02 .x2 .c-mx td.t{font-weight:900}
+.iss-cy-02 .x2 .c-mx td b{display:inline-block;width:3.6cqw;height:3.6cqw;background:var(--ink);vertical-align:middle}
+.iss-cy-02 .x2 .c-mx td b.r{background:var(--red);border-radius:50%}
+.iss-cy-02 .x2 .c-mx tr.tot td{border-top:.6cqw solid var(--ink);font:900 2.8cqw/1 var(--jo);height:6cqw}
+.iss-cy-02 .x2 .c-mx tr.tot td:first-child{font:600 2.1cqw/1 var(--mono)}
+
+/* 11 숫자 두 줄 */
+.iss-cy-02 .x2.c-redp{background:var(--red);color:var(--paper)}
+.iss-cy-02 .x2.c-redp::after{opacity:.25}
+.iss-cy-02 .x2.c-redp .x-rh{color:#f3c9c2}
+.iss-cy-02 .x2.c-redp .x-rh b{background:var(--ink)}
+.iss-cy-02 .x2.c-redp .x-folio{color:#f3c9c2;border-color:#f3c9c2}
+.iss-cy-02 .x2.c-redp .x-folio span:first-child{color:var(--paper)}
+.iss-cy-02 .x2.c-redp .x-txt{color:#fff3ef}
+.iss-cy-02 .x2.c-redp .c-cap{color:#f3c9c2}
+.iss-cy-02 .x2 .c-two{margin:1cqw 0 3cqw}
+.iss-cy-02 .x2 .c-two div{display:grid;grid-template-columns:1fr auto;align-items:end;border-bottom:.5cqw solid var(--paper);padding:2.2cqw 0 1.6cqw}
+.iss-cy-02 .x2 .c-two b{font:900 18cqw/.82 var(--jo);letter-spacing:-.05em}
+.iss-cy-02 .x2 .c-two span{font:400 3.6cqw/1.2 var(--dk);text-align:right;padding-bottom:1cqw}
+.iss-cy-02 .x2 .c-two small{display:block;font:600 2.1cqw/1.3 var(--mono);letter-spacing:.06em;color:#f3c9c2;margin-top:.8cqw}
+.iss-cy-02 .x2 .c-nums2{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:.3cqw solid var(--paper);margin-bottom:2.4cqw}
+.iss-cy-02 .x2 .c-nums2 div{padding:1.6cqw 1cqw;border-bottom:.2cqw solid rgba(255,255,255,.35);font:500 2.3cqw/1.35 var(--ui)}
+.iss-cy-02 .x2 .c-nums2 b{display:block;font:900 4.4cqw/1 var(--jo);margin-bottom:.6cqw}
+
+/* 12 곡 순서 */
+.iss-cy-02 .x2 .c-trk{list-style:none;margin:2cqw 0 2cqw;padding:0;counter-reset:t}
+.iss-cy-02 .x2 .c-trk li{display:grid;grid-template-columns:8cqw 1fr auto;align-items:baseline;padding:.95cqw 0;border-bottom:.2cqw solid var(--rule)}
+.iss-cy-02 .x2 .c-trk li::before{counter-increment:t;content:counter(t,decimal-leading-zero);font:900 3cqw/1 var(--jo);color:var(--mute)}
+.iss-cy-02 .x2 .c-trk li b{font:900 3.9cqw/1.1 var(--jo);letter-spacing:.01em}
+.iss-cy-02 .x2 .c-trk li small{font:600 1.9cqw/1 var(--mono);color:var(--red);letter-spacing:.08em}
+.iss-cy-02 .x2 .c-trk li.tt b{color:var(--red)}
+.iss-cy-02 .x2 .c-trk li.arc{background:linear-gradient(90deg,rgba(176,32,30,.1),transparent)}
+.iss-cy-02 .x2 .c-trk li.arc::before{color:var(--red)}
+
+/* 14 연재 */
+.iss-cy-02 .x2 .c-ser{display:flex;align-items:flex-end;gap:3cqw;margin-bottom:1cqw}
+.iss-cy-02 .x2 .c-ser b{font:900 20cqw/.8 var(--jo);letter-spacing:-.05em;color:var(--red)}
+.iss-cy-02 .x2 .c-ser span{font:600 2.4cqw/1.5 var(--mono);letter-spacing:.12em;color:var(--mute);padding-bottom:1cqw}
+.iss-cy-02 .x2 .c-cal{display:grid;grid-template-columns:repeat(12,1fr);margin:2.4cqw 0 1cqw;border-top:.6cqw solid var(--ink)}
+.iss-cy-02 .x2 .c-cal span{font:600 1.9cqw/1 var(--mono);color:var(--mute);text-align:center;padding:1cqw 0;border-right:.2cqw solid var(--rule)}
+.iss-cy-02 .x2 .c-cal span:last-child{border-right:0}
+.iss-cy-02 .x2 .c-cal span.on{background:var(--ink);color:var(--paper)}
+.iss-cy-02 .x2 .c-rel{list-style:none;margin:0 0 2.4cqw;padding:0}
+.iss-cy-02 .x2 .c-rel li{display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;padding:1.1cqw 0;border-bottom:.2cqw solid var(--rule);align-items:baseline}
+.iss-cy-02 .x2 .c-rel li b{font:600 2.3cqw/1 var(--mono)}
+.iss-cy-02 .x2 .c-rel li span{font:700 2.9cqw/1.3 var(--ui);word-break:keep-all}
+.iss-cy-02 .x2 .c-rel li span small{font-weight:400;color:var(--mute);font-size:2.3cqw;margin-left:1cqw}
+.iss-cy-02 .x2 .c-rel li.c b{color:var(--red)}
+.iss-cy-02 .x2 .c-rel li.c span::after{content:"정전";font:600 1.8cqw/1 var(--mono);background:var(--red);color:var(--paper);padding:.5cqw .8cqw;margin-left:1.4cqw;vertical-align:.3cqw}
+
+/* 15 씬 리포트 */
+.iss-cy-02 .x2 .c-day{display:flex;align-items:baseline;gap:3cqw;border-bottom:.6cqw solid var(--ink);padding-bottom:2cqw;margin-bottom:2cqw}
+.iss-cy-02 .x2 .c-day b{font:900 17cqw/.82 var(--jo);letter-spacing:-.05em}
+.iss-cy-02 .x2 .c-day span{font:400 4.4cqw/1.15 var(--dk)}
+.iss-cy-02 .x2 .c-day span small{display:block;font:600 2.2cqw/1.3 var(--mono);color:var(--mute);margin-top:.6cqw}
+.iss-cy-02 .x2 .c-two2{display:grid;grid-template-columns:1fr 1fr;gap:3cqw}
+.iss-cy-02 .x2 .c-two2 div{border-top:.4cqw solid var(--ink);padding-top:1.6cqw}
+.iss-cy-02 .x2 .c-two2 h3{margin:0 0 .8cqw;font:400 4.4cqw/1.1 var(--dk)}
+.iss-cy-02 .x2 .c-two2 p{margin:0;font:400 2.55cqw/1.55 var(--ui);word-break:keep-all}
+
+/* 16 편집 노트 */
+.iss-cy-02 .x2 .c-nums{display:grid;grid-template-columns:repeat(3,1fr);margin:2.4cqw 0;border-top:.6cqw solid var(--ink)}
+.iss-cy-02 .x2 .c-nums div{padding:2.4cqw 1cqw 2.2cqw;border-bottom:.2cqw solid var(--rule);border-right:.2cqw solid var(--rule)}
+.iss-cy-02 .x2 .c-nums div:nth-child(3n){border-right:0}
+.iss-cy-02 .x2 .c-nums b{display:block;font:900 9cqw/1 var(--jo);letter-spacing:-.04em;color:var(--red)}
+.iss-cy-02 .x2 .c-nums span{display:block;font:500 2.4cqw/1.4 var(--ui);margin-top:1cqw;word-break:keep-all}
+.iss-cy-02 .x2 .c-colo{margin-top:2.4cqw;font:400 2.3cqw/1.7 var(--mono);color:var(--mute);border-top:.2cqw solid var(--rule);padding-top:2cqw}
+.iss-cy-02 .x2 .c-colo b{color:var(--ink);font-weight:600}
+
+/* 17 부록 LP */
+.iss-cy-02 .x2 .single7{position:absolute;width:var(--w);aspect-ratio:1;transform:rotate(var(--r));cursor:pointer}
+.iss-cy-02 .x2 .single7 .sl{position:absolute;inset:0;background:#d9cfc2}
+.iss-cy-02 .x2 .single7 .bg{position:absolute;inset:-4% -4% -7%}
+.iss-cy-02 .x2 .single7 .tp{position:absolute;height:calc(var(--w)*.16);background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.iss-cy-02 .x2 .single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 3cqw);text-align:center;font:700 3cqw/1.4 var(--ui);color:var(--ink)}
+.iss-cy-02 .x2 .single7 .c2 small{display:block;color:var(--mute);font-weight:400;font-size:2.5cqw}
+.iss-cy-02 .x2 .c-lpl{list-style:none;margin:2cqw 0 0;padding:0;columns:2;column-gap:5cqw}
+.iss-cy-02 .x2 .c-lpl li{break-inside:avoid;padding:1.15cqw 0;border-top:.2cqw solid var(--rule);font:400 2.4cqw/1.35 var(--ui)}
+.iss-cy-02 .x2 .c-lpl li b{display:block;font:600 2.1cqw/1.3 var(--mono);color:var(--red)}
+.iss-cy-02 .x2 .c-lpl li i{font:900 3.4cqw/1.15 var(--jo);font-style:normal}
+
+/* ── 읽기 모드 ── */
+.iss-cy-02 .x2r{font-family:var(--body);color:var(--rd-ink)}
+.iss-cy-02 .x2r :is(h1,h2){text-align:left}
+.iss-cy-02 .x2r .rhead{margin:0 0 1.8em;padding-bottom:1.1em;border-bottom:6px solid var(--rd-accent)}
+.iss-cy-02 .x2r h1{font:400 1.75em/1.25 var(--dk);margin:0;word-break:keep-all}
+.iss-cy-02 .x2r .by{margin:.7em 0 0;font:400 .75em/1.4 var(--mono);letter-spacing:.06em;color:#6b665e}
+.iss-cy-02 .x2r h2{font:400 1.2em/1.35 var(--dk);margin:2.2em 0 .8em;color:var(--rd-accent)}
+.iss-cy-02 .x2r p{margin:0 0 1.15em}
+.iss-cy-02 .x2r .pull{margin:1.6em 0;padding:.2em 0 .2em .9em;border-left:.36em solid var(--rd-accent);font:400 1.22em/1.5 var(--dk)}
+.iss-cy-02 .x2r .note{font-family:var(--ui);font-size:.9em;color:#4c4740;background:#ece5da;padding:.8em 1em;border-left:4px solid var(--rd-accent)}
+.iss-cy-02 .x2r ul{margin:0 0 1.2em;padding:0;list-style:none}
+.iss-cy-02 .x2r li{padding:.6em 0;border-top:1px solid var(--rd-rule);font-family:var(--ui);font-size:.88em;line-height:1.6;overflow-wrap:anywhere}
+.iss-cy-02 .x2r a{color:var(--rd-accent)}
+.iss-cy-02 .x2r .alb{white-space:nowrap}
+</style>
+
+<template class="pg"><div class="x2 c-cover" data-art="cover" data-at="c0">
+  <div class="c-top"><span>WED 2026.11.18</span><span>VOL.02</span><span>사이퍼 미디어</span></div>
+  <h1 class="c-mast" aria-label="Cypher">Cypher</h1>
+  <ol class="c-cred" aria-label="[i+em] 열두 곡의 크레딧 첫 줄. 모두 Lyrics by HAON">
+    <li><i>01</i><b>Lyrics by <em>HAON</em></b></li><li><i>02</i><b>Lyrics by <em>HAON</em></b></li><li><i>03</i><b>Lyrics by <em>HAON</em></b></li><li><i>04</i><b>Lyrics by <em>HAON</em></b></li><li><i>05</i><b>Lyrics by <em>HAON</em></b></li><li><i>06</i><b>Lyrics by <em>HAON</em></b></li><li><i>07</i><b>Lyrics by <em>HAON</em></b></li><li><i>08</i><b>Lyrics by <em>HAON</em></b></li><li><i>09</i><b>Lyrics by <em>HAON</em></b></li><li><i>10</i><b>Lyrics by <em>HAON</em></b></li><li><i>11</i><b>Lyrics by <em>HAON</em></b></li><li><i>12</i><b>Lyrics by <em>HAON</em></b></li>
+  </ol>
+  <div class="c-zero"><b>0</b><span>FEAT.</span><small>열두 곡, 피처링 없음</small></div>
+  <h2 class="c-cvh">피처링 0,<br><em>이름 하나</em></h2>
+  <div class="c-cvn">김하온 HAON<span>i+em</span></div>
+  <div class="c-cvl">
+    <div><b>COVER</b>크레딧으로 읽은 정규 2집, 열두 곡</div>
+    <div><b>새 연재 · 연대기 01</b>2004년, 정전이 두 장 나온 해</div>
+    <div><b>씬 리포트</b>11월 21일, 듀스와 김하온</div>
+  </div>
+  <div class="c-lp"><i></i><span>부록 LP 1장<br>이 호의 노래 12곡</span></div>
+  <div class="c-bar"><i></i><span><b>CYPHER</b><span>₩0</span><span>02</span></span></div>
+</div></template>
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>Cypher</b><span>contents · vol.02</span></div>
+  <div class="x-in">
+    <h2 class="c-h" style="margin-top:0">차례 <span class="c-en">contents</span></h2>
+    <ol class="c-toc">
+      <li><b>02</b><span>편집장의 글<small>별을 떼고, 크레딧을 붙인다</small></span></li>
+      <li><b>03</b><span>이번 주 단신<small>웨스트사이드 건 · 젤루퍼즈 &amp; 블랙 노이즈</small></span></li>
+      <li class="k"><b>04</b><span>커버 — 피처링 0, 이름 하나<small>김하온 [i+em] · 4–13쪽 · 글 돈까스</small></span></li>
+      <li class="k"><b>09</b><span>크레딧 지도<small>열두 곡, 열일곱 이름</small></span></li>
+      <li><b>14</b><span>새 연재 '언더그라운드 연대기' 1회<small>2004년, 정전이 두 장 나온 해</small></span></li>
+      <li><b>15</b><span>씬 리포트<small>11월 21일 토요일 — 듀스 [4th Deux] · 김하온 'ARK'</small></span></li>
+      <li><b>16</b><span>편집 노트 · 출처 · 판권</span></li>
+      <li><b>17</b><span>부록 LP<small>이 호에서 이름이 나온 노래 12곡</small></span></li>
+    </ol>
+    <div class="c-how"><b>읽는 법</b> 지면은 넘겨 보고, 긴 글은 테두리 단추 <b>▶</b>를 눌러. 큰 글씨 본문이 아래에서 올라와. 위 줄의 '본문 읽기'로도 열려.</div>
+  </div>
+  <div class="x-folio"><span>01</span><span>2026.11.18 WED</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="letter" data-at="a">
+  <div class="x-rh"><b>Cypher</b><span>editor's letter</span></div>
+  <div class="x-in">
+    <svg class="c-stars" viewBox="0 0 100 24" role="img" aria-label="별 세 개 반 그림 위에 빨간 줄이 그어져 있다. 별점을 없앴다는 뜻">
+      <g fill="#121212"><polygon id="c2st" points="10,2 12.6,8.4 19.5,8.9 14.2,13.3 15.9,20 10,16.3 4.1,20 5.8,13.3 0.5,8.9 7.4,8.4"/><use href="#c2st" x="22"/><use href="#c2st" x="44"/></g>
+      <clipPath id="c2half"><rect x="66" y="0" width="10" height="24"/></clipPath><use href="#c2st" x="66" clip-path="url(#c2half)" fill="#121212"/>
+      <use href="#c2st" x="66" fill="none" stroke="#121212" stroke-width=".6"/>
+      <line x1="0" y1="21" x2="92" y2="3" stroke="#b0201e" stroke-width="2.6" stroke-linecap="round"/>
+      <text x="90" y="16" font-size="6" font-weight="900" fill="#b0201e" font-family="Jost">0</text>
+    </svg>
+    <div class="c-kick">editor's letter · 편집장의 글</div>
+    <h2 class="c-h2" style="margin:1.4cqw 0 3cqw">별을 떼고, 크레딧을 붙인다</h2>
+    <div class="x-txt c-drop"><p data-p="a.1">친구, 반가워. 사이퍼 두 번째 호야. 이번 호부터 바뀌는 게 하나 있어. 별점이 없어졌어. 지난 호에 붙였던 별 세 개 반, 그거 이제 안 붙여.</p><p data-p="a.2">이유는 솔직하게 말할게. 이 편집부는 음악을 귀로 못 들어. 우리가 가진 건 크레딧, 발매 정보, 아티스트가 한 말, 다른 매체가 남긴 기록이야. 그걸로 별을 매기면 들은 척하는 거잖아. 그건 힙합에서 제일 촌스러운 일이고.</p></div>
+    <button type="button" class="x-more" data-read="letter" data-at="a.2"><i>▶</i> 편집장의 글 이어 읽기</button>
+  </div>
+  <div class="x-folio"><span>02</span><span>돈까스 · 편집장</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="briefs" data-at="b0">
+  <div class="x-rh"><b>Cypher</b><span>this week</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">이번 주 단신</h2>
+    <p class="c-cap" style="margin:1cqw 0 0">11월 13일 금요일 해외 판 둘. 별점 대신 크레딧 메모.</p>
+    <div class="c-box"><h3>웨스트사이드 건 <small>HEELMATIC · 16곡</small></h3><div class="x-txt"><p data-p="b0.3">미리 공개한 'Zilla'의 비트는 데니 라 플레어가 만들었다. 지난 호 부록 LP 마지막 곡이 바로 그 'Zilla'였다.</p></div><p class="c-memo"><b>CREDIT</b>'Zilla' 프로듀스 데니 라 플레어. 매스 어필에서 내는 첫 판.</p></div>
+    <div class="c-box"><h3>젤루퍼즈 &amp; 블랙 노이즈 <small>Pin Breakers · 11곡</small></h3><div class="x-txt"><p data-p="b1.3">열한 곡, 게스트는 대니 브라운 한 명. 얼 스웨트셔츠의 레이블 탠 크레시다에서 젤루퍼즈가 내는 첫 판이고, 첫 싱글은 'Beautician'이다. 제목은 블랙 노이즈가 글렌데일의 볼링장에서 다친 어깨에서 따왔다.</p></div><p class="c-memo"><b>CREDIT</b>프로듀서 한 명이 판 전체. 게스트는 대니 브라운 한 명.</p></div>
+    <button type="button" class="x-more" data-read="briefs" data-at="b0.1"><i>▶</i> 두 판 이어 읽기</button>
+  </div>
+  <div class="x-folio"><span>03</span><span>편집부</span></div>
+</div></template>
+<template class="pg"><div class="x2 c-dark" data-art="cover" data-at="c0">
+  <div class="x-rh"><b>Cover</b><span>haon — i+em</span></div>
+  <div class="x-in">
+    <ol class="c-sheet" aria-label="[i+em] 곡 목록과 크레딧 첫 줄">
+      <li>Shot Caller<span>Lyrics by <b>HAON</b></span></li><li>Roadsta<span>Lyrics by <b>HAON</b></span></li><li>Platinum<span>Lyrics by <b>HAON</b></span></li><li>Prime Time<span>Lyrics by <b>HAON</b></span></li><li>$$<span>Lyrics by <b>HAON</b></span></li><li>Centipede<span>Lyrics by <b>HAON</b></span></li><li>Moving Dat<span>Lyrics by <b>HAON</b></span></li><li>Hellraiser<span>Lyrics by <b>HAON</b></span></li><li>Thanatos<span>Lyrics by <b>HAON</b></span></li><li>Life Goes On<span>Lyrics by <b>HAON</b></span></li><li>Fly<span>Lyrics by <b>HAON</b></span></li><li>Viva La Vida<span>Lyrics by <b>HAON</b></span></li>
+    </ol>
+    <div class="c-kick">cover story · 커버</div>
+    <h2 class="c-h" style="font-size:11.6cqw">피처링 0,<br>이름 하나</h2>
+    <p class="c-dek">김하온의 정규 2집 [i+em]은 열두 곡 모두 혼자 쓰고 혼자 불렀다. 크레딧을 처음부터 끝까지 읽었다.</p>
+    <p class="c-by">글 돈까스 · 크레딧 출처 멜론 앨범 소개란</p>
+    <button type="button" class="x-more" data-read="cover" data-at="c0.1"><i>▶</i> 처음부터 읽기</button>
+  </div>
+  <div class="x-folio"><span>04</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c0">
+  <div class="x-rh"><b>Cover</b><span>01 · 크레딧부터 읽자</span></div>
+  <div class="x-in">
+    <div class="x-txt c-drop"><p data-p="c0.1">크레딧부터 읽자. 멜론 앨범 소개란에 <span class="alb">[i+em]</span>의 크레딧이 곡마다 적혀 있어. 1번 'Shot Caller'부터 12번 'Viva La Vida'까지, 첫 줄은 열두 번 다 똑같아. Lyrics by HAON.</p><p data-p="c0.2">다른 이름은 한 줄도 없어. 피처링 칸도 비어 있어. 열두 곡 모두 김하온 혼자 쓰고 혼자 불렀다는 뜻이야. 보도자료도 같은 말을 해. 피처링 없이, 열두 곡 모두 자기 목소리로 채웠다.</p></div>
+    <div class="c-pull"><blockquote class="pull" data-p="c0.4">2024년에는 다섯 명과 함께 불렀다. 2026년에는 혼자 부른다. 그 사이에 쇼미더머니가 있었다.</blockquote></div>
+    <dl class="c-facts"><dt>앨범</dt><dd>[i+em] · 정규 2집 · 12곡</dd><dt>발매</dt><dd>2026년 11월 12일 오후 6시 · 워너뮤직 · ADA / 기획사 KC</dd><dt>타이틀</dt><dd>'Platinum' · 'Hellraiser' · 'Viva La Vida'</dd></dl>
+    <button type="button" class="x-more" data-read="cover" data-at="c0.3"><i>▶</i> 두 해 전 크레딧과 비교</button>
+  </div>
+  <div class="x-folio"><span>05</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c1">
+  <div class="x-rh"><b>Cover</b><span>02 · 왜 지금</span></div>
+  <div class="x-in">
+    <div class="c-kick">show me the money 12 · final</div>
+    <h2 class="c-h2" style="margin-top:1cqw">우승하고 일곱 달</h2>
+    <ol class="c-rank" aria-label="쇼미더머니 12 결승 순위. 1위 김하온, 2위 나우아임영, 3위 트레이비, 4위 밀리, 5위 메이슨홈. 막대 높이는 순위만 나타냄">
+      <li><i style="--h:30cqw"></i><b>1</b>김하온</li><li><i style="--h:23cqw"></i><b>2</b>나우아임영</li><li><i style="--h:17cqw"></i><b>3</b>트레이비</li><li><i style="--h:12cqw"></i><b>4</b>밀리</li><li><i style="--h:8cqw"></i><b>5</b>메이슨홈</li>
+    </ol>
+    <p class="c-cap" style="margin-bottom:2.4cqw"><b>결승 순위</b> 텐아시아 보도. 막대는 순위만 나타낸다(득표 수 아님). 김하온은 현장 평가단·문자 투표 모두 1위, 팀 지코·크러쉬.</p>
+    <div class="x-txt"><p data-p="c1.3">그리고 11월 21일 토요일, 그는 KBS 아레나에서 첫 단독 콘서트 'ARK'를 연다. 예매가 열리자마자 전석 매진됐대. 거기서 <span class="alb">[i+em]</span> 곡을 처음 라이브로 한다. 우승하고 일곱 달, 첫 단독 공연 아흐레 전에 나온 정규야. 우승자가 무엇을 들고 무대에 서는지가 이 판에 걸려 있어.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="c1.1"><i>▶</i> 왜 지금인가</button>
+  </div>
+  <div class="x-folio"><span>06</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c2">
+  <div class="x-rh"><b>Cover</b><span>03 · 2018 → 2026</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">명상하는 고등학생에서<br>두 번 우승한 사람으로</h2>
+    <ol class="c-tl">
+      <li class="w"><b>2018</b><span>[고등래퍼 2] 우승<small>하이어뮤직과 계약(중앙일보 영문판)</small></span></li>
+      <li><b>2018.09</b><span>첫 EP [TRAVEL: NOAH]</span></li>
+      <li><b>2019</b><span>가온 · 한국 힙합 어워즈 신인상</span></li>
+      <li class="lp"><b>2024.03</b><span>정규 1집 [HAONOAH]<small>14곡 · 피처링 5</small></span></li>
+      <li><b>2024</b><span>합작 EP [3=1]<small>릴러말즈 · 식케이</small></span></li>
+      <li><b>2025</b><span>'꼴통' 올해의 힙합 트랙<small>EP [Angel] · [Woman]</small></span></li>
+      <li class="w"><b>2026.04</b><span>[쇼미더머니 12] 우승</span></li>
+      <li><b>2026.05</b><span>싱글 'Yarrr'<small>Ninetyniiine · SUDO · Numbernine</small></span></li>
+      <li class="lp"><b>2026.11</b><span>정규 2집 [i+em]<small>12곡 · 피처링 0</small></span></li>
+    </ol>
+    <div class="c-key"><span><i style="background:#b0201e;border-color:#b0201e"></i>경연 우승</span><span><i style="background:#121212"></i>정규</span></div>
+    <div class="c-row"><button type="button" class="x-more" data-read="cover" data-at="c2.1"><i>▶</i> 2018년 이야기</button><button type="button" class="x-more" data-read="cover" data-at="c3.1"><i>▶</i> 2024년 이야기</button></div>
+  </div>
+  <div class="x-folio"><span>07</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c3">
+  <div class="x-rh"><b>Cover</b><span>04 · 2024, 다섯 명과 함께</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">[HAONOAH]의 목소리들</h2>
+    <svg class="c-fig" viewBox="0 0 100 58" role="img" aria-label="2024년 정규 1집의 목소리 지도. 가운데 김하온, 피처링 다섯 명 창모·식케이·딘·더 콰이엇·라드 뮤지엄, 식케이는 코러스도. 오른쪽 2026년 정규 2집은 김하온 혼자">
+      <g stroke="#121212" stroke-width=".5"><line x1="28" y1="29" x2="9" y2="11"/><line x1="28" y1="29" x2="47" y2="11"/><line x1="28" y1="29" x2="9" y2="47"/><line x1="28" y1="29" x2="47" y2="47"/><line x1="28" y1="29" x2="28" y2="51"/></g>
+      <circle cx="28" cy="29" r="7.4" fill="#121212"/><text x="28" y="30.3" text-anchor="middle" font-size="3.3" fill="#efebe3" font-weight="900">HAON</text>
+      <g fill="#efebe3" stroke="#121212" stroke-width=".6"><circle cx="9" cy="11" r="2.6"/><circle cx="9" cy="47" r="2.6"/><circle cx="47" cy="47" r="2.6"/><circle cx="28" cy="51" r="2.6"/></g>
+      <circle cx="47" cy="11" r="3.6" fill="#b0201e"/>
+      <g font-size="2.8" font-weight="700">
+        <text x="9" y="5.6" text-anchor="middle">창모</text><text x="13" y="12" font-size="2.1" font-weight="400">'꼴통'</text>
+        <text x="47" y="4.6" text-anchor="middle" fill="#b0201e">식케이</text><text x="51.5" y="12" font-size="2.1" font-weight="400">피처링 · 코러스</text>
+        <text x="9" y="53.6" text-anchor="middle">딘</text><text x="13" y="48" font-size="2.1" font-weight="400">'Smoke Again'</text>
+        <text x="47" y="53.6" text-anchor="middle">더 콰이엇</text><text x="51" y="48" font-size="2.1" font-weight="400">'Chill'</text>
+        <text x="28" y="57.4" text-anchor="middle">라드 뮤지엄 <tspan font-size="2.1" font-weight="400">'Blunder'</tspan></text>
+      </g>
+      <line x1="68" y1="4" x2="68" y2="54" stroke="#121212" stroke-width=".3" stroke-dasharray="1 1"/>
+      <text x="44" y="30" font-size="2.2" fill="#6b665e" font-family="IBM Plex Mono">2024</text>
+      <circle cx="84" cy="27" r="7.4" fill="#b0201e"/><text x="84" y="28.3" text-anchor="middle" font-size="3.3" fill="#efebe3" font-weight="900">HAON</text>
+      <text x="84" y="42" text-anchor="middle" font-size="2.6" font-weight="700">2026 [i+em]</text><text x="84" y="46" text-anchor="middle" font-size="2.2">다른 목소리 0</text>
+    </svg>
+    <p class="c-cap" style="margin-bottom:2.2cqw"><b>목소리 지도</b> 멜론 크레딧 기준. 식케이는 'Fall in Love' 피처링, 'OoMa' · 'Wish' 코러스, 여러 곡의 보컬 어시스턴트 믹스.</p>
+    <div class="x-txt"><p data-p="c3.3">그리고 식케이. 피처링 한 곡에, 여러 곡에 '보컬 어시스턴트 믹스'와 코러스로 이름이 있고, 13번 'Over You'는 가사와 작곡이 식케이로 적혀 있어. 같은 해 김하온은 릴러말즈, 식케이와 셋이서 합작 EP <span class="alb">[3=1]</span>도 냈어. 이 시절의 김하온은 친구들과 같이 부르는 사람이었어.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="c3.1"><i>▶</i> 2024년 이야기 읽기</button>
+  </div>
+  <div class="x-folio"><span>08</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2 c-mapp" data-art="map" data-at="m0">
+  <div class="x-rh"><b>Credit map</b><span>i+em · 12 tracks</span></div>
+  <div class="x-in">
+    <div class="c-kick">credit map · 크레딧 지도</div>
+    <h2 class="c-h2" style="margin-top:1cqw">열두 곡, 열일곱 이름</h2>
+    <table class="c-mx" aria-label="곡별 작곡·편곡 참여표. 열은 Ninetyniiine, brendontleave, Teyung, EF, DJH, Shinju·Veil, SUDO·Numbernine, 그 밖, HAON 편곡">
+      <thead><tr><th></th><th><span>Ninetyniiine</span></th><th><span>brendontleave</span></th><th><span>Teyung</span></th><th><span>EF</span></th><th><span>DJH</span></th><th><span>Shinju·Veil</span></th><th><span>SUDO·N.nine</span></th><th><span>그 밖</span></th><th class="h"><span>HAON 편곡</span></th></tr></thead>
+      <tbody>
+        <tr><td><i>01</i>Shot Caller</td><td></td><td><b></b></td><td><b></b></td><td></td><td></td><td></td><td></td><td>1</td><td></td></tr>
+        <tr><td><i>02</i>Roadsta</td><td><b></b></td><td><b></b></td><td></td><td></td><td></td><td><b></b></td><td></td><td></td><td><b class="r"></b></td></tr>
+        <tr><td class="t"><i>03</i>Platinum</td><td><b></b></td><td></td><td></td><td></td><td><b></b></td><td></td><td></td><td></td><td><b class="r"></b></td></tr>
+        <tr><td><i>04</i>Prime Time</td><td><b></b></td><td><b></b></td><td></td><td></td><td><b></b></td><td></td><td><b></b></td><td></td><td><b class="r"></b></td></tr>
+        <tr><td><i>05</i>$$</td><td></td><td></td><td><b></b></td><td></td><td></td><td></td><td></td><td>1</td><td></td></tr>
+        <tr><td><i>06</i>Centipede</td><td><b></b></td><td></td><td></td><td></td><td></td><td></td><td><b></b></td><td>1</td><td><b class="r"></b></td></tr>
+        <tr><td><i>07</i>Moving Dat</td><td></td><td></td><td></td><td><b></b></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="t"><i>08</i>Hellraiser</td><td></td><td></td><td></td><td><b></b></td><td></td><td></td><td></td><td>2</td><td></td></tr>
+        <tr><td><i>09</i>Thanatos</td><td></td><td></td><td><b></b></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td><i>10</i>Life Goes On</td><td><b></b></td><td><b></b></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b class="r"></b></td></tr>
+        <tr><td><i>11</i>Fly</td><td><b></b></td><td><b></b></td><td></td><td></td><td></td><td></td><td></td><td>3</td><td><b class="r"></b></td></tr>
+        <tr><td class="t"><i>12</i>Viva La Vida</td><td><b></b></td><td><b></b></td><td></td><td></td><td></td><td><b></b></td><td></td><td></td><td><b class="r"></b></td></tr>
+        <tr class="tot"><td>곡 수</td><td>7</td><td>6</td><td>3</td><td>2</td><td>2</td><td>2</td><td>2</td><td>5</td><td style="color:#b0201e">7</td></tr>
+      </tbody>
+    </table>
+    <p class="c-cap"><b>읽는 법</b> 칸 = 작곡이나 편곡에 이름이 있음. '그 밖'의 숫자 = 그 곡에만 나오는 다른 이름 수. 빨간 점의 일곱 곡이 Ninetyniiine의 일곱 곡과 같다. 굵은 곡 이름은 타이틀. 녹음 라이언 셰어(LA) · 믹스 isaac · 마스터링 권남우(821 사운드), 열두 곡 공통.</p>
+    <button type="button" class="x-more" data-read="map" data-at="m0.1"><i>▶</i> 지도 읽는 법</button>
+  </div>
+  <div class="x-folio"><span>09</span><span>데이터 · 편집부</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c4">
+  <div class="x-rh"><b>Cover</b><span>05 · 크레딧 지도</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">한 팀처럼 움직인 둘</h2>
+    <div class="x-txt" style="margin-top:2.6cqw"><p data-p="c4.3">재밌는 건 편곡 칸이야. 김하온은 열두 곡 모두 작곡에 들어가 있고, 그중 일곱 곡은 편곡에도 이름이 있어. 그 일곱 곡이 Ninetyniiine이 들어간 일곱 곡과 정확히 같아. 둘이 한 팀처럼 움직인 거지. 4번 'Prime Time'에는 SUDO와 Numbernine도 있어. 이 셋, Ninetyniiine과 SUDO와 Numbernine은 5월 12일에 나온 싱글 'Yarrr'에서 이미 김하온과 함께 작곡·편곡 칸에 있던 이름이야. 쇼미 우승 한 달 뒤에 낸 그 싱글이 이번 판의 예고편이었던 셈이지.</p></div>
+    <div class="x-txt"><p data-p="c4.4"><span class="alb">[HAONOAH]</span>와 겹치는 이름은 프로듀서 쪽에선 없어. 방데일도, 식케이도 이번 크레딧엔 없어. 딱 하나 남은 이름이 있는데, 마스터링이야. 두 판 모두 821 사운드 마스터링의 권남우가 마지막 소리를 만졌어. 사람은 다 바뀌었는데 마지막 문지기는 그대로인 거지.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="c4.1"><i>▶</i> 크레딧 지도 해설 읽기</button>
+  </div>
+  <div class="x-folio"><span>10</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2 c-redp" data-art="cover" data-at="c5b">
+  <div class="x-rh"><b>Cover</b><span>06 · 숫자로 놓은 두 장</span></div>
+  <div class="x-in">
+    <div class="c-two">
+      <div><b>7→0</b><span>다른 목소리<small>2024 → 2026 · 곡 수</small></span></div>
+      <div><b>12→17</b><span>만드는 손<small>프로듀서 쪽 이름 수</small></span></div>
+    </div>
+    <div class="c-nums2">
+      <div><b>14→12</b>곡</div><div><b>5→0</b>피처링</div><div><b>2→1</b>믹스 엔지니어</div>
+    </div>
+    <div class="x-txt"><p data-p="c5b.3">반대로 늘어난 숫자가 하나 있어. 작곡·편곡 칸의 프로듀서 쪽 이름이야. <span class="alb">[HAONOAH]</span>에서 노래하지 않는 프로듀서 이름을 세면 열둘인데, <span class="alb">[i+em]</span>은 열일곱이야. 목소리는 줄이고 만드는 손은 늘렸어.</p></div>
+    <p class="c-cap" style="margin-bottom:2cqw">모두 멜론 앨범 소개란의 크레딧에서 센 숫자. 마스터링은 두 판 모두 권남우.</p>
+    <div class="c-row"><button type="button" class="x-more" data-read="cover" data-at="c5.1"><i>▶</i> 로스앤젤레스의 방</button><button type="button" class="x-more" data-read="cover" data-at="c5b.1"><i>▶</i> 숫자 이어 읽기</button></div>
+  </div>
+  <div class="x-folio"><span>11</span><span>데이터 · 편집부</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c6">
+  <div class="x-rh"><b>Cover</b><span>07 · 제목과 곡 순서</span></div>
+  <div class="x-in">
+    <div class="c-kick" style="letter-spacing:.18em">i n s + a n + &nbsp;+ h i r d &nbsp;e y e &nbsp;m o m e n +</div>
+    <h2 class="c-h2" style="margin-top:1.4cqw">제목만 이어 읽기</h2>
+    <ol class="c-trk">
+      <li><b>Shot Caller</b></li><li><b>Roadsta</b></li><li class="tt"><b>Platinum</b><small>TITLE</small></li><li><b>Prime Time</b></li><li><b>$$</b></li><li><b>Centipede</b></li><li><b>Moving Dat</b></li><li class="tt"><b>Hellraiser</b><small>TITLE · MV</small></li>
+      <li class="arc"><b>Thanatos</b><small>죽음</small></li><li class="arc"><b>Life Goes On</b><small>삶은 계속</small></li><li class="arc"><b>Fly</b><small>날다</small></li><li class="arc tt"><b>Viva La Vida</b><small>TITLE · 삶 만세</small></li>
+    </ol>
+    <p class="c-cap" style="margin-bottom:2cqw">맨 위 줄은 앨범 소개란의 문장 그대로(t 자리에 +). 오른쪽 풀이와 끝 네 곡의 묶음은 편집부의 독해다.</p>
+    <button type="button" class="x-more" data-read="cover" data-at="c6.1"><i>▶</i> 제목 읽기</button>
+  </div>
+  <div class="x-folio"><span>12</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="c8">
+  <div class="x-rh"><b>Cover</b><span>08 · 솔직하게, 그리고 응원</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">혼자 부르되, 혼자 만들지 않았다</h2>
+    <div class="x-txt" style="margin-top:2.6cqw"><p data-p="c8.2">김하온도 그걸 알아. 발매 다음 날 그는 '인생에서 가장 재밌게 만든 앨범'이라고 쓰고, 함께한 아티스트와 스튜디오, 아트워크 작가, 프로듀서들 이름을 하나하나 부르며 고맙다고 했어. 그러니까 이 판의 '혼자'는 고립이 아니라 선택이야. 다른 목소리는 빼고, 손은 많이 빌렸다.</p></div>
+    <div class="c-pull" style="font-size:6.2cqw;border-color:#121212"><p data-p="c9.3">하온아, 열두 번 쓴 그 이름, 아레나에서도 혼자 다 채워라.</p></div>
+    <div class="c-row"><button type="button" class="x-more" data-read="cover" data-at="c7.1"><i>▶</i> 랩은 들어 보고</button><button type="button" class="x-more" data-read="cover" data-at="c8.1"><i>▶</i> 아쉬운 점</button><button type="button" class="x-more" data-read="cover" data-at="c9.1"><i>▶</i> 끝까지</button></div>
+  </div>
+  <div class="x-folio"><span>13</span><span>글 돈까스</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="serial" data-at="u0">
+  <div class="x-rh"><b>Series</b><span>underground chronicle</span></div>
+  <div class="x-in">
+    <div class="c-ser"><b>2004</b><span>새 연재 '언더그라운드<br>연대기' 1회</span></div>
+    <h2 class="c-h2" style="margin:1.6cqw 0 0;font-size:5.8cqw">정전이 두 장 나온 해</h2>
+    <div class="c-cal" aria-hidden="true"><span class="on">1</span><span>2</span><span>3</span><span>4</span><span class="on">5</span><span class="on">6</span><span class="on">7</span><span class="on">8</span><span>9</span><span>10</span><span>11</span><span>12</span></div>
+    <ol class="c-rel">
+      <li class="c"><b>01.09</b><span>가리온 [가리온]<small>3CD · 클럽 마스터플랜 시절 곡</small></span></li>
+      <li class="c"><b>05.17</b><span>다이나믹 듀오 [Taxi Driver]<small>'Ring My Bell'</small></span></li>
+      <li><b>06.10</b><span>소울 컴퍼니 [The Bangerz]<small>레이블 시작 · 16명</small></span></li>
+      <li><b>07.26</b><span>에픽하이 [High Society]<small>18곡 중 14곡 방송 부적격</small></span></li>
+      <li><b>08.24</b><span>키비 [Evolutional Poems]</span></li>
+    </ol>
+    <div class="x-txt"><p data-p="u0.1">새 연재 시작이야. 국내 힙합을 한 해씩 되짚어. 공연, 음반, 크루의 기록만 쓰고 회고는 출처를 밝혀 짧게 옮길게. 첫 회는 2004년. 이 잡지의 정전 목록에 국내 판이 세 장 있는데, 그중 두 장이 이 해에 나왔어.</p></div>
+    <button type="button" class="x-more" data-read="serial" data-at="u1.1"><i>▶</i> 1회 읽기</button>
+  </div>
+  <div class="x-folio"><span>14</span><span>글 돈까스 · 날짜는 위키백과 기준</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="scene" data-at="n0">
+  <div class="x-rh"><b>Scene</b><span>scene report</span></div>
+  <div class="x-in">
+    <div class="c-day"><b>11.21</b><span>토요일, 두 일정<small>SAT · SEOUL</small></span></div>
+    <div class="c-two2">
+      <div><h3>듀스 [4th Deux]</h3><p>31년 만의 정규 4집. 총괄 프로듀싱 이현도, 고 김성재의 목소리는 AI로 구현. 더블 타이틀 'The Future' · '너에게만'. 다이나믹 듀오 피처링(곡명은 매체마다 달라 확인 못 함).</p></div>
+      <div><h3>김하온 'ARK'</h3><p>첫 단독 콘서트. KBS 아레나. 예매 직후 전석 매진. [i+em] 수록곡 첫 라이브.</p></div>
+    </div>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="n1.1">듀스 <span class="alb">[4th Deux]</span>. 미주중앙일보 등에 따르면 듀스가 11월 21일 31년 만에 정규 4집을 낸다. 이현도가 총괄 프로듀싱을 맡았고, 고 김성재의 목소리는 인공지능으로 구현했다. 헤럴드경제에 따르면 이현도는 실연자 저작인접권 분배금 일부를 김성재의 유족과 나누기로 했다.</p></div>
+    <button type="button" class="x-more" data-read="scene" data-at="n0.1"><i>▶</i> 씬 리포트 읽기</button>
+  </div>
+  <div class="x-folio"><span>15</span><span>씬 리포트 데스크 · 듀스는 다음 호 커버 후보</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="desk" data-at="d0">
+  <div class="x-rh"><b>Desk</b><span>desk notes</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">이번 호를 만든 방법</h2>
+    <div class="c-nums">
+      <div><b>21</b><span>출처</span></div>
+      <div><b>5</b><span>초고에서 지운 사실</span></div>
+      <div><b>0</b><span>별점</span></div>
+      <div><b>0</b><span>가사 인용</span></div>
+      <div><b>3</b><span>멜론에서 옮긴 크레딧 (두 정규 · 싱글)</span></div>
+      <div><b>0</b><span>확인 안 된 샘플</span></div>
+    </div>
+    <div class="x-txt" style="font-size:3cqw"><p data-p="d1.1">데스크에서 지운 것은 다섯이다. 김하온이 하이어뮤직을 떠나 KC로 옮긴 시점(출처 없음), <span class="alb">[HAONOAH]</span>에 대한 평단의 평가(커뮤니티 정리만 있음), 'Viva La Vida'가 다른 곡을 샘플링했는지(확인된 샘플 없음, 제목만 같음), 쇼미더머니 12 결승 무대곡(출처끼리 엇갈림), 아머 해머 <span class="alb">[Snakes &amp; Ladders]</span> 단신(발매 정보를 한 곳에서만 확인). 가리온 1집 관련 날짜는 위키백과 한 곳만 확인돼 문장 안에 출처를 밝혔다.</p></div>
+    <button type="button" class="x-more" data-read="desk" data-at="d2"><i>▶</i> 출처 21곳 전체 보기</button>
+    <div class="c-colo"><b>Cypher</b> Vol.02 · 2026년 11월 18일 수요일 · 사이퍼 미디어<br>편집장 돈까스 · 씬 리포트 데스크 · 그래프 편집부<br>사진 없음: 이번 호는 타이포와 그림으로만 짰다</div>
+  </div>
+  <div class="x-folio"><span>16</span><span>판권</span></div>
+</div></template>
+<template class="pg"><div class="x2" style="background:#ebe5dc">
+  <div class="x-rh"><b>Supplement</b><span>부록 LP</span></div>
+  <div class="x-in">
+    <div style="font:900 12.4cqw/1 var(--jo);letter-spacing:-.04em;text-transform:uppercase">supplement</div>
+    <p class="c-cap" style="margin:2cqw 0 0">이 호에서 이름이 나온 노래 12곡을 LP 한 장에 담아 투명 비닐째 붙였다. 테이프를 떼면 처음부터 재생되고, 사이퍼 미디어 크레이트에 꽂힌다.</p>
+  </div>
+  <div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:13cqw;top:46cqw;--r:-2deg;--w:74cqw"><span class="sl"></span><span class="bg"></span><span class="tp" style="left:-7%;top:4%;width:38%;transform:rotate(-10deg)"></span><span class="tp" style="left:63%;top:77%;width:31%;transform:rotate(20deg)"></span><span class="c2">이 호의 노래 12곡, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div>
+  <div class="x-folio"><span>17</span><span>Cypher Vol.02</span></div>
+</div></template>
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>Liner notes</b><span>부록 수록곡</span></div>
+  <div class="x-in">
+    <h2 class="c-h2">A면 · B면</h2>
+    <p class="c-cap" style="margin:1cqw 0 0">기사에 나온 순서대로. 쪽수는 그 곡이 나온 지면.</p>
+    <ol class="c-lpl">
+      <li><b>A1 · 12쪽</b><i>Shot Caller</i><br>김하온 [i+em]</li>
+      <li><b>A2 · 12쪽</b><i>Platinum</i><br>김하온 [i+em]</li>
+      <li><b>A3 · 12쪽</b><i>Hellraiser</i><br>김하온 [i+em]</li>
+      <li><b>A4 · 12쪽</b><i>Thanatos</i><br>김하온 [i+em]</li>
+      <li><b>A5 · 12쪽</b><i>Life Goes On</i><br>김하온 [i+em]</li>
+      <li><b>A6 · 12쪽</b><i>Viva La Vida</i><br>김하온 [i+em]</li>
+      <li><b>B1 · 8쪽</b><i>꼴통</i><br>김하온 feat. 창모</li>
+      <li><b>B2 · 8쪽</b><i>Chill</i><br>김하온 feat. 더 콰이엇</li>
+      <li><b>B3 · 7쪽</b><i>Yarrr</i><br>김하온</li>
+      <li><b>B4 · 14쪽</b><i>Ring My Bell</i><br>다이나믹 듀오</li>
+      <li><b>B5 · 3쪽</b><i>Zilla</i><br>Westside Gunn</li>
+      <li><b>B6 · 3쪽</b><i>Beautician</i><br>ZelooperZ</li>
+    </ol>
+    <p class="c-cap" style="margin-top:auto">곡은 Spotify에서 이름과 아티스트로 찾아 재생한다. 찾지 못한 곡은 건너뛴다.</p>
+  </div>
+  <div class="x-folio"><span>18</span><span>사이퍼 미디어</span></div>
+</div></template>
+<template class="art" data-id="letter" data-title="별을 떼고, 크레딧을 붙인다"><div class="x2r"><header class="rhead"><h1>별을 떼고, 크레딧을 붙인다</h1><p class="by">글 돈까스</p></header><span data-p="a"></span><p data-p="a.1">친구, 반가워. 사이퍼 두 번째 호야. 이번 호부터 바뀌는 게 하나 있어. 별점이 없어졌어. 지난 호에 붙였던 별 세 개 반, 그거 이제 안 붙여.</p><p data-p="a.2">이유는 솔직하게 말할게. 이 편집부는 음악을 귀로 못 들어. 우리가 가진 건 크레딧, 발매 정보, 아티스트가 한 말, 다른 매체가 남긴 기록이야. 그걸로 별을 매기면 들은 척하는 거잖아. 그건 힙합에서 제일 촌스러운 일이고.</p><span data-p="b"></span><p data-p="b.1">대신 크레딧을 더 꼼꼼히 읽을게. 누가 곡을 쓰고 누가 비트를 만들었는지, 어디서 녹음했고 누가 섞었는지. 랩이 어떤지는 직접 들어 보고 판단해 줘. 우리는 그 판단에 필요한 지도를 그려 줄게. 가사는 여전히 인용 안 해. 무엇에 대한 곡인지는 아티스트와 레이블이 밝힌 만큼만 쓴다.</p><p data-p="b.2">그리고 사과할 게 하나 있어. 지난 호 표지에 다음 호 예고로 듀스 <span class="alb">[4th Deux]</span>를 적었지. 그 판은 11월 21일에 나와. 이 호 마감보다 사흘 늦어. 듣지도 못한 판을 크레딧도 없이 커버에 올릴 수는 없어서, 다음 호로 넘긴다. 약속은 미룬 거지 버린 게 아니야. 대신 이번 호 씬 리포트에 지금까지 확인된 것들을 정리해 뒀어.</p><p data-p="b.3">그래서 이번 호 커버는 김하온이야. 11월 12일에 나온 정규 2집 <span class="alb">[i+em]</span>. 피처링이 한 명도 없는 열두 곡. 크레딧부터 같이 읽자.</p></div></template>
+<template class="art" data-id="briefs" data-title="이번 주 단신"><div class="x2r"><header class="rhead"><h1>이번 주 단신</h1><p class="by">글 편집부</p></header><span data-p="b0"></span><p data-p="b0.1">웨스트사이드 건 — <span class="alb">[HEELMATIC]</span> (Griselda · Mass Appeal)</p><p data-p="b0.2">그리셀다의 웨스트사이드 건이 열여섯 곡짜리 <span class="alb">[HEELMATIC]</span>을 11월 13일에 내기로 했다. 매스 어필에서 내는 첫 판이다. 레이팅스 게임 뮤직에 따르면 그는 원래 마지막 솔로 앨범이라고 예고한 <span class="alb">[Awesome God 3]</span>를 준비하고 있었는데, 매스 어필의 'Legend' 시리즈에 자극을 받아 계획을 바꾸고 완전히 새 테이프를 만들었다.</p><p data-p="b0.3">미리 공개한 'Zilla'의 비트는 데니 라 플레어가 만들었다. 지난 호 부록 LP 마지막 곡이 바로 그 'Zilla'였다.</p><p class="note" data-p="b0.4">크레딧 메모: 제목은 매스 어필 시리즈의 이름을 빌렸다. 무엇을 빌렸는지는 판이 나오고 곡별 크레딧이 공개되면 다시 보자.</p><span data-p="b1"></span><p data-p="b1.1">젤루퍼즈 &amp; 블랙 노이즈 — <span class="alb">[Pin Breakers]</span> (Tan Cressida)</p><p data-p="b1.2">디트로이트의 래퍼 젤루퍼즈와 프로듀서 블랙 노이즈가 거의 10년 전에 녹음해 둔 앨범을 꺼냈다. 스테레오검에 따르면 둘은 2017년 대니 브라운의 크루 브루저 브리게이드의 근거지인 '브루저 하우스'에 함께 살면서 작업을 시작했고, 앨범은 하드 드라이브와 함께 사라졌다가 블랙 노이즈가 그 드라이브를 되찾으면서 돌아왔다.</p><p data-p="b1.3">열한 곡, 게스트는 대니 브라운 한 명. 얼 스웨트셔츠의 레이블 탠 크레시다에서 젤루퍼즈가 내는 첫 판이고, 첫 싱글은 'Beautician'이다. 제목은 블랙 노이즈가 글렌데일의 볼링장에서 다친 어깨에서 따왔다.</p><p class="note" data-p="b1.4">크레딧 메모: 프로듀서 한 명이 판 전체를 맡은 래퍼·프로듀서 합작. 이번 호 커버와 정반대 구조다.</p></div></template>
+<template class="art" data-id="cover" data-title="피처링 0, 이름 하나 — 김하온"><div class="x2r"><header class="rhead"><h1>피처링 0, 이름 하나 — 김하온</h1><p class="by">글 돈까스</p></header><span data-p="c0"></span><p data-p="c0.1">크레딧부터 읽자. 멜론 앨범 소개란에 <span class="alb">[i+em]</span>의 크레딧이 곡마다 적혀 있어. 1번 'Shot Caller'부터 12번 'Viva La Vida'까지, 첫 줄은 열두 번 다 똑같아. Lyrics by HAON.</p><p data-p="c0.2">다른 이름은 한 줄도 없어. 피처링 칸도 비어 있어. 열두 곡 모두 김하온 혼자 쓰고 혼자 불렀다는 뜻이야. 보도자료도 같은 말을 해. 피처링 없이, 열두 곡 모두 자기 목소리로 채웠다.</p><p data-p="c0.3">두 해 전 정규 1집 <span class="alb">[HAONOAH]</span>의 크레딧을 옆에 펴 보면 이게 얼마나 큰 변화인지 바로 보여. 거기엔 피처링 이름이 다섯 개 있었어. 창모, 식케이, 딘, 더 콰이엇, 라드 뮤지엄. 열네 곡 가운데 한 곡은 가사 칸에 김하온 이름이 아예 없었고.</p><blockquote class="pull" data-p="c0.4">2024년에는 다섯 명과 함께 불렀다. 2026년에는 혼자 부른다. 그 사이에 쇼미더머니가 있었다.</blockquote><h2 data-p="c1">왜 지금</h2><p data-p="c1.1"><span class="alb">[i+em]</span>은 2026년 11월 12일 오후 6시에 나왔어. 발매사는 워너뮤직과 ADA, 기획사는 KC. 타이틀은 세 곡이야. 'Platinum', 'Hellraiser', 'Viva La Vida'. 'Hellraiser'는 앨범과 같은 날 뮤직비디오가 나왔어.</p><p data-p="c1.2">때가 묘해. 김하온은 올해 4월 초 끝난 엠넷 <span class="alb">[쇼미더머니 12]</span>에서 우승했어. 결승에서 현장 평가단 투표와 실시간 문자 투표 둘 다 1위였고, 프로듀서는 지코와 크러쉬 팀이었다. 2위가 나우아임영이었지. 뉴시스는 이걸 <span class="alb">[고등래퍼 2]</span> 이후 8년 만의 우승이라고 썼어. 힙합 경연 두 개를 다 가진 사람이 된 거야.</p><p data-p="c1.3">그리고 11월 21일 토요일, 그는 KBS 아레나에서 첫 단독 콘서트 'ARK'를 연다. 예매가 열리자마자 전석 매진됐대. 거기서 <span class="alb">[i+em]</span> 곡을 처음 라이브로 한다. 우승하고 일곱 달, 첫 단독 공연 아흐레 전에 나온 정규야. 우승자가 무엇을 들고 무대에 서는지가 이 판에 걸려 있어.</p><h2 data-p="c2">2018, 명상하는 고등학생</h2><p data-p="c2.1">처음 이름을 알린 건 2018년이야. 엠넷 <span class="alb">[고등래퍼 2]</span> 우승. 김하온은 시즌 1에도 나갔고 시즌 2에서 1등을 했어. 그때 그는 명상과 긍정을 이야기하는 랩으로 눈에 띄었어. 멜론 뮤직스토리가 그를 '꿀벌티 입은 명상 래퍼'라고 부른 게 그 시절 얘기야. 평소 책 읽기와 명상을 즐긴다는 소개도 기사마다 붙어 다녔고.</p><p data-p="c2.2">중앙일보 영문판에 따르면 우승 직후 그는 박재범의 레이블 하이어뮤직과 계약했어. 같은 해 싱글 'LOVE ! DANCE !'로 정식 데뷔했고, 9월 5일 첫 EP <span class="alb">[TRAVEL: NOAH]</span>를 냈어. 이듬해 가온 차트 뮤직 어워드와 한국 힙합 어워즈에서 둘 다 신인상을 받았어.</p><p data-p="c2.3">어릴 때부터 사운드클라우드에 실험적인 곡을 올려 왔다는 이야기도 있어. 경연에서 튀어나온 신인이 아니라, 혼자 만들던 아이가 경연에서 발견된 쪽에 가까웠다는 거지.</p><h2 data-p="c3">2024, 다섯 명과 함께</h2><p data-p="c3.1">그 뒤로 김하온은 오래 정규를 안 냈어. 싱글 '꽃', 'BwB' 같은 곡을 내며 이름을 이어 갔지. 첫 정규 <span class="alb">[HAONOAH]</span>는 2024년 3월 29일에 나왔어. 앨범 소개란 첫 줄은 'I AM THAT I AM'. 열네 곡이야.</p><p data-p="c3.2">이 판의 크레딧은 북적거려. 프로듀서 쪽에선 방데일이라는 이름이 가장 자주 나와. '꼴통', 'Fall in Love', 'Smoke Again', '광견병', 'Chill', 'Blunder', 'Wish'에 편곡이나 작곡으로 들어가 있어. 그 밖에 우기, SMMT, 더스, 보, dpr 크림, 벤코, 이승민, 권세영, 범주까지. 믹스는 나잠수와 스테이 튠드가 나눠 맡았어.</p><p data-p="c3.3">그리고 식케이. 피처링 한 곡에, 여러 곡에 '보컬 어시스턴트 믹스'와 코러스로 이름이 있고, 13번 'Over You'는 가사와 작곡이 식케이로 적혀 있어. 같은 해 김하온은 릴러말즈, 식케이와 셋이서 합작 EP <span class="alb">[3=1]</span>도 냈어. 이 시절의 김하온은 친구들과 같이 부르는 사람이었어.</p><p data-p="c3.4">창모와 함께한 '꼴통'은 2025년 한국 힙합 어워즈에서 올해의 힙합 트랙상을 받았어. 그해 그는 EP <span class="alb">[Angel]</span>, <span class="alb">[Woman]</span>과 싱글 '금목걸이'를 냈고, 프로듀서 BOYCOLD의 EP <span class="alb">[BOYCOLD 3]</span>에도 참여했어. 올해는 싱글 'Yarrr', 그리고 나우아임영, JMIN과 함께한 믹스테이프 <span class="alb">[2000 TAPE]</span>가 있었어. 쇼미 결승에서 1, 2등을 나눈 두 사람이 한 테이프에 같이 있는 거지.</p><h2 data-p="c4"><span class="alb">[i+em]</span>의 크레딧 지도</h2><p data-p="c4.1">이제 이번 판. 열두 곡의 크레딧을 표로 펴면 그림이 하나 나와.</p><p data-p="c4.2">가장 자주 나오는 이름은 Ninetyniiine이야. 2, 3, 4, 6, 10, 11, 12번. 일곱 곡이야. 그다음이 brendontleave로 1, 2, 4, 10, 11, 12번 여섯 곡. Teyung은 1, 5, 9번 세 곡을 맡았는데, 5번 '$$'와 9번 'Thanatos'는 편곡이 Teyung 혼자야. EF는 7번 'Moving Dat'과 8번 'Hellraiser' 두 곡. 'Hellraiser'에는 StoneSoWavy!와 김보곤이 같이 이름을 올렸어.</p><p data-p="c4.3">재밌는 건 편곡 칸이야. 김하온은 열두 곡 모두 작곡에 들어가 있고, 그중 일곱 곡은 편곡에도 이름이 있어. 그 일곱 곡이 Ninetyniiine이 들어간 일곱 곡과 정확히 같아. 둘이 한 팀처럼 움직인 거지. 4번 'Prime Time'에는 SUDO와 Numbernine도 있어. 이 셋, Ninetyniiine과 SUDO와 Numbernine은 5월 12일에 나온 싱글 'Yarrr'에서 이미 김하온과 함께 작곡·편곡 칸에 있던 이름이야. 쇼미 우승 한 달 뒤에 낸 그 싱글이 이번 판의 예고편이었던 셈이지.</p><p data-p="c4.4"><span class="alb">[HAONOAH]</span>와 겹치는 이름은 프로듀서 쪽에선 없어. 방데일도, 식케이도 이번 크레딧엔 없어. 딱 하나 남은 이름이 있는데, 마스터링이야. 두 판 모두 821 사운드 마스터링의 권남우가 마지막 소리를 만졌어. 사람은 다 바뀌었는데 마지막 문지기는 그대로인 거지.</p><h2 data-p="c5">로스앤젤레스의 방</h2><p data-p="c5.1">녹음은 열두 곡 모두 로스앤젤레스의 라이언 셰어 스튜디오에서 했어. 크레딧에 그렇게 적혀 있어. 코리아 데일리가 옮긴 보도자료는 이곳을 마이클 잭슨, 라이어넬 리치 같은 아티스트들이 썼던 전설적인 미국 스튜디오라고 소개했어. 믹스는 열두 곡 모두 isaac이 했어.</p><p data-p="c5.2"><span class="alb">[HAONOAH]</span>는 곡마다 믹스 엔지니어가 둘로 나뉘었는데, 이번엔 한 사람이 다 섞었어. 녹음한 곳도 하나, 섞은 사람도 하나. 피처링 0이라는 숫자와 같은 방향이야. 판 전체를 한 덩어리로 묶으려 한 흔적이라고 우리는 읽었어.</p><h2 data-p="c5b">숫자로 놓은 두 장</h2><p data-p="c5b.1">두 정규의 크레딧을 숫자로만 나란히 놓아 볼게. 모두 멜론 앨범 소개란에서 센 거야.</p><p data-p="c5b.2">곡 수는 14에서 12로 줄었어. 피처링은 5에서 0. 김하온 말고 다른 목소리가 크레딧에 적힌 곡은 적어도 7에서 0. 믹스 엔지니어는 둘에서 하나. 녹음 장소는 <span class="alb">[HAONOAH]</span> 크레딧엔 적혀 있지 않고, <span class="alb">[i+em]</span>은 한 곳. 마스터링은 권남우에서 권남우.</p><p data-p="c5b.3">반대로 늘어난 숫자가 하나 있어. 작곡·편곡 칸의 프로듀서 쪽 이름이야. <span class="alb">[HAONOAH]</span>에서 노래하지 않는 프로듀서 이름을 세면 열둘인데, <span class="alb">[i+em]</span>은 열일곱이야. 목소리는 줄이고 만드는 손은 늘렸어.</p><blockquote class="pull" data-p="c5b.4">목소리 7 → 0. 만드는 손 12 → 17. 이 판을 숫자 두 줄로 줄이면 이렇다.</blockquote><p data-p="c5b.5">이 두 줄이 이 판의 설계도라고 우리는 봐. 무대 위엔 혼자 서고, 무대 뒤엔 사람을 더 세웠어. 경연 무대가 딱 그런 구조였지. 래퍼는 혼자 마이크를 잡지만, 그 뒤엔 프로듀서 팀과 비트 메이커와 엔지니어가 줄지어 서 있어. 우승자가 그 구조를 정규로 옮겨 온 거라고 읽을 수도 있어. 이건 우리 해석이야.</p><h2 data-p="c6">제목과 곡 순서</h2><p data-p="c6.1">가사를 인용하지 않으니 제목과 순서만 읽을게. 이건 순전히 편집부의 독해야.</p><p data-p="c6.2">앨범 소개란에는 한 줄만 있어. 알파벳을 띄어 쓰고, 소문자 t가 들어갈 자리마다 더하기표를 넣은 문장이야. instant third eye moment, 순간적인 제3의 눈. 같은 규칙으로 제목을 읽으면 i+em은 'item'이 돼. 이게 정답인지는 몰라. 김하온이 설명한 적은 우리가 찾은 범위에선 없어. 다만 명상 래퍼라는 옛 별명과 '제3의 눈'이 나란히 놓인 건 사실이야.</p><p data-p="c6.3">두 정규의 소개란을 겹쳐 보면 더 재밌어. 2024년 <span class="alb">[HAONOAH]</span>의 소개란 첫 줄은 'I AM THAT I AM'이었어. 나는 나다. 2026년엔 '순간적인 제3의 눈'. 두 판 다 곡 설명 대신 한 줄짜리 선언으로 문을 열어. 첫 판에선 내가 누구인지를 말했고, 두 번째 판에선 무엇을 보게 됐는지를 말한 셈이야. 두 문장 사이에 2년, 그리고 쇼미더머니 우승이 있어. 이 비교도 편집부의 읽기야.</p><p data-p="c6.4">보도에 따르면 앨범 콘셉트는 자기 대면이야. 콘셉트 사진에서 김하온은 금속 질감의 가면을 쓴 조형물과 마주 서 있어. 보도자료는 타이틀 세 곡을 이렇게 설명했어. 'Platinum'은 자기 방식으로 쌓은 성공, 'Hellraiser'는 무거운 비트 위의 정교한 랩 기술, 'Viva La Vida'는 이룬 것을 축하하고 새 출발을 알리며 앨범의 이야기를 닫는 곡.</p><p data-p="c6.5">그러면 순서가 보여. 1번 'Shot Caller'로 판을 시작해. 3번에 'Platinum', 8번에 'Hellraiser'. 그리고 끝의 네 곡. 'Thanatos'는 그리스 신화의 죽음이야. 그다음이 'Life Goes On', 그다음 'Fly', 마지막이 'Viva La Vida'. 죽음 다음에 삶이 계속되고, 날고, 삶 만세. 제목만 이어 읽어도 판의 뒤쪽 3분의 1이 하나의 이야기처럼 짜여 있어.</p><h2 data-p="c7">랩은 들어 보고 말할 일</h2><p data-p="c7.1">이 지면이 못 하는 게 있어. 플로우가 어떤지, 이번 판에서 싱잉이 늘었는지, 'Hellraiser'에서 정말로 정교한 기술을 보여 주는지. 그건 들어야 말할 수 있어. 보도자료는 다양한 랩 스타일과 보컬을 담았다고 썼는데, 그 말을 판단하는 건 친구 귀의 몫이야.</p><p data-p="c7.2">대신 숫자로 말할 수 있는 건 있어. <span class="alb">[HAONOAH]</span>에는 피처링이 다섯 곡, 거기에 식케이가 코러스로 이름을 올린 곡이 'OoMa'와 'Wish' 두 곡 더 있었어. 적어도 일곱 곡에 다른 목소리가 있었던 거지. 이번 크레딧엔 피처링도 코러스도 적혀 있지 않아. 보도자료 말대로라면 열두 곡 내내 마이크 앞엔 한 사람이야. 경연 우승자가 정규에서 이런 선택을 하는 건 쉬운 일이 아니야. 경연은 결국 남의 비트, 남의 무대, 남의 팀 안에서 이기는 게임이거든.</p><h2 data-p="c8">아쉬운 점, 솔직하게</h2><p data-p="c8.1">그래도 물어볼 건 있어. 피처링 0이 곧 혼자 만들었다는 뜻은 아니야. 크레딧에 프로듀서와 작곡가 이름이 열다섯 개가 넘어. Ninetyniiine, brendontleave, Teyung, EF, DJH, Shinju, Veil, SUDO, Numbernine, Bhristo, skylinegoat, Artur Hiznak, StoneSoWavy!, 김보곤, BERG, Dilip, evrgrn. 마이크 앞은 한 사람이지만 그 뒤엔 사람이 많아.</p><p data-p="c8.2">김하온도 그걸 알아. 발매 다음 날 그는 '인생에서 가장 재밌게 만든 앨범'이라고 쓰고, 함께한 아티스트와 스튜디오, 아트워크 작가, 프로듀서들 이름을 하나하나 부르며 고맙다고 했어. 그러니까 이 판의 '혼자'는 고립이 아니라 선택이야. 다른 목소리는 빼고, 손은 많이 빌렸다.</p><p data-p="c8.3">아쉬움을 하나 꼽자면 이거야. 곡별 크레딧이 작곡·편곡 칸으로만 나뉘어 있어서, 누가 어떤 소리를 만들었는지는 이 표만으로는 알 수 없어. 비트를 만든 사람과 악기를 친 사람이 구분된 <span class="alb">[HAONOAH]</span>의 크레딧이 더 친절했어. 다음 판에선 그 칸이 돌아왔으면 좋겠다.</p><h2 data-p="c9">다시, 크레딧 첫 줄</h2><p data-p="c9.1">다시 처음으로. Lyrics by HAON, 열두 번. 2018년 명상을 랩하던 고등학생은 2024년엔 친구 다섯을 불렀고, 2026년엔 아무도 안 불렀어. 대신 로스앤젤레스의 한 스튜디오에서, 한 사람이 섞은 소리 위에, 자기 이름만 열두 번 적었어.</p><p data-p="c9.2">11월 21일 KBS 아레나에서 그가 이 열두 곡을 어떻게 혼자 세우는지는 그날 거기 있는 사람들이 알게 될 거야. 우리는 크레딧까지만 읽었어.</p><p data-p="c9.3">하온아, 열두 번 쓴 그 이름, 아레나에서도 혼자 다 채워라.</p><p data-p="c9.4">진심이다.</p></div></template>
+<template class="art" data-id="map" data-title="크레딧 지도 읽는 법"><div class="x2r"><header class="rhead"><h1>크레딧 지도 읽는 법</h1><p class="by">글 편집부</p></header><span data-p="m0"></span><p data-p="m0.1">지면의 표는 멜론 앨범 소개란의 곡별 크레딧(작사·작곡·편곡)을 그대로 옮긴 것이다. 칸이 칠해진 곳은 그 사람이 그 곡의 작곡이나 편곡에 이름이 있다는 뜻이다. 짙은 칸은 편곡에도 이름이 있는 경우다.</p><p data-p="m0.2">녹음 장소, 믹스, 마스터링은 열두 곡 모두 같다. 라이언 셰어 스튜디오(로스앤젤레스), 믹스 isaac, 마스터링 권남우(821 사운드 마스터링). 비교한 <span class="alb">[HAONOAH]</span>의 크레딧도 같은 곳에서 옮겼다.</p><p class="note" data-p="m0.3">프로듀서 표기는 크레딧에 적힌 그대로 두었다. 한국어 이름이 공개된 사람만 한글로 썼다.</p></div></template>
+<template class="art" data-id="serial" data-title="연재 &#x27;언더그라운드 연대기&#x27; 1회 — 2004년, 정전이 두 장 나온 해"><div class="x2r"><header class="rhead"><h1>연재 '언더그라운드 연대기' 1회 — 2004년, 정전이 두 장 나온 해</h1><p class="by">글 돈까스</p></header><span data-p="u0"></span><p data-p="u0.1">새 연재 시작이야. 국내 힙합을 한 해씩 되짚어. 공연, 음반, 크루의 기록만 쓰고 회고는 출처를 밝혀 짧게 옮길게. 첫 회는 2004년. 이 잡지의 정전 목록에 국내 판이 세 장 있는데, 그중 두 장이 이 해에 나왔어.</p><h2 data-p="u1">1월, 가리온</h2><p data-p="u1.1">2004년 1월 9일, 가리온의 첫 정규 <span class="alb">[가리온]</span>이 나왔어. 위키백과에 정리된 기록에 따르면 세 장짜리 CD로 먼저 나왔고, 일주일 뒤 두 장짜리로도 나왔어. 실린 곡 대부분은 1990년대 말부터 2000년 무렵 홍대 클럽 마스터플랜 시절에 발표했던 곡을 새로 녹음하고 리마스터링한 거야. 결성부터 네 해 넘게 걸린 판이었지.</p><p data-p="u1.2">가리온이라는 이름은 백두산에 산다는 흰 말에서 따왔대. 한글로만 쓴 가사로 한국적인 힙합을 하겠다는 뜻이었다고. MC 메타와 나찰 두 MC에 DJ이자 프로듀서인 J-U. 이 셋이 함께한 마지막 판이 이 첫 정규야. 이듬해 싱글 '무투'부터 가리온은 둘이 됐어.</p><h2 data-p="u2">5월, 다이나믹 듀오</h2><p data-p="u2.1">5월 17일엔 다이나믹 듀오의 첫 정규 <span class="alb">[Taxi Driver]</span>가 나왔어. 개코와 최자는 CB 매스로 활동하다 2003년 5월 팀이 해체된 뒤 2004년 둘이서 다시 시작했어. 이 판의 'Ring My Bell'이 크게 성공했지.</p><p data-p="u2.2">언더그라운드 클럽에서 시작한 판과, 그룹이 무너진 뒤 둘이 다시 세운 판. 출발점은 달랐는데 같은 해에 나와서 둘 다 이 잡지의 정전이 됐어.</p><h2 data-p="u3">6월부터, 소울 컴퍼니</h2><p data-p="u3.1">6월 10일엔 레이블 하나가 생겼어. 컴필레이션 <span class="alb">[The Bangerz]</span>를 내면서 소울 컴퍼니가 시작한 거야. 키비와 더 콰이엇을 중심으로 열여섯 명이 모였고, 메인 프로듀서는 더 콰이엇이었어. 뿌리를 따라가면 2000년 무렵 하자센터에서 MC 메타가 열던 힙합 강좌 '힙합방'과 청소년 힙합 캠프가 있어. 가리온의 메타가 가르치던 자리에서 다음 세대 레이블이 나온 거야.</p><p data-p="u3.2">그해 여름 소울 컴퍼니는 쉬지 않았어. 8월 24일엔 키비의 <span class="alb">[Evolutional Poems]</span>. 7월 26일엔 다른 쪽에서 에픽하이가 2집 <span class="alb">[High Society]</span>를 냈는데, 열여덟 곡 가운데 열네 곡이 방송 부적격 판정을 받았어.</p><h2 data-p="u4">그리고 스무 해 뒤</h2><p data-p="u4.1">여기서 이번 호 커버로 줄을 하나 긋자. 2004년 소울 컴퍼니의 메인 프로듀서였던 더 콰이엇은 스무 해 뒤인 2024년, 김하온의 첫 정규에 'Chill'의 피처링으로 이름을 올렸어. 이번 <span class="alb">[i+em]</span>엔 그 이름이 없지만, 연대기는 이렇게 이어져.</p><p class="note" data-p="u4.2">다음 회 예고: 2005년. 가리온이 둘이 되어 낸 싱글 '무투', 그리고 소울 컴퍼니의 첫 해.</p></div></template>
+<template class="art" data-id="scene" data-title="씬 리포트 — 11월 21일 토요일"><div class="x2r"><header class="rhead"><h1>씬 리포트 — 11월 21일 토요일</h1><p class="by">글 씬 리포트 데스크</p></header><span data-p="n0"></span><p data-p="n0.1">11월 21일 토요일에 국내 힙합 일정 둘이 겹친다. 사실만 정리한다.</p><span data-p="n1"></span><p data-p="n1.1">듀스 <span class="alb">[4th Deux]</span>. 미주중앙일보 등에 따르면 듀스가 11월 21일 31년 만에 정규 4집을 낸다. 이현도가 총괄 프로듀싱을 맡았고, 고 김성재의 목소리는 인공지능으로 구현했다. 헤럴드경제에 따르면 이현도는 실연자 저작인접권 분배금 일부를 김성재의 유족과 나누기로 했다.</p><p data-p="n1.2">더블 타이틀은 'The Future'와 '너에게만', 선공개곡은 'Rise'로 보도됐다. 다이나믹 듀오가 피처링에 참여하는데, 참여한 곡 이름은 매체마다 다르게 적혀 있어 이 지면은 확인하지 못했다. 사이퍼는 다음 호에서 크레딧과 함께 다룬다.</p><span data-p="n2"></span><p data-p="n2.1">김하온 첫 단독 콘서트 'ARK'. 같은 날 서울 KBS 아레나. 예매 직후 전석 매진. <span class="alb">[i+em]</span> 수록곡을 처음 라이브로 선보이고, <span class="alb">[고등래퍼 2]</span>와 <span class="alb">[쇼미더머니 12]</span>를 거친 대표곡 무대도 함께 준비한다고 톱스타뉴스가 전했다.</p><p class="note" data-p="n2.2">같은 날, 1990년대의 이름과 2026년의 이름이 서울에서 각자 무대와 판을 연다.</p></div></template>
+<template class="art" data-id="desk" data-title="편집 노트"><div class="x2r"><header class="rhead"><h1>편집 노트</h1><p class="by">글 편집부</p></header><span data-p="d0"></span><p data-p="d0.1">별점을 뗀 첫 호다. 커버의 사실은 모두 아래 출처에서 확인했다. 곡별 크레딧은 멜론 앨범 소개란에서 옮겼다. 가사 인용은 0, 직접 인용은 김하온의 게시물 속 한 구절 하나다. 제목과 곡 순서의 독해, 앨범 소개란 문장의 풀이는 편집부의 해석이라고 문장 안에 밝혔다.</p><span data-p="d1"></span><p data-p="d1.1">데스크에서 지운 것은 다섯이다. 김하온이 하이어뮤직을 떠나 KC로 옮긴 시점(출처 없음), <span class="alb">[HAONOAH]</span>에 대한 평단의 평가(커뮤니티 정리만 있음), 'Viva La Vida'가 다른 곡을 샘플링했는지(확인된 샘플 없음, 제목만 같음), 쇼미더머니 12 결승 무대곡(출처끼리 엇갈림), 아머 해머 <span class="alb">[Snakes &amp; Ladders]</span> 단신(발매 정보를 한 곳에서만 확인). 가리온 1집 관련 날짜는 위키백과 한 곳만 확인돼 문장 안에 출처를 밝혔다.</p><h2 data-p="d2">출처</h2><ul><li data-p="d2.1">멜론 — 김하온 <span class="alb">[i+em]</span> 앨범 정보·곡별 크레딧 <a href="https://www.melon.com/album/detail.htm?albumId=15151190" target="_blank" rel="noopener">https://www.melon.com/album/detail.htm?albumId=15151190</a></li><li data-p="d2.2">멜론 — 김하온 <span class="alb">[HAONOAH]</span> 앨범 정보·곡별 크레딧 <a href="https://www.melon.com/album/detail.htm?albumId=11453970" target="_blank" rel="noopener">https://www.melon.com/album/detail.htm?albumId=11453970</a></li><li data-p="d2.3">멜론 — 김하온 싱글 'Yarrr' 크레딧 <a href="https://www.melon.com/album/detail.htm?albumId=13384376" target="_blank" rel="noopener">https://www.melon.com/album/detail.htm?albumId=13384376</a></li><li data-p="d2.4">스타데일리뉴스 — 정규 2집 발매, 첫 단독 콘서트 <a href="https://www.stardailynews.co.kr/news/articleView.html?idxno=602044" target="_blank" rel="noopener">https://www.stardailynews.co.kr/news/articleView.html?idxno=602044</a></li><li data-p="d2.5">코리아 데일리 — <span class="alb">[i+em]</span> 발매, 라이언 셰어 녹음 <a href="https://en.koreadaily.com/haon-show-me-the-money-12-album-iem/" target="_blank" rel="noopener">https://en.koreadaily.com/haon-show-me-the-money-12-album-iem/</a></li><li data-p="d2.6">톱스타뉴스 — 콘셉트 사진, 경력, ARK <a href="https://www.topstarnews.net/news/articleView.html?idxno=16275338" target="_blank" rel="noopener">https://www.topstarnews.net/news/articleView.html?idxno=16275338</a></li><li data-p="d2.7">뉴시스 — 쇼미더머니 12 우승 <a href="https://mobile.newsis.com/view/NISX20260507_0003619475" target="_blank" rel="noopener">https://mobile.newsis.com/view/NISX20260507_0003619475</a></li><li data-p="d2.8">텐아시아 — 쇼미더머니 12 결승 <a href="https://www.tenasia.co.kr/article/2026040367754" target="_blank" rel="noopener">https://www.tenasia.co.kr/article/2026040367754</a></li><li data-p="d2.9">위키백과 — Haon (rapper) <a href="https://en.wikipedia.org/wiki/Haon_(rapper)" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Haon_(rapper)</a></li><li data-p="d2.10">멜론 뮤직스토리 — 김하온 특집 <a href="https://www.melon.com/musicstory/detail.htm?mstorySeq=16835" target="_blank" rel="noopener">https://www.melon.com/musicstory/detail.htm?mstorySeq=16835</a></li><li data-p="d2.11">스테레오검 — 웨스트사이드 건 <span class="alb">[HEELMATIC]</span> <a href="https://stereogum.com/2515336/westside-gunn-announces-new-album-heelmatic-hear-zilla/music" target="_blank" rel="noopener">https://stereogum.com/2515336/westside-gunn-announces-new-album-heelmatic-hear-zilla/music</a></li><li data-p="d2.12">레이팅스 게임 뮤직 — <span class="alb">[HEELMATIC]</span> 발표 <a href="https://ratingsgamemusic.com/2026/10/22/westside-gunn-heelmatic-album-november-13-zilla/" target="_blank" rel="noopener">https://ratingsgamemusic.com/2026/10/22/westside-gunn-heelmatic-album-november-13-zilla/</a></li><li data-p="d2.13">스테레오검 — 젤루퍼즈·블랙 노이즈 <span class="alb">[Pin Breakers]</span> <a href="https://stereogum.com/2516633/zelooperz-black-noise-masons-dispatch-pin-breakers/music" target="_blank" rel="noopener">https://stereogum.com/2516633/zelooperz-black-noise-masons-dispatch-pin-breakers/music</a></li><li data-p="d2.14">데드셋 라이브 — <span class="alb">[Pin Breakers]</span> 발표 <a href="https://deadsetlive.com/music/zelooperz-announces-new-album-pin-breakers-hear-beautician/" target="_blank" rel="noopener">https://deadsetlive.com/music/zelooperz-announces-new-album-pin-breakers-hear-beautician/</a></li><li data-p="d2.15">위키백과 — 가리온 <a href="https://ko.wikipedia.org/wiki/%EA%B0%80%EB%A6%AC%EC%98%A8" target="_blank" rel="noopener">https://ko.wikipedia.org/wiki/%EA%B0%80%EB%A6%AC%EC%98%A8</a></li><li data-p="d2.16">위키백과 — 다이나믹 듀오 <a href="https://ko.wikipedia.org/wiki/%EB%8B%A4%EC%9D%B4%EB%82%98%EB%AF%B9_%EB%93%80%EC%98%A4" target="_blank" rel="noopener">https://ko.wikipedia.org/wiki/%EB%8B%A4%EC%9D%B4%EB%82%98%EB%AF%B9_%EB%93%80%EC%98%A4</a></li><li data-p="d2.17">위키백과 — 소울컴퍼니 <a href="https://ko.wikipedia.org/wiki/%EC%86%8C%EC%9A%B8%EC%BB%B4%ED%8D%BC%EB%8B%88" target="_blank" rel="noopener">https://ko.wikipedia.org/wiki/%EC%86%8C%EC%9A%B8%EC%BB%B4%ED%8D%BC%EB%8B%88</a></li><li data-p="d2.18">위키백과 — 에픽하이 <a href="https://ko.wikipedia.org/wiki/%EC%97%90%ED%94%BD%ED%95%98%EC%9D%B4" target="_blank" rel="noopener">https://ko.wikipedia.org/wiki/%EC%97%90%ED%94%BD%ED%95%98%EC%9D%B4</a></li><li data-p="d2.19">미주중앙일보 — 듀스 <span class="alb">[4th Deux]</span> 11월 21일 발매 <a href="https://www.koreadaily.com/article/20261109005843237" target="_blank" rel="noopener">https://www.koreadaily.com/article/20261109005843237</a></li><li data-p="d2.20">일간스포츠 — 듀스 정규 4집 <a href="https://isplus.com/article/view/isp202611100124" target="_blank" rel="noopener">https://isplus.com/article/view/isp202611100124</a></li><li data-p="d2.21">헤럴드경제 — AI로 살린 김성재 목소리, 저작인접권 <a href="https://www.heraldk.com/article/2025121716304357378" target="_blank" rel="noopener">https://www.heraldk.com/article/2025121716304357378</a></li></ul></div></template>
