@@ -20,7 +20,7 @@ const CSS = `
 .jg-list li .w em { font-style: normal; color: var(--muted); }
 .jg-list li .by { flex: none; font-size: 11px; color: #6a5a9a; }
 .jg-list li.cur { background: #fff7cc; font-weight: 600; }
-.jg-list li.cur .n::before { content: '▶ '; color: var(--red); }
+.jg-list li.cur .n::before { content: '▶ '; color: var(--main, #026395); }
 .jg-list li.done { color: var(--muted); }
 .jg-list li.wait { color: var(--muted); font-style: italic; }
 .jg-list .empty { padding: 18px 12px; text-align: center; color: var(--muted); font-size: 12px; }
@@ -36,7 +36,7 @@ const CSS = `
 .jg-res li div { flex: 1; min-width: 0; }
 .jg-res li b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .jg-res li small { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jg-res li .plus { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); }
+.jg-res li .plus { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--main, #026395); }
 .jg-res li.raw i { display: grid; place-items: center; background: var(--z100); font-size: 18px; }
 `;
 

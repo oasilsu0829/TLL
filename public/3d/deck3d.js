@@ -283,9 +283,9 @@ function start() {
     lampBody.position.set(lampAt.x, PLATE + 0.033, lampAt.z); deck.add(lampBody);
     for (const yy of [0.02, 0.03, 0.04]) { const gr2 = new THREE.Mesh(new THREE.TorusGeometry(0.0295, 0.0018, 6, 32), new THREE.MeshStandardMaterial({ color: 0x3a3c42, metalness: 0.5, roughness: 0.5 })); gr2.rotation.x = Math.PI / 2; gr2.position.set(lampAt.x, PLATE + yy, lampAt.z); deck.add(gr2); }
     const cap2 = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.028, 0.008, 32), new THREE.MeshStandardMaterial({ color: 0x1d1f24, roughness: 0.5 })); cap2.position.set(lampAt.x, PLATE + 0.062, lampAt.z); deck.add(cap2);
-    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), new THREE.MeshStandardMaterial({ color: 0xff3a2a, emissive: 0xff2010, emissiveIntensity: 1.6 }));
+    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3aa8e0, emissive: 0x1f8fd0, emissiveIntensity: 1.6 }));
     lens.position.set(lampAt.x + 0.02, PLATE + 0.046, lampAt.z - 0.019); deck.add(lens);
-    const glow = new THREE.PointLight(0xff3020, 0.35, 0.5, 2); glow.position.set(lampAt.x + 0.03, PLATE + 0.05, lampAt.z - 0.03); deck.add(glow); D._glow = glow;
+    const glow = new THREE.PointLight(0x2f9fd8, 0.35, 0.5, 2); glow.position.set(lampAt.x + 0.03, PLATE + 0.05, lampAt.z - 0.03); deck.add(glow); D._glow = glow;
     const lip = new THREE.Mesh(new THREE.TorusGeometry(PL_R - 0.003, 0.004, 8, 128), alu); lip.rotation.x = Math.PI / 2; lip.position.y = PL_TOP - 0.001; node.add(lip);
     // 고무 매트: 동심원 무늬
     const mc = document.createElement('canvas'); mc.width = mc.height = 512; const mg = mc.getContext('2d');
@@ -376,7 +376,7 @@ function start() {
     // 헤드셸(관 끝에서 비스듬히) + 카트리지 + 손잡이
     const hs = new THREE.Group(); hs.position.copy(end); hs.rotation.y = -0.4; lift.add(hs);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.084, 0.015, 0.155), black), 0, 0, 0.075, hs);
-    const cart = add(new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.036, 0.07), new THREE.MeshStandardMaterial({ color: 0xc8102e, roughness: 0.45 })), 0, -0.025, 0.092, hs);
+    const cart = add(new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.036, 0.07), new THREE.MeshStandardMaterial({ color: 0x026395, roughness: 0.45 })), 0, -0.025, 0.092, hs);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.014, 0.028), black), 0, -0.047, 0.108, hs);
     const fl = add(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.006, 0.016), chrome), 0.05, 0.006, 0.11, hs); fl.rotation.z = 0.35;
     // 바늘 끝(헤드셸 기준 -0.054)이 판 윗면(REC_Y + 0.004 = 0.078)에 닿도록 ARM_H = 0.078 + 0.016 + 0.054 + 여유
@@ -450,7 +450,7 @@ function start() {
       const kc = document.createElement('canvas'); kc.width = kc.height = 256; const kg = kc.getContext('2d');
       const kgr = kg.createRadialGradient(128, 128, 10, 128, 128, 128); kgr.addColorStop(0, '#e8eaee'); kgr.addColorStop(1, '#a9adb3'); kg.fillStyle = kgr; kg.beginPath(); kg.arc(128, 128, 128, 0, 7); kg.fill();
       for (let r = 20; r < 128; r += 4) { kg.strokeStyle = 'rgba(255,255,255,.18)'; kg.lineWidth = 1; kg.beginPath(); kg.arc(128, 128, r, 0, 7); kg.stroke(); }
-      kg.fillStyle = '#c8102e'; kg.fillRect(124, 14, 8, 50);
+      kg.fillStyle = '#026395'; kg.fillRect(124, 14, 8, 50);
       const kt = new THREE.CanvasTexture(kc); kt.colorSpace = THREE.SRGBColorSpace;
       const knurl = document.createElement('canvas'); knurl.width = 512; knurl.height = 32; const ng = knurl.getContext('2d'); for (let i = 0; i < 128; i++) { ng.fillStyle = i % 2 ? '#eef0f3' : '#7d8188'; ng.fillRect(i * 4, 0, 2, 32); }
       const nt = new THREE.CanvasTexture(knurl); nt.colorSpace = THREE.SRGBColorSpace;
@@ -471,7 +471,7 @@ function start() {
     for (let i = 0; i <= 10; i++) { const tk = new THREE.Mesh(new THREE.BoxGeometry(i % 5 ? 0.02 : 0.035, 0.002, 0.003), darkM); tk.position.set(-0.04, 0.0015, -0.25 + i * 0.05); sl.add(tk); }
     const knob = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.04), [satinM, satinM, new THREE.MeshStandardMaterial({ color: 0xe6e8ea, metalness: 0.9, roughness: 0.25 }), satinM, satinM, satinM]);
     knob.position.y = 0.018; knob.userData.act = 'slider'; sl.add(knob); clickables.push(knob); ctl.knob = knob; ctl.slider = sl;
-    const kl = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.002, 0.006), new THREE.MeshStandardMaterial({ color: 0xc8102e })); kl.position.y = 0.034; knob.add(kl); kl.position.set(0, 0.016, 0);
+    const kl = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.002, 0.006), new THREE.MeshStandardMaterial({ color: 0x026395 })); kl.position.y = 0.034; knob.add(kl); kl.position.set(0, 0.016, 0);
     engrave('VOLUME', 0.8, 0.578, 0.1, 34);
     // 오른쪽 아래: 앰버 시간 표시창 · 템포 범위 버튼(8/16, 장식) · RESET(볼륨 50)
     {
@@ -510,7 +510,7 @@ function start() {
     const dc = document.createElement('canvas'); dc.width = dc.height = 128; const dg = dc.getContext('2d');
     dg.fillStyle = '#cfd2d6'; dg.beginPath(); dg.arc(64, 64, 64, 0, 7); dg.fill(); dg.fillStyle = '#1d1f24'; dg.font = '700 18px "JetBrains Mono", monospace'; dg.textAlign = 'center'; dg.textBaseline = 'middle';
     for (let i = 0; i < 4; i++) { const a = -Math.PI / 2 + i * Math.PI / 2; dg.fillText(String(i), 64 + Math.cos(a) * 46, 64 + Math.sin(a) * 46); }
-    dg.fillStyle = '#c8102e'; dg.fillRect(62, 6, 4, 22);
+    dg.fillStyle = '#026395'; dg.fillRect(62, 6, 4, 22);
     const dt2 = new THREE.CanvasTexture(dc); dt2.colorSpace = THREE.SRGBColorSpace;
     const dk = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.038, 0.024, 40), [satinM, new THREE.MeshStandardMaterial({ map: dt2, metalness: 0.5, roughness: 0.4 }), satinM]);
     dk.position.y = 0.012; dk.userData.act = 'dial'; dial.add(dk); clickables.push(dk); ctl.dial = dk;
@@ -607,7 +607,7 @@ function start() {
     buildControls();
     buildFx();
     // 후광: 스트로브 등 · 33/45 불 · 전원 LED · 바늘 조명
-    halo(deck, D._glow.position.clone().add(new THREE.Vector3(-0.012, -0.01, 0.013)), 0xff4a30, 0.16, () => 0.55 + night * 0.4);
+    halo(deck, D._glow.position.clone().add(new THREE.Vector3(-0.012, -0.01, 0.013)), 0x3aa8e0, 0.16, () => 0.55 + night * 0.4);
     halo(ctl.speed.s33.ring.parent, new THREE.Vector3(0, 0.01, 0), 0xff7a3a, 0.08, () => (speed45 ? 0 : 0.45));
     halo(ctl.speed.s45.ring.parent, new THREE.Vector3(0, 0.01, 0), 0xff7a3a, 0.08, () => (speed45 ? 0.45 : 0));
     halo(ctl.pled.parent, ctl.pled.position.clone(), 0x44ff88, 0.07, () => (playing ? 0.8 : 0));
