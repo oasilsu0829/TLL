@@ -18,8 +18,8 @@ const path = require('path');
     await el.evaluate((e, s) => { e.style.zoom = s / 512; }, size);
     await el.screenshot({ path: path.join(out, name) });
   }
-  // maskable: 안전 영역(가운데 80%)에 들어가게 줄이고 바탕을 채운다
-  await el.evaluate((e) => { e.style.zoom = 1; const bg = getComputedStyle(e).background; const w = document.createElement('div'); w.id = 'mk'; w.style.cssText = `width:512px;height:512px;display:grid;place-items:center;background:${bg}`; e.parentNode.insertBefore(w, e); w.appendChild(e); e.style.transform = 'scale(.8)'; });
-  await p.locator('#mk').screenshot({ path: path.join(out, 'icon-maskable-512.png') });
+  // maskable: 바탕은 그대로 두고 안의 글자·점만 가운데(안전 영역 80%)로 줄인다
+  await el.evaluate((e) => { e.style.zoom = 1; for (const c of e.children) { c.style.transformOrigin = `${256 - c.offsetLeft}px ${256 - c.offsetTop}px`; c.style.transform = 'scale(.8)'; } });
+  await el.screenshot({ path: path.join(out, 'icon-maskable-512.png') });
   await b.close();
 })();
