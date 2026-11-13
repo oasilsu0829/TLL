@@ -23,8 +23,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&family=Noto+Sans+KR:wght@500;700&display=swap">
 <style>
 /* 음악 (MUS-09) · Stitch 시안 "White Deck - iPad Edition"(2026-11-11) 기준. 집중처럼 theme.css를 쓰지 않는 자체 화면
-   Layout: 윗줄(SABATHIA · 상태 · 지금 곡 · 설정) → 왼쪽 턴테이블(셔플·반복 · 플래터 · 톤암 · 음량 · 재생/정지 · 위치)
-           오른쪽 크레이트(나무 상자에 꽂힌 앨범을 넘겨 고름 · 내 크레이트 여러 개 · 앨범 찾기/담기 · 앨범 트랙) → 아랫줄(이전·재생·다음 · 기기 · 음량)
+   Layout: 윗줄(T/L/L · 상태 · 지금 곡 · MAG · JAM · 설정) → 왼쪽 턴테이블(3D · 오른쪽 위 전체화면 · 재생/정지 · 위치)
+           오른쪽 크레이트(나무 상자에 꽂힌 앨범을 넘겨 고름 · 내 크레이트 여러 개 · 앨범 찾기/담기 · 앨범 트랙) → 아랫줄(셔플·이전·재생·다음·반복 · 기기 · 음량)
+   전체화면(F)이면 턴테이블을 왼쪽으로 밀고 오른쪽(세로 화면은 아래)에 시간 맞춘 가사(public/lyrics.js)
    판이 바뀌면 dropLP(): 앨범은 3초 동안 슬리브에서 꺼내 올리고, 플레이리스트(클립보드)는 1.9초 동안 턴테이블에 쾅 꽂았다 걷어낸다(흔들림). 소리는 sfx(Web Audio 합성, music.sfx로 끔)
    크레이트에는 앨범과 플레이리스트(k: 'pl')를 같이 꽂는다. 저장 music.crates + /api/music/sync
    폰·세로 화면은 위아래로 쌓고 아랫줄을 화면 밑에 붙인다
@@ -290,13 +291,11 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .sfxrow { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px !important; font-family: var(--sans) !important; font-size: 13px !important; letter-spacing: 0 !important; color: var(--ink-2) !important; min-height: 36px; }
 .sfxrow input { width: 18px; height: 18px; accent-color: var(--ink); }
 /* 밤 조명: 턴테이블 칸만 어둡게, 3D는 스트로브 등·판 위 조명만 남는다 */
-.deckp { transition: background .8s, border-color .8s; }
+.deckp { transition: background .8s, border-color .8s; overflow: clip; } /* 숨은 CSS 턴테이블이 옆으로 넘쳐 칸이 밀리던 것(포커스·전체화면 때) 막음 */
 body.night .deckp { background: radial-gradient(120% 90% at 45% 45%, #1c1d22, #0a0a0c 70%); border-color: #1d1e23; color: #e4e4e7; }
 body.night .deckp .strip { border-color: #24252b; }
-body.night .deckp .seg, body.night .deckp .readout, body.night .deckp .seek, body.night .deckp .go { background: #141519; border-color: #2a2b31; color: #e4e4e7; box-shadow: none; }
-body.night .deckp .seg button[aria-pressed="true"] { background: #2a2b31; color: #fff; }
-body.night .deckp .seg button { color: #9ca3af; }
-body.night .deckp .hint, body.night .deckp .go small, body.night .deckp .readout span:first-child { color: #8b8f98; }
+body.night .deckp .seek, body.night .deckp .go { background: #141519; border-color: #2a2b31; color: #e4e4e7; box-shadow: none; }
+body.night .deckp .go small { color: #8b8f98; }
 body.night .deckp .armtag { background: #141519; border-color: #2a2b31; color: #d4d4d8; }
 body.night .deckp input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(#e4e4e7, #e4e4e7) 0/var(--p, 0%) 100% no-repeat, #2a2b31; }
 /* 밀봉 신보: 위클리·데이리스트가 새로 나오면 크레이트 위에 비닐째 뜬다. 비닐을 손가락으로 그어 찢는다 */
@@ -398,6 +397,11 @@ body.changing .arm { transition-duration: .4s; }
 .sq.main { width: 44px; height: 44px; background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,.15); }
 .sq.main:hover:not(:disabled) { background: #000; }
 .sq.main .ico { width: 22px; height: 22px; }
+/* 셔플·반복: 테두리 없는 아이콘. 켜지면 포인트 색 + 밑에 점 */
+.sq.ghost { position: relative; background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); }
+.sq.ghost:hover:not(:disabled) { background: rgba(0,0,0,.05); color: var(--ink); }
+.sq.ghost[aria-pressed="true"] { color: var(--main); }
+.sq.ghost[aria-pressed="true"]::after { content: ''; position: absolute; left: 50%; bottom: 3px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: currentColor; }
 .tr .t { margin-left: 6px; min-width: 0; display: flex; flex-direction: column; }
 .tr .t b, .tr .t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tr .t b { font-size: 12px; text-transform: uppercase; }
@@ -544,6 +548,9 @@ dialog::backdrop { background: rgba(17,24,39,.35); }
   .seek { min-width: 0; max-width: none; width: 100%; }
   .go { flex: 1; }
   .volh { display: none; }
+  .tr { gap: 4px; }
+  .sq.ghost { width: 34px; }
+  #devBtnTxt { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .panel { padding: 14px; }
   .flip #pullLp { display: none; }
   .cstrip > .btn span { display: none; }
@@ -583,12 +590,63 @@ body.lpfull.lpidle { cursor: none; }
 body.lpfull .lpmeta { display: block; position: absolute; left: 4px; bottom: 6px; z-index: 6; pointer-events: none; max-width: 60%; }
 .lpmeta .lt { margin: 0; font-size: clamp(20px, 3.2vw, 40px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
 .lpmeta .la { margin: 6px 0 0; font-size: clamp(13px, 1.5vw, 18px); opacity: .7; }
-@media (prefers-reduced-motion: reduce) { body.lpfull .deckp .strip { transition: none; } }
+/* 전체화면 단추: 턴테이블 칸 오른쪽 위(칸은 늘 밤 조명이라 어두운 유리) */
+.fsb { position: absolute; top: 0; right: 0; z-index: 10; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; color: rgba(255,255,255,.72); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); transition: background .15s, color .15s, opacity .5s; }
+.fsb:hover { background: rgba(255,255,255,.14); color: #fff; }
+body.lpfull.lpidle .fsb { opacity: 0; pointer-events: none; }
+body.lpfull .tw { display: none; }
+/* 전체화면 가사(애플 뮤직처럼): 턴테이블을 왼쪽으로 밀고 오른쪽에 가사. 배경은 앨범 색을 머금은 어둠 */
+body.lpfull { --lyrw: 44%; }
+body.lpfull .deckp { background: radial-gradient(70% 90% at 26% 52%, color-mix(in srgb, var(--a1, #26272d) 30%, #0c0c0e), transparent 75%), radial-gradient(60% 80% at 82% 40%, color-mix(in srgb, var(--a2, #1c1d22) 22%, #09090b), transparent 80%), #070708; }
+.deck3d { transition: right .8s cubic-bezier(.2,.8,.2,1), bottom .8s cubic-bezier(.2,.8,.2,1); }
+body.lpfull .deck3d { right: var(--lyrw); }
+body.lpfull .stage { padding-right: var(--lyrw); }
+body.lpfull .lpmeta { max-width: calc(100% - var(--lyrw) - 24px); }
+.lyr { display: none; }
+body.lpfull .lyr { display: flex; flex-direction: column; position: absolute; z-index: 7; top: 0; bottom: 0; right: 0; width: var(--lyrw); padding: 0 1.5vw 0 1vw; color: #fff; animation: lyrIn .9s .2s both cubic-bezier(.2,.8,.2,1); }
+@keyframes lyrIn { from { opacity: 0; transform: translateX(40px); } }
+.lyr-sc { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; user-select: text;
+  -webkit-mask: linear-gradient(transparent, #000 16%, #000 78%, transparent); mask: linear-gradient(transparent, #000 16%, #000 78%, transparent); }
+.lyr-sc::-webkit-scrollbar { display: none; }
+.lyr-in { padding: 30vh 0 60vh; }
+.ll { margin: 0 0 0 -.35em; padding: .3em .35em; border-radius: 10px; font-size: clamp(22px, 2.5vw, 46px); font-weight: 700; line-height: 1.22; letter-spacing: -.015em; overflow-wrap: anywhere;
+  color: rgba(255,255,255,.3); transform-origin: 0 50%; transform: scale(.95); transition: color .5s, transform .6s cubic-bezier(.2,.8,.2,1), text-shadow .6s; cursor: pointer; }
+.ll.past { color: rgba(255,255,255,.2); }
+.ll.on { color: #fff; transform: none; text-shadow: 0 0 28px color-mix(in srgb, var(--main-glow) 50%, transparent); }
+.lyr.free .ll { color: rgba(255,255,255,.55); }
+.lyr.free .ll.on { color: #fff; }
+.ll:hover { background: rgba(255,255,255,.06); }
+.ll.dots { display: flex; align-items: center; gap: .28em; height: 1.5em; }
+.ll.dots i { width: .3em; height: .3em; border-radius: 50%; background: currentColor; }
+.ll.dots.on i { animation: ldot 1.5s ease-in-out infinite; }
+.ll.dots.on i:nth-child(2) { animation-delay: .2s; } .ll.dots.on i:nth-child(3) { animation-delay: .4s; }
+@keyframes ldot { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+.lyr[data-k="plain"] .lyr-in { padding: 10vh 0 24vh; }
+.lyr[data-k="plain"] .ll { color: rgba(255,255,255,.82); transform: none; cursor: text; font-size: clamp(18px, 1.9vw, 30px); }
+.lyr[data-k="plain"] .ll:hover { background: none; }
+.lyr[data-k="plain"] .ll.gap { height: .8em; }
+.lyr[data-k="msg"] .lyr-in { padding: 42vh 0 0; }
+.lyr-msg { margin: 0; font-size: clamp(16px, 1.6vw, 24px); font-weight: 700; color: rgba(255,255,255,.45); }
+.lyr-note { margin: 0 0 4px; min-height: 12px; font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: .14em; color: rgba(255,255,255,.3); text-transform: uppercase; }
+/* 세로 화면: 턴테이블 위, 가사 아래 */
+@media (orientation: portrait) {
+  body.lpfull { --lyrw: 0px; --lyrh: 46%; }
+  body.lpfull .deck3d { right: 0; bottom: var(--lyrh); }
+  body.lpfull .stage { padding-right: 0; padding-bottom: var(--lyrh); }
+  body.lpfull .lyr { top: auto; left: 0; width: auto; height: var(--lyrh); padding: 0 6px; animation-name: lyrUp; }
+  body.lpfull .lpmeta { bottom: calc(var(--lyrh) + 6px); max-width: 92%; }
+  .lpmeta .lt { font-size: clamp(18px, 5vw, 28px); }
+  .lyr-in { padding: 12vh 0 30vh; }
+  .ll { font-size: clamp(20px, 5.6vw, 32px); }
+  .lyr[data-k="msg"] .lyr-in { padding: 14vh 0 0; }
+}
+@keyframes lyrUp { from { opacity: 0; transform: translateY(40px); } }
+@media (prefers-reduced-motion: reduce) { body.lpfull .deckp .strip { transition: none; } .deck3d, .ll { transition: none; } body.lpfull .lyr { animation: none; } .ll.dots.on i { animation: none; } }
 /* 잡지를 보는 동안 뒤 앱은 그리지 않는다(아이폰 사파리 메모리) */
 body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > footer { display: none !important; }
 </style>
 </head>
-<body>
+<body class="night">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.6-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></symbol>
@@ -601,6 +659,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   <symbol id="i-vol" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/></symbol>
   <symbol id="i-dev" viewBox="0 0 24 24"><path d="M4 6h18V4H4a2 2 0 0 0-2 2v11H0v3h14v-3H4zm19 2h-6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1zm-1 9h-4v-7h4z"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+  <symbol id="i-shuf" viewBox="0 0 24 24"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04z"/></symbol>
+  <symbol id="i-rep" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></symbol>
+  <symbol id="i-rep1" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2zm-4-2V9h-1l-2 1v1h1.5v4z"/></symbol>
+  <symbol id="i-fs" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"/></symbol>
+  <symbol id="i-fsx" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5zm3-8H5v2h5V5H8zm6 11h2v-3h3v-2h-5zm2-11V5h-2v5h5V8z"/></symbol>
   <symbol id="i-crate" viewBox="0 0 24 24"><path d="M20 2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-2 5h-3v5.5a2.5 2.5 0 1 1-1-2V5h4zM4 6H2v14a2 2 0 0 0 2 2h14v-2H4z"/></symbol>
 </svg>
 
@@ -621,21 +684,10 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
 <main>
   <section class="panel deckp" aria-label="턴테이블">
-    <div class="strip">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="seg" role="group" aria-label="재생 방식">
-          <button type="button" id="shufBtn" aria-pressed="false"><span class="led"></span>셔플</button>
-          <button type="button" id="repBtn" aria-pressed="false"><span class="led"></span><span id="repTxt">반복</span></button>
-          <button type="button" id="nightBtn" aria-pressed="false" title="방 불 끄기·켜기"><span class="led"></span>조명</button>
-          <button type="button" id="fullBtn" aria-pressed="false" title="턴테이블만 화면 가득 (F)"><span class="led"></span>전체화면</button>
-        </div>
-        <span class="hint">SPOTIFY CONNECT</span>
-      </div>
-      <div class="readout"><span>기기</span><b id="devName">없음</b><span class="led" id="devLed"></span></div>
-    </div>
-
     <div class="stage">
       <div class="deck3d" id="deck3d" aria-hidden="true"></div>
+      <button class="fsb" type="button" id="fullBtn" aria-pressed="false" aria-label="전체화면 · 가사" title="전체화면 · 가사 (F)"><svg class="ico"><use href="#i-fs" id="fullUse"/></svg></button>
+      <div class="lyr" id="lyr" aria-label="가사"></div>
       <div class="tw" id="tw" aria-live="polite"></div>
       <div class="lpmeta" aria-hidden="true"><p class="lt" id="lpT"></p><p class="la" id="lpA"></p></div>
       <div class="dof" aria-hidden="true"></div>
@@ -784,9 +836,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
 <footer class="bot">
   <div class="tr">
+    <button class="sq ghost" type="button" id="shufBtn" aria-pressed="false" aria-label="셔플" title="셔플"><svg class="ico"><use href="#i-shuf"/></svg></button>
     <button class="sq" type="button" id="prevBtn" aria-label="이전 곡"><svg class="ico"><use href="#i-prev"/></svg></button>
     <button class="sq main" type="button" id="playBtn" aria-label="재생"><svg class="ico"><use href="#i-play" id="playUse"/></svg></button>
     <button class="sq" type="button" id="nextBtn" aria-label="다음 곡"><svg class="ico"><use href="#i-next"/></svg></button>
+    <button class="sq ghost" type="button" id="repBtn" aria-pressed="false" aria-label="반복" title="반복"><svg class="ico"><use href="#i-rep" id="repUse"/></svg></button>
     <div class="t"><b id="botT">-</b><span id="botA">-</span></div>
   </div>
   <div class="dev-wrap">
@@ -2242,15 +2296,14 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('playBtn').setAttribute('aria-label', on ? '일시정지' : '재생');
     $('armTag').textContent = on ? 'ARM: ON RECORD' : 'ARM: REST';
     const dev = st && st.device;
-    $('devName').textContent = dev ? dev.name : '없음';
     $('devBtnTxt').textContent = dev ? dev.name : '기기';
-    $('devLed').classList.toggle('on', !!dev && on);
     $('qLed').classList.toggle('on', on);
     $('qState').textContent = on ? 'SPINNING' : it ? 'PAUSED' : '대기';
     $('shufBtn').setAttribute('aria-pressed', String(!!(st && st.shuffle_state)));
     const rp = st ? st.repeat_state : 'off';
     $('repBtn').setAttribute('aria-pressed', String(rp && rp !== 'off'));
-    $('repTxt').textContent = rp === 'track' ? '한 곡' : '반복';
+    $('repUse').setAttribute('href', rp === 'track' ? '#i-rep1' : '#i-rep');
+    $('repBtn').setAttribute('aria-label', rp === 'track' ? '한 곡 반복' : rp === 'context' ? '반복 켜짐' : '반복');
     for (const id of ['shufBtn', 'repBtn', 'prevBtn', 'nextBtn']) $(id).disabled = !st;
     $('seek').disabled = !it;
     const vOk = !!dev && dev.supports_volume !== false;
@@ -2596,17 +2649,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (Date.now() - lastSync > 30000) sync();
   });
   addEventListener('online', sync);
-  // 조명: 저장값(켬/끔)이 없으면 밤 9시~새벽 6시에 저절로 켠다. 버튼을 누르면 그 값으로 고정
-  // 조명은 기본으로 켠다(사용자 결정). 버튼으로 끄면 그 기기에 기억(music.lamp)
-  function nightOn() { const v = LS.get('music.lamp'); return v === false ? false : true; }
-  function applyNight() {
-    const on = nightOn();
-    document.body.classList.toggle('night', on);
-    $('nightBtn').setAttribute('aria-pressed', String(on));
-    if (window.Deck3D && Deck3D.ok) Deck3D.setNight(on);
-  }
-  $('nightBtn').addEventListener('click', () => { LS.set('music.lamp', !nightOn()); applyNight(); sfx.flip(); });
-  setInterval(applyNight, 60000);
+  // 조명은 늘 켠다(2026-11-13 사용자 결정: 조명 버튼 없앰). body.night는 <body>에 박아 둠
   // 3D가 뜨면 조명·판 잡기를 연결
   (function hook3d() {
     if (window.Deck3D && Deck3D.ok) {
@@ -2614,10 +2657,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       Deck3D.onVolume = (v) => setVol(v);
       Deck3D.onSound = (k) => { if (sfx[k]) sfx[k](); };
       Deck3D.setVolume(LS.get('music.vol') ?? 50);
-      Deck3D.onScratch = onScratch; applyNight(); render(); return; }
+      Deck3D.onScratch = onScratch; Deck3D.setNight(true); render(); return; }
     setTimeout(hook3d, 400);
   })();
-  applyNight();
   setInterval(() => { if (playing() && document.visibilityState === 'visible') tick(); }, 500);
 
   // ---------- 밀봉 신보 (위클리 · 데이리스트) ----------
@@ -2754,7 +2796,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
   // ---------- LP 전체화면 ----------
   (function lpFull() {
-    const btn = $('fullBtn'); let idleT = 0;
+    const btn = $('fullBtn'); let idleT = 0, lyr = null;
+    // 가사(public/lyrics.js)는 처음 전체화면을 켤 때 불러오고, 전체화면에서만 돌린다
+    const lyrics = () => (lyr = lyr || import('/lyrics.js').then((m) => m.mount($('lyr'), window.MusicCore)).catch((e) => { lyr = null; throw e; }));
     const on = () => document.body.classList.contains('lpfull');
     const meta = () => { $('lpT').textContent = $('nowT').textContent; $('lpA').textContent = $('nowA').textContent; };
     new MutationObserver(meta).observe($('nowT'), { childList: true, characterData: true, subtree: true });
@@ -2762,6 +2806,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const poke = () => { document.body.classList.remove('lpidle'); clearTimeout(idleT); if (on()) idleT = setTimeout(() => document.body.classList.add('lpidle'), 3000); };
     function set(v) {
       document.body.classList.toggle('lpfull', v); btn.setAttribute('aria-pressed', String(v)); meta(); poke();
+      $('fullUse').setAttribute('href', v ? '#i-fsx' : '#i-fs'); btn.setAttribute('aria-label', v ? '전체화면 나가기' : '전체화면 · 가사');
+      if (v || lyr) lyrics().then((L) => L.show(on())).catch(() => { if (on()) toast('가사 화면을 불러오지 못했습니다'); });
       if (v) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {}); }
       else { document.body.classList.remove('lpidle'); if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
     }
@@ -2778,6 +2824,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // 잼 테이프는 JAM 크레이트(c-jam)에 플레이리스트 항목(k: 'pl')으로 꽂히고, t = 카세트 디자인
   window.MusicCore = {
     api, srv, toast, LS, loggedIn, openDlg: connect, targetDevice, wake, state: () => S.st, poll: schedulePoll, me: () => S.me,
+    seekMs: (ms) => { const it = S.st && S.st.item; if (it && it.duration_ms) seekTo(Math.min(1, ms / it.duration_ms)); },
     startJam: () => jam().then((m) => m.start()),
     hasScope: (x) => ((LS.get('music.tok') || {}).s || '').split(' ').includes(x),
     relogin() { login(); },
