@@ -6,8 +6,14 @@ compatibility_date = "2026-09-01"
 directory = "./public"
 binding = "ASSETS"
 
-# Sabathia와 같은 D1을 쓴다(크레이트·Client ID·잼이 그대로 이어진다)
+# T/L/L 전용 D1. database_id가 없으면 배포(wrangler deploy) 때 Cloudflare가 'tll-db'를 만들어 붙인다(자동 프로비저닝)
 [[d1_databases]]
 binding = "DB"
+database_name = "tll-db"
+
+# 임시(2026-11-13): 예전 Sabathia D1. 첫 요청 때 음악 데이터(settings music.*)를 한 번 복사한다(src/util.js copyOld).
+# 복사가 끝나면 이 블록과 copyOld를 지운다 → Sabathia와 연결 없음
+[[d1_databases]]
+binding = "OLD"
 database_name = "jarvis-db"
 database_id = "985e94ca-450f-49d2-a67b-f60269f6861b"

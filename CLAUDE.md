@@ -1,11 +1,12 @@
 # T/L/L — 작업 인계 메모
 
-Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 앱(/music/, MUS-09)을 떼어 별도 앱으로 옮겼다.
+Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 앱(/music/, MUS-09)을 떼어 냈다. 같은 날 사용자 결정: Sabathia와 연결 없는 독자 프로그램(DB 따로, 런처·홈 아이콘 연결 없음).
 
 ## 주소·배포
 - https://tll.oasilsu0829.workers.dev (Cloudflare Worker 이름 `tll`). 내 턴테이블 `/`, 친구용 `/deck/`
 - 배포는 GitHub 연동(Workers Builds). 사용자는 PC가 없으니 로컬 `wrangler` 명령을 전제로 하지 말 것. Build command `npm run build`(echo만), Deploy command `npx wrangler deploy`
-- D1은 Sabathia와 같은 `jarvis-db`(wrangler.toml에 같은 id). 크레이트(settings `music.u.<Spotify id>`)·Client ID(`music.cid`)·주인(`music.owner`)·잼(`music.jam`, `jam_q`)이 그대로 이어진다
+- D1은 전용 `tll-db`(binding DB). wrangler.toml에 database_id가 없어 첫 배포 때 자동으로 만들어진다. 만들어진 뒤 id를 wrangler.toml에 적어 둘 것
+  - 임시 binding OLD = Sabathia `jarvis-db`: 첫 요청 때 src/util.js copyOld()가 settings의 music · music.cid · music.owner · music.u.* 를 한 번 복사(`tll.copied`). **복사 확인 후 OLD 블록과 copyOld를 지울 것**(다음 할 일)
 - 인증: Sabathia의 API_TOKEN은 쓰지 않는다. 서버는 X-Spotify(액세스 토큰)로 /me를 확인한다. Client ID 바꾸기(PUT /api/music/cid)는 주인 계정만
 - Spotify 대시보드 Redirect URIs: `https://tll.oasilsu0829.workers.dev/` 와 `https://tll.oasilsu0829.workers.dev/deck/`
 - 옮기기: Sabathia `/music/`이 처음 한 번 그 기기의 `music.*`·`mag.*`(로그인 토큰 제외)를 `#from=<base64url JSON>`에 담아 보낸다 → `public/shell.js`가 여기 없는 키만 채우고 주소에서 지운다. Sabathia `/deck/…`·`/music/<파일>`은 이쪽으로 301
@@ -16,7 +17,7 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 ## 구조
 ```
 public/index.html   앱 화면(예전 public/music/index.html). /deck/도 Worker가 이 파일을 내준다(window.FRIEND)
-public/shell.js     예전 기록 가져오기(#from=), 런처 뒤로가기(onJarvisBack → Sabathia 홈), /sw.js 등록. Shell.back = 열린 창 닫기
+public/shell.js     예전 기록 가져오기(#from=, 한 번), /sw.js 등록
 public/sw.js        캐시 먼저 + 뒤에서 갱신. 여러 파일을 고치면 VERSION을 올릴 것
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D · 잼 · 잡지 · 친구용 매니페스트·아이콘

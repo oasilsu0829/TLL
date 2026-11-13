@@ -907,7 +907,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const t = $('toast'); t.textContent = msg; t.hidden = false;
     clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms);
   }
-  if (Shell.imported) setTimeout(() => toast('Sabathia에서 쓰던 기록을 옮겼습니다. Spotify 로그인만 한 번 더 해 주세요', 6000), 800);
+  if (Shell.imported) setTimeout(() => toast('예전에 쓰던 기록을 옮겼습니다. Spotify 로그인만 한 번 더 해 주세요', 6000), 800);
 
   // ---------- 로그인 (PKCE) ----------
   const clientId = () => (LS.get('music.cid') || '').trim();
@@ -1681,8 +1681,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   }
   // 목록에서 기기 고르기: 켜져 있는 것 → 이 브라우저(PC) → 폰 → 컴퓨터 → 나머지. 막힌 기기와 방금 실패한 기기는 뺀다
   function pickDevice(ds, bad) {
-    // 다른 브라우저 탭이 남긴 'Sabathia'(닫힌 탭이면 죽은 기기)는 맨 뒤
-    const rank = (d) => (d.is_active ? 0 : !MOBILE && d.id === S.sdkId ? 1 : d.id === S.sdkId ? 3 : (d.name === DEV || d.name === 'Sabathia') ? 5 : d.type === 'Smartphone' ? 2 : d.type === 'Computer' ? 3 : 4);
+    // 다른 브라우저 탭이 남긴 'T/L/L'(닫힌 탭이면 죽은 기기)는 맨 뒤
+    const rank = (d) => (d.is_active ? 0 : !MOBILE && d.id === S.sdkId ? 1 : d.id === S.sdkId ? 3 : d.name === DEV ? 5 : d.type === 'Smartphone' ? 2 : d.type === 'Computer' ? 3 : 4);
     return ds.filter((d) => d.id && !d.is_restricted && d.id !== bad).sort((a, b) => rank(a) - rank(b))[0] || null;
   }
   // 기기를 잃었을 때(Spotify 앱이 잠들었거나, 이 브라우저 플레이어가 끊김): 다시 붙이고, 살아 있는 기기로 재생을 옮긴다
