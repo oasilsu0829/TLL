@@ -7,7 +7,7 @@
 //   글: 바이블 금지어, 점수 표기(개편 뒤 점수 없음), 따옴표 속 영어 문장(가사 의심), 출처 수, 상상 장면 표시, '당신' 횟수(feedback)
 //   연재: serials.json 회차가 실제 호·기사를 가리키는지
 //   화면: 폰 390×844 · 태블릿 1180×820에서 모든 쪽의 글이 쪽 밖으로 넘치지 않는지, 기사마다 읽기 모드가 열리는지, 스크립트 오류
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { join, extname, resolve } from 'node:path';
@@ -41,6 +41,21 @@ if (pages.length < 8) E(`쪽이 ${pages.length}쪽뿐(8쪽 이상)`);
 if (pages.length > 40) W(`쪽이 ${pages.length}쪽(폰 메모리 주의)`);
 if (!Object.keys(arts).length) E('읽기 모드 기사(<template class="art">)가 없다');
 if (ih.includes('{{')) E('처리 못 한 {{ }}가 있다');
+const todo = [ih, JSON.stringify(it)].join('').match(/TODO:[^<\n"]{0,40}/g);
+if (todo) E(`뼈대(mag-new.mjs)의 TODO가 ${todo.length}곳 남음: ${todo.slice(0, 3).join(' / ')}`);
+/* 사진: 지면이 부르는 파일이 있고, 크레딧이 있고, 한 장 400KB · 한 호 8장 이하 */
+const imgs = [...new Set([...ih.matchAll(/<img[^>]+src="([^":]+\.(?:webp|jpg|png))"/g)].map((m) => m[1]))];
+const credPath = join(ROOT, 'docs/magazine/issues', it.dir, 'credits.json');
+const creds = existsSync(credPath) ? JSON.parse(readFileSync(credPath, 'utf8')) : [];
+for (const f of imgs) {
+  const fp = join(PUB, 'mag/issues', it.dir, f);
+  if (!existsSync(fp)) { E(`사진 ${f} 파일 없음`); continue; }
+  if (statSync(fp).size > 400 * 1024) W(`사진 ${f} ${Math.round(statSync(fp).size / 1024)}KB(400KB 이하)`);
+  if (!creds.some((c) => c.file === f)) E(`사진 ${f} 크레딧 없음(credits.json — mag-photos.py/mag-photo.py로 넣을 것)`);
+  else if (!ih.includes(creds.find((c) => c.file === f).credit.split(' / ')[0].slice(0, 20))) W(`사진 ${f} 저작자 이름이 지면에 안 보임`);
+}
+if (imgs.length > 8) E(`사진 ${imgs.length}장(한 호 8장 이하, 아이폰 메모리)`);
+if (!imgs.length) W('사진 0장 — 사진을 못 구한 이유를 편집 노트에 적었는지 확인');
 if (!/class="single7 bigs"/.test(pages.at(-1) || '') && !/class="single7 bigs"/.test(pages.at(-2) || '')) E('마지막 두 쪽 안에 부록 LP(single7 bigs)가 없다');
 for (const [i, pg] of pages.entries()) {
   for (const m of pg.matchAll(/data-read="([^"]+)" data-at="([^"]+)"/g)) {

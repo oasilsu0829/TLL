@@ -127,7 +127,14 @@ def main():
 
     dst = ROOT / 'public/mag/issues' / a.issue / f'{a.name}.webp'
     dst.parent.mkdir(parents=True, exist_ok=True)
-    out.save(dst, 'WEBP', quality=a.quality, method=6)
+    q = a.quality
+    out.save(dst, 'WEBP', quality=q, method=6)
+    while dst.stat().st_size > 400 * 1024:  # 한 장 400KB 이하(system.md 6장): 화질을 낮추고, 그래도 크면 줄인다
+        if q > 56:
+            q -= 6
+        else:
+            out = out.resize((round(out.width * .88), round(out.height * .88)), Image.LANCZOS)
+        out.save(dst, 'WEBP', quality=q, method=6)
     cj = ROOT / 'docs/magazine/issues' / a.issue / 'credits.json'
     cj.parent.mkdir(parents=True, exist_ok=True)
     cr = json.loads(cj.read_text()) if cj.exists() else []
