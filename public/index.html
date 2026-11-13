@@ -269,6 +269,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .tk.on { background: var(--z100); }
 .tk.on b { font-weight: 700; }
 .lp.pl { border-radius: 2px; }
+/* 7인치 싱글: 12인치 LP 상자 안에 작게(7¼ / 12⅜) 세워 둔다 */
+.lp.s7 { left: 32%; width: 36%; bottom: 26%; } /* 앞 판자에 가려지지 않게 밑을 받쳐 올림(밑은 판자 뒤) */
+.lp.s7::after { inset: 4%; }
 /* 플레이리스트 = 곡 목록이 적힌 클립보드 */
 .cb { container-type: inline-size; border-radius: 5% !important; background: linear-gradient(180deg, rgba(255,240,220,.12), transparent 30%, rgba(30,15,5,.25)), var(--grain), linear-gradient(135deg, #a3723f, #8b5d31 55%, #77502a) !important; background-size: 100% 100%, 260px 70px, 100% 100% !important; box-shadow: 0 -3px 10px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.12) !important; }
 .cb::before, .cb::after { display: none !important; }
@@ -473,6 +476,10 @@ dialog::backdrop { background: rgba(17,24,39,.35); }
 .np.on .np-disc .spinr { animation-play-state: running; }
 .np-disc .lbl { position: absolute; left: 34%; top: 34%; width: 32%; height: 32%; border-radius: 50%; background: #333 center/cover no-repeat; box-shadow: 0 0 0 2px #0b0b0c, inset 0 0 0 1px rgba(255,255,255,.15); }
 .np-disc .lbl::after { content: ''; position: absolute; left: 46%; top: 46%; width: 8%; height: 8%; border-radius: 50%; background: #e5e7eb; }
+/* 7인치 싱글: 슬리브·판이 LP의 0.6배, 라벨은 판의 절반, 가운데 큰 구멍 */
+.np.s7 .np-tilt { scale: .6; }
+.np.s7 .np-disc .lbl { left: 25%; top: 25%; width: 50%; height: 50%; }
+.np.s7 .np-disc .lbl::after { left: 39%; top: 39%; width: 22%; height: 22%; background: #16171b; box-shadow: inset 0 0 0 3px #d9a43a; }
 .np-sleeve { position: absolute; inset: 0; border-radius: 4px; background: #2b2b30 center/cover no-repeat; transform: translateZ(0); box-shadow: 0 30px 60px -18px color-mix(in srgb, var(--a1, #000) 70%, #000), 0 12px 24px -10px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.18); -webkit-box-reflect: below 4px linear-gradient(transparent 84%, rgba(255,255,255,.16)); }
 .np-sleeve::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.42) 46%, rgba(255,255,255,.08) 52%, transparent 62%); background-size: 260% 100%; background-position: var(--gx, 60%) 0; mix-blend-mode: soft-light; transition: background-position .5s; }
 .np-sleeve::after { content: ''; position: absolute; inset: 7%; border-radius: 50%; border: calc(1px + var(--w, 0) * 3px) solid rgba(255,252,245, calc(.06 + var(--w, 0) * .35)); pointer-events: none; }
@@ -1241,10 +1248,38 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const s = im.slice().sort((x, y) => (x.width || 0) - (y.width || 0));
     return (s.find((x) => (x.width || 0) >= w) || s[s.length - 1]).url;
   };
-  const toAlbum = (a) => MM.album({
+  const toAlbum = (a) => (noteType(a.id, a.album_type), MM.album({
     id: a.id, name: a.name, artist: (a.artists || []).map((x) => x.name).join(', '),
     img: pickImg(a.images, 300), year: (a.release_date || '').slice(0, 4), n: a.total_tracks,
-  });
+  }));
+  // 싱글(7인치, 2026-11-13 사용자 요청): Spotify가 album_type 'single'로 분류한 앨범(EP 포함) + 잡지 부록.
+  // 종류는 이 기기에 기억(LS music.atype {id: 's'|'a'}): 찾기 결과·지금 곡에서 받고, 크레이트에 있는데 모르는 것은 fillTypes가 물어 둔다
+  const AT = LS.get('music.atype') || {};
+  let atSaveT = 0;
+  function noteType(id, t) {
+    if (!id || !t) return;
+    const v = t === 'single' ? 's' : 'a';
+    if (AT[id] === v) return;
+    AT[id] = v; clearTimeout(atSaveT); atSaveT = setTimeout(() => LS.set('music.atype', AT), 500);
+  }
+  const isSingle = (a) => !!a && (!!a.m || (!isPl(a) && AT[a.id] === 's'));
+  const atTried = new Set();
+  let atBusy = false;
+  async function fillTypes() {
+    if (atBusy || !loggedIn()) return;
+    const ids = [...new Set(live().flatMap((c) => c.albums.filter((a) => !isPl(a) && !AT[a.id] && !atTried.has(a.id)).map((a) => a.id)))];
+    if (!ids.length) return;
+    atBusy = true;
+    try {
+      for (let i = 0; i < ids.length; i += 20) {
+        const part = ids.slice(i, i + 20); part.forEach((id) => atTried.add(id));
+        const j = await api('/albums?ids=' + part.join(',')).catch(() => null);
+        if (j && Array.isArray(j.albums)) { j.albums.forEach((x) => x && noteType(x.id, x.album_type)); continue; }
+        // 여러 장 묻기가 막혀 있으면 한 장씩
+        for (const id of part) { const x = await api('/albums/' + id).catch(() => null); if (x) noteType(id, x.album_type); }
+      }
+    } finally { atBusy = false; LS.set('music.atype', AT); renderCrate(); render(); }
+  }
   // 플레이리스트도 앨범 한 장처럼 꽂는다 (k: 'pl')
   const toList = (p) => MM.album({
     k: 'pl', id: p.id, name: p.name, artist: (p.owner && (p.owner.display_name || p.owner.id)) || '',
@@ -1259,7 +1294,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     el.querySelector('.cb-img').style.backgroundImage = bg(a.img);
   }
   const uriOf = (a) => (isPl(a) ? 'spotify:playlist:' : 'spotify:album:') + a.id;
-  const metaLine = (a) => (isPl(a) ? [a.m ? '부록 LP' : '플레이리스트', a.artist, a.n ? a.n + '곡' : ''] : [a.artist, a.year, a.n ? a.n + '곡' : '']).filter(Boolean).join(' · ');
+  const metaLine = (a) => (isPl(a) ? [a.m ? '부록 싱글' : '플레이리스트', a.artist, a.n ? a.n + '곡' : ''] : [a.artist, a.year, a.n ? a.n + '곡' : '']).filter(Boolean).join(' · ');
   // 지금 판 = 플레이리스트로 틀었으면 플레이리스트, 아니면 곡의 앨범
   const ctxKey = (st) => {
     const it = st && st.item; if (!it) return '';
@@ -1359,7 +1394,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       if (el) { el.classList.remove('shine'); void el.offsetWidth; el.classList.add('shine'); }
       const ci = $('cinfo'); ci.innerHTML = '';
       const b = document.createElement('b'); b.textContent = a.name;
-      ci.append(b, [a.m ? '부록 LP' : isPl(a) ? '플레이리스트' : 'LP', a.year, a.n ? a.n + '곡' : '', a.p ? a.p + '번 들음' : ''].filter(Boolean).join(' · '));
+      ci.append(b, [a.m ? '부록 싱글' : isPl(a) ? '플레이리스트' : isSingle(a) ? '7" 싱글' : 'LP', a.year, a.n ? a.n + '곡' : '', a.p ? a.p + '번 들음' : ''].filter(Boolean).join(' · '));
       setTimeout(() => ci.classList.add('on'), 450);
     }, 260);
   }
@@ -1409,6 +1444,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
         recs.appendChild(e);
       }
       e.dataset.i = i;
+      e.classList.toggle('s7', isSingle(a)); // 7인치 싱글은 상자 안에서도 작은 슬리브
       e.style.setProperty('--w', Math.min(1, (a.p || 0) / 20).toFixed(2));
       place(e, i - cf);
     }
@@ -1420,15 +1456,16 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (loggedIn()) A.slice(i0, i0 + 2).forEach((x) => fetchTracks(uriOf(x)).catch(() => {}));
     // 지금 고른 판은 3D 새 판·슬리브까지 미리 만들어 둔다(누르는 순간 바로 모션)
     if (a && window.Deck3D && Deck3D.prebuild) {
-      const k2 = uriOf(a), mk = () => Deck3D.prebuild({ ...a, tracks: gapsOf(tkDone.get(k2)) }, isPl(a) && !a.sealed && !a.m);
+      const k2 = uriOf(a), mk = () => Deck3D.prebuild({ ...a, single: isSingle(a), tracks: gapsOf(tkDone.get(k2)) }, isPl(a) && !a.sealed && !a.m);
       clearTimeout(S.preT); S.preT = setTimeout(() => { mk(); if (loggedIn() && !tkDone.has(k2)) fetchTracks(k2).then(mk).catch(() => {}); }, 150);
     }
+    clearTimeout(S.atT); S.atT = setTimeout(fillTypes, 1500);
     $('pickT').textContent = a ? a.name : c.name;
     $('pickA').textContent = a ? metaLine(a) + (a.p ? ` · ${a.p}번 들음` : '') : '앨범 0장';
     $('crateIdx').textContent = A.length ? `${i0 + 1}/${A.length}` : '0/0';
     $('prevLp').disabled = i0 <= 0; $('nextLp').disabled = i0 >= A.length - 1;
     $('playLp').disabled = $('pullLp').disabled = !a;
-    $('playLp').lastChild.textContent = a && a.m ? '이 부록 LP 듣기' : isPl(a) ? '이 플레이리스트 듣기' : '이 앨범 듣기';
+    $('playLp').lastChild.textContent = a && a.m ? '이 부록 싱글 듣기' : isPl(a) ? '이 플레이리스트 듣기' : isSingle(a) ? '이 싱글 듣기' : '이 앨범 듣기';
   }
   // 한 칸 넘기기(버튼·키·휠). 움직이는 중이면 목표에 이어서 더한다. 끝이면 상자가 덜컹
   function flip(d) {
@@ -2061,7 +2098,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (use3d) {
       // 트랙 목록이 이미 있으면 새 판에 무음 홈을 그려서 꺼낸다(없으면 받아지는 대로 다시 그림)
       // 기다리지 않고 바로(트랙 목록을 이미 받아 뒀으면 무음 홈까지)
-      Deck3D.drop({ ...a, tracks: gapsOf(tkDone.get(key)) }, slam);
+      Deck3D.drop({ ...a, single: isSingle(a), tracks: gapsOf(tkDone.get(key)) }, slam);
     }
     D.hidden = use3d; document.body.classList.add('changing');
     render();
@@ -2255,6 +2292,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
   function render() {
     const st = S.st, it = st && st.item, on = playing();
+    if (it && it.album) noteType(it.album.id, it.album.album_type);
     const alb = it && it.album && it.album.id ? it.album : null;
     const key = ctxKey(st);
     // 판(앨범·플레이리스트)이 바뀌면(다른 기기에서 바꿔도) 판을 갈아 끼운다
@@ -2285,7 +2323,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('labA').textContent = L ? L.artist : (loggedIn() ? '크레이트에서 고르세요' : '눌러서 Spotify 연결');
     $('label').classList.toggle('art', !!(L && L.img));
     $('label').style.backgroundImage = bg(L && L.img);
-    if (window.Deck3D && Deck3D.ok) Deck3D.setLabel(L ? { name: L.name, artist: L.artist, img: L.img, m: L.m, tracks: (pend ? pend.key : key) && S.tracksFor === (pend ? pend.key : key) ? trackGaps() : null } : null);
+    if (window.Deck3D && Deck3D.ok) Deck3D.setLabel(L ? { name: L.name, artist: L.artist, img: L.img, m: L.m, single: isSingle(L), tracks: (pend ? pend.key : key) && S.tracksFor === (pend ? pend.key : key) ? trackGaps() : null } : null);
     applyAmb((L && L.img) || '');
     renderNow(it, L, pend, on, key);
     $('topLed').classList.toggle('on', on);
@@ -2334,6 +2372,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       $('npSleeve').style.backgroundImage = bg(img); $('npLbl').style.backgroundImage = bg(img); $('npGlow').style.backgroundImage = bg(img);
     }
     const E = key ? entryFor(key, it) : null;
+    $('np').classList.toggle('s7', isSingle(pend || E)); // 7인치 싱글은 작은 슬리브 · 큰 라벨
     $('npSleeve').style.setProperty('--w', Math.min(1, ((E && E.p) || 0) / 20).toFixed(2));
     $('np').classList.toggle('on', playOn);
     $('np').classList.toggle('idle', !playOn);

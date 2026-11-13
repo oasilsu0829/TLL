@@ -42,6 +42,9 @@ body.L{width:600px;height:600px}
 <div class="S" id="S"></div>
 <script>
 const q = new URLSearchParams(location.search), M = q.get('m') || 'drop', part = q.get('part') || 'cover';
+// 2026-11-13부터 부록은 7인치 싱글(가운데 큰 구멍 · 큰 라벨 · 45 RPM). 예전 12인치 LP는 ?size=12
+const SEVEN = q.get('size') !== '12';
+const T = (x) => (SEVEN ? x.replace(/부록 LP/g, '부록 싱글').replace(/SUPPLEMENT LP/g, 'SUPPLEMENT 7"').replace(/RPM 33⅓/g, 'RPM 45') : x);
 const SIG = {
   drop: { c1: '#f59ad6', c2: '#2a2fb0', pub: '드롭 레코드', name: 'Drop', day: 'FRIDAY NEW RELEASES' },
   fb: { c1: '#2bb3d9', c2: '#f4efe6', pub: '피드백 프레스', name: 'feedback', day: 'MONDAY · BANDS' },
@@ -83,6 +86,23 @@ function label(px) {
     <div style="${base};top:${f(160)};font:600 ${f(12)} 'IBM Plex Mono';color:#fff;letter-spacing:.2em">YOUR MONTH · SIDE A</div>
     <div style="${base};top:${f(206)};font:900 ${f(15)} 'Noto Sans KR';color:#fff">T/L/L 출판 · 부록 LP</div>`;
 }
+/* 7인치 라벨: 가운데 큰 구멍(라벨 지름의 44%)을 피해 위·아래 띠에만 글자 */
+function label7(px) {
+  const k = px / 336, f = (n) => (n * k).toFixed(1) + 'px';
+  const base = `position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center`;
+  const P = { drop: { bg: SIG.c1, fg: SIG.c2, ac: SIG.c2, font: "'Archivo Black'", name: 'Drop', fs: 50 },
+    fb: { bg: SIG.c2, fg: '#14334a', ac: SIG.c1, font: "'Alfa Slab One'", name: 'feedback', fs: 40 },
+    cy: { bg: '#f3efe6', fg: '#141414', ac: SIG.c1, font: "'Archivo Black'", name: 'Cypher', fs: 40 },
+    mo: { bg: SIG.c2, fg: '#fff', ac: SIG.c1, font: "'Archivo Black'", name: '33⅓', fs: 46 } }[M];
+  const deco = M === 'mo' ? `<div style="position:absolute;inset:0;background:conic-gradient(${P.ac} 0 120deg,transparent 120deg)"></div>`
+    : M === 'cy' ? `<div style="position:absolute;inset:${f(12)};border-radius:50%;border:${f(3)} solid ${P.ac}"></div><div style="position:absolute;left:50%;top:${f(5)};width:${f(14)};height:${f(14)};margin-left:${f(-7)};border-radius:50%;background:${P.ac}"></div>`
+    : `<div style="position:absolute;inset:${f(12)};border-radius:50%;border:${f(2)} solid ${P.ac}"></div>`;
+  return `<div style="position:absolute;inset:0;background:${P.bg}"></div>${deco}
+    <div style="${base};top:${f(30)};font:${f(P.fs)}/1 ${P.font};color:${P.fg};letter-spacing:-.02em">${P.name}</div>
+    <div style="${base};top:${f(30 + P.fs + 6)};font:600 ${f(10)} 'IBM Plex Mono';color:${P.fg};letter-spacing:.2em">SIDE A · 45 RPM</div>
+    <div style="${base};top:${f(252)};font:900 ${f(14)} 'Noto Sans KR';color:${P.fg}">${SIG.pub} · 부록 싱글</div>
+    <div style="${base};top:${f(278)};font:600 ${f(9)} 'IBM Plex Mono';color:${P.fg};letter-spacing:.16em;opacity:.85">7" · SUPPLEMENT</div>`;
+}
 /* 비닐 위 인쇄 */
 function print() {
   const C1 = SIG.c1, C2 = SIG.c2;
@@ -118,10 +138,15 @@ function print() {
 const S = document.getElementById('S');
 if (part === 'label') {
   document.body.classList.add('L');
-  S.innerHTML = `<div style="position:absolute;inset:0;border-radius:50%;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:336px;height:336px;margin:-168px 0 0 -168px;transform:scale(${600 / 336})">${label(336)}</div></div>`;
+  S.innerHTML = `<div style="position:absolute;inset:0;border-radius:50%;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:336px;height:336px;margin:-168px 0 0 -168px;transform:scale(${600 / 336})">${(SEVEN ? label7 : label)(336)}</div></div>`;
 } else {
-  S.innerHTML = `<div class="rec"><div class="run"></div><div class="lab"><div class="in">${label(336)}</div></div><div class="hole"></div></div>
-   ${print()}<div class="grain"></div><div class="pvc"></div>
+  // 7인치: 라벨 지름 = 판의 1/2, 가운데 구멍(1.5인치) = 라벨의 44%, 소리 홈 끝(런아웃) = 판의 55%
+  const rec = SEVEN ? `<div class="rec"><div class="run" style="width:430px;height:430px;margin:-215px 0 0 -215px"></div>
+     <div class="lab" style="width:390px;height:390px;margin:-195px 0 0 -195px"><div class="in" style="transform:scale(${390 / 336})">${label7(336)}</div></div>
+     <div class="hole" style="width:172px;height:172px;margin:-86px 0 0 -86px;box-shadow:inset 0 4px 8px rgba(0,0,0,.45),0 0 0 2px rgba(0,0,0,.25)"></div></div>`
+    : `<div class="rec"><div class="run"></div><div class="lab"><div class="in">${label(336)}</div></div><div class="hole"></div></div>`;
+  S.innerHTML = `${rec}
+   ${T(print())}<div class="grain"></div><div class="pvc"></div>
    <i class="crk" style="left:120px;top:880px;width:180px;transform:rotate(-8deg)"></i><i class="crk" style="left:700px;top:160px;width:140px;transform:rotate(14deg)"></i><i class="crk" style="left:820px;top:640px;width:110px;transform:rotate(-70deg)"></i>
    <div class="seam"></div>`;
 }
