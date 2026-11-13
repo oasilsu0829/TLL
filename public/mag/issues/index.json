@@ -1,0 +1,139 @@
+{
+ "issues": [
+  {
+   "id": "drop-01",
+   "dir": "drop-01",
+   "mag": "drop",
+   "name": "Drop",
+   "vol": "Vol.01",
+   "date": "2026.11.13",
+   "title": "같은 방, 다시 — U2 [Carnaval de Luz] 6.5",
+   "publisher": "드롭 레코드",
+   "color": "#f59ad6",
+   "singles": 5,
+   "crate": {
+    "id": "c-pub-drop",
+    "name": "드롭 레코드",
+    "o": 901
+   },
+   "tracks": [
+    {
+     "t": "Go (Carnaval De Luz)",
+     "a": "U2"
+    },
+    {
+     "t": "Silencio",
+     "a": "U2"
+    },
+    {
+     "t": "The Mirror Maker",
+     "a": "U2"
+    },
+    {
+     "t": "Torn",
+     "a": "U2"
+    },
+    {
+     "t": "I Zimbra",
+     "a": "Talking Heads"
+    }
+   ]
+  },
+  {
+   "id": "fb-01",
+   "dir": "fb-01",
+   "mag": "fb",
+   "name": "feedback",
+   "vol": "vol.01",
+   "date": "2026.11.16",
+   "title": "거실로 돌아온 밴드 — Kings of Leon [O My Beloved] 볼륨 7/11",
+   "publisher": "피드백 프레스",
+   "color": "#2bb3d9",
+   "singles": 5,
+   "crate": {
+    "id": "c-pub-fb",
+    "name": "피드백 프레스",
+    "o": 902
+   },
+   "tracks": [
+    {
+     "t": "My Whole World",
+     "a": "Kings of Leon"
+    },
+    {
+     "t": "KOYSAR",
+     "a": "Kings of Leon"
+    },
+    {
+     "t": "Cold Blue Dawn",
+     "a": "Kings of Leon"
+    },
+    {
+     "t": "Warm Company",
+     "a": "Kings of Leon"
+    },
+    {
+     "t": "Good American",
+     "a": "Spanish Love Songs"
+    }
+   ]
+  },
+  {
+   "id": "cy-01",
+   "dir": "cy-01",
+   "mag": "cy",
+   "name": "Cypher",
+   "vol": "Vol.01",
+   "date": "2026.11.18",
+   "title": "광고 속 리조트로 — Aesop Rock & Blockhead [Trouble Mountain] ★3.5",
+   "publisher": "사이퍼 미디어",
+   "color": "#b0201e",
+   "singles": 5,
+   "crate": {
+    "id": "c-pub-cy",
+    "name": "사이퍼 미디어",
+    "o": 903
+   },
+   "tracks": [
+    {
+     "t": "Trouble Trouble",
+     "a": "Aesop Rock"
+    },
+    {
+     "t": "Eat And Grow",
+     "a": "Aesop Rock"
+    },
+    {
+     "t": "TM Tours",
+     "a": "Aesop Rock"
+    },
+    {
+     "t": "Coyote Summer",
+     "a": "Aesop Rock"
+    },
+    {
+     "t": "Zilla",
+     "a": "Westside Gunn"
+    }
+   ]
+  },
+  {
+   "id": "mo-00",
+   "dir": "mo-00",
+   "mag": "mo",
+   "name": "33⅓",
+   "vol": "Vol.00",
+   "date": "2026.11",
+   "title": "나의 한 달 — 내 청취 기록으로 짠 호",
+   "publisher": "T/L/L 출판",
+   "color": "#d62718",
+   "singles": 1,
+   "crate": {
+    "id": "c-pub-mo",
+    "name": "T/L/L 출판",
+    "o": 904
+   },
+   "dynamic": true
+  }
+ ]
+}

@@ -1,0 +1,306 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo+Black&family=Jost:wght@700;900&family=Archivo:wght@500;700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+/* 시안 시트: 어두운 책상 위에 펼침면을 위에서 아래로. 펼침 = 지면 두 장(3:4). 지면 안 단위는 cqw(지면 폭 1%) */
+:root{
+  --desk:#1d1a17; --label:#bdb4a6;
+  --paper:#fbfaf6; --ink:#121212; --mute:#6b665e; --rule:rgba(18,18,18,.16);
+  --pink:#f59ad6; --blue:#2a2fb0; --orange:#f08a16; --navy:#16185a;
+  --dl:'Archivo Black',sans-serif; --dk:'Black Han Sans',sans-serif; --it:'Instrument Serif',Georgia,serif;
+  --body:'Noto Serif KR',Georgia,serif; --ui:'Noto Sans KR',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--label);font-family:var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 80px}
+.sheet{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.intro{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.intro h1{margin:0;font-family:var(--it);font-style:italic;font-weight:400;font-size:clamp(34px,5vw,56px);color:#f3eee6;line-height:1}
+.intro p{margin:0;font-size:14px;line-height:1.6}
+figure.sp{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{display:flex;gap:12px;align-items:baseline;font-size:13px}
+figcaption b{font-family:var(--mono);color:#f3eee6;font-weight:600}
+.spread{position:relative;color:var(--ink);display:grid;grid-template-columns:1fr 1fr;aspect-ratio:3/2;width:100%;container-type:inline-size;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.spread.single{grid-template-columns:1fr;aspect-ratio:3/4;width:min(100%,560px)}
+.spread::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6cqw;margin-left:-3cqw;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(0,0,0,.13) 45%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.13) 55%,transparent);z-index:30}
+.spread.single::after{display:none}
+.pg{position:relative;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size}
+.folio{position:absolute;bottom:3.4cqw;font-family:var(--mono);font-size:1.9cqw;letter-spacing:.06em;color:var(--mute)}
+.L .folio{left:6cqw}.R .folio{right:6cqw}
+.photo{position:absolute;background-size:cover;background-position:center}
+.credit{position:absolute;font-family:var(--mono);font-size:1.5cqw;color:rgba(255,255,255,.75);letter-spacing:.03em}
+.lbl{font-family:var(--mono);font-size:2cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:600}
+.k{font-family:var(--dk);font-weight:400;line-height:1.02;letter-spacing:-.02em}
+.body{font-family:var(--body);font-size:2.55cqw;line-height:1.78;word-break:keep-all;color:#1d1c1a}
+.body p{margin:0 0 2.2cqw}
+.drop::first-letter{font-family:var(--dl);float:left;font-size:9.6cqw;line-height:.82;padding:1cqw 1.6cqw 0 0;color:var(--blue)}
+.cols{column-count:2;column-gap:4cqw}
+.cap{font-family:var(--ui);font-size:1.9cqw;line-height:1.5;color:var(--mute)}
+.cap b{color:var(--ink)}
+.rule{border-top:.25cqw solid var(--ink)}
+.stamp{position:absolute;border:.7cqw solid #d23a26;color:#d23a26;font-family:var(--dk);text-align:center;line-height:1;padding:1.5cqw 3cqw;transform:rotate(-12deg);mix-blend-mode:multiply}
+.bar{display:block;height:100%;background:repeating-linear-gradient(90deg,#121212 0 .5cqw,transparent .5cqw .8cqw,#121212 .8cqw 1.3cqw,transparent 1.3cqw 2cqw)}
+/* 부록 싱글 */
+.single7{position:absolute;width:30cqw;aspect-ratio:1;transform:rotate(var(--r))}
+.single7 .sl{position:absolute;inset:0;background:#d4bf9e;box-shadow:inset 0 0 2cqw rgba(90,60,20,.25),0 .6cqw 1.4cqw rgba(0,0,0,.18)}
+.single7 .sl::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 1px,transparent 1px 5px)}
+.single7 .ho{position:absolute;left:50%;top:50%;width:13cqw;height:13cqw;margin:-6.5cqw 0 0 -6.5cqw;border-radius:50%;background:radial-gradient(circle,#d4bf9e 0 .6cqw,var(--c) .6cqw 4cqw,#141414 4cqw 4.4cqw,#2a2a2a 4.4cqw 4.8cqw,#141414 4.8cqw 6.5cqw)}
+.single7 .bg{position:absolute;inset:-4% -4% -7%;border:1px solid rgba(160,160,160,.55);background:linear-gradient(125deg,transparent 20%,rgba(255,255,255,.75) 27%,transparent 34%),rgba(225,230,235,.28)}
+.single7 .tp{position:absolute;height:5cqw;background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.single7 .t{position:absolute;left:2.6cqw;bottom:2.2cqw;font-family:var(--mono);font-size:1.9cqw;color:#4a3720}
+.single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 2.6cqw);text-align:center;font-family:var(--ui);font-size:1.9cqw;color:var(--mute)}
+.pg::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:25;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.rh{position:absolute;top:3.4cqw;left:6cqw;right:6cqw;display:flex;justify-content:space-between;font-family:var(--mono);font-size:1.6cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);border-bottom:.12cqw solid var(--rule);padding-bottom:1cqw}
+.body2{font-family:var(--body);font-size:2.42cqw;line-height:1.8;word-break:keep-all;color:#1d1c1a}
+.body2 p{margin:0 0 2cqw;text-indent:2.4cqw}
+.body2 p.ni,.body2 p.drop{text-indent:0}
+.q{font-family:var(--ui);font-weight:900;color:var(--blue);margin-right:1cqw}
+.qa{font-family:var(--ui);font-weight:900;color:#c03d8f;margin-right:1cqw}
+.big7{--w:44cqw}
+.single7{width:var(--w,30cqw)}
+.single7 .ho{width:calc(var(--w,30cqw)*.44);height:calc(var(--w,30cqw)*.44);margin:calc(var(--w,30cqw)*-.22) 0 0 calc(var(--w,30cqw)*-.22);background:radial-gradient(circle,#d4bf9e 0 2%,var(--c) 2% 30%,#141414 30% 33%,#2a2a2a 33% 36%,#141414 36% 50%,transparent 50%)}
+.single7 .tp{height:calc(var(--w,30cqw)*.16)}
+.single7 .t{font-size:calc(var(--w,30cqw)*.065)}
+.single7 .no{position:absolute;left:6%;top:5%;font-family:var(--mono);font-size:calc(var(--w,30cqw)*.055);color:#4a3720}
+.single7 .c2{font-size:2.1cqw;color:var(--ink)}
+.single7 .c2 small{display:block;color:var(--mute);font-size:1.8cqw}
+.single7.bigs .ho{width:calc(var(--w)*.34);height:calc(var(--w)*.34);margin:calc(var(--w)*-.24) 0 0 calc(var(--w)*-.17)}
+.single7 .tl{position:absolute;left:7%;right:7%;bottom:6%;font-family:var(--mono);font-size:calc(var(--w)*.03);line-height:1.55;color:#4a3720;white-space:nowrap;overflow:hidden}
+.single7 .tl b{font-weight:600;color:#2d2014}
+.single7 .ttl{position:absolute;left:7%;right:7%;top:12%;font-family:var(--mono);font-size:calc(var(--w)*.04);color:#2d2014;letter-spacing:.06em}
+@media (max-width:700px){.sheet{gap:40px}}
+
+:root{--paper:#f4efe6;--pink:#2bb3d9;--blue:#137a99;--navy:#141414;--orange:#d23a26;--dl:'Alfa Slab One',serif}</style>
+<template class="sp"><div class="spread single"><div class="pg" style="background:#141414;color:#f4efe6">
+    <div style="position:absolute;left:0;right:0;top:0;height:40cqw;background:var(--paper);border-bottom-right-radius:70cqw 24cqw;z-index:2"></div>
+    <div style="position:absolute;left:-2cqw;top:-4cqw;font-family:'Alfa Slab One',serif;font-size:24cqw;line-height:1;letter-spacing:-.04em;color:#141414;z-index:3">feedback</div>
+    <div style="position:absolute;left:5cqw;top:23cqw;z-index:3;font-family:var(--mono);font-size:2.2cqw;line-height:1.5;color:#137a99">MON 2026.11.16 · VOL.01<br>피드백 프레스</div>
+    <div class="photo" style="left:7cqw;top:34cqw;width:86cqw;height:86cqw;border-radius:50%;background-image:url(/mag/issues/fb-01/9bf4b4c4da.jpg);box-shadow:0 0 0 1.2cqw #141414,0 0 0 1.6cqw rgba(244,239,230,.25)"></div>
+    <div style="position:absolute;left:0;right:0;top:66cqw;text-align:center;font-family:'Alfa Slab One',serif;font-size:11cqw;line-height:.95;color:#fff4e2;text-shadow:0 .6cqw 2.4cqw rgba(0,0,0,.6)">o my<br>beloved</div>
+    <div style="position:absolute;left:0;right:0;top:92cqw;text-align:center;font-family:var(--mono);font-size:2.4cqw;letter-spacing:.4em;color:#ffe2a8">KINGS OF LEON</div>
+    <div style="position:absolute;left:5cqw;bottom:6cqw;font-family:var(--body);font-weight:900;font-size:4.2cqw;line-height:1.3">거실로 돌아온 밴드<span style="display:block;font-family:var(--ui);font-weight:500;font-size:2.2cqw;color:#cfc6b6;margin-top:1cqw">이 판과 어울리는 밤 · 이번 주 밴드 · 지난 열 장</span></div>
+    <div style="position:absolute;right:4cqw;bottom:6cqw;width:30cqw;height:17cqw;border-radius:50%;background:var(--paper);border:.8cqw solid #d23a26;transform:rotate(-12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#d23a26;line-height:1.1"><b style="font-family:'Alfa Slab One';font-size:4.6cqw">볼륨 7/11</b><span style="font-weight:900;font-size:2.3cqw">부록 LP 1장</span></div>
+    <div class="credit" style="right:4cqw;top:44cqw;writing-mode:vertical-rl">PHOTO Jason Lander / CC BY 2.0</div>
+  </div></div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#efebe3">
+      <div style="position:absolute;inset:0;background-color:#d9d4ca;background-image:radial-gradient(rgba(20,20,20,.45) .32cqw,transparent .6cqw);background-size:1.4cqw 1.4cqw"></div>
+      <div style="position:absolute;left:6cqw;top:6cqw;background:#b0201e;padding:.5cqw 3cqw 1.5cqw"><span style="font-family:'Archivo Black';font-size:11cqw;color:#fff;letter-spacing:-.03em">Cypher</span></div>
+      <div style="position:absolute;left:6cqw;top:26cqw;font-family:'Archivo Black';font-size:13.5cqw;line-height:.88;color:#b0201e;mix-blend-mode:multiply">TROUBLE<br>MOUNTAIN</div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:16cqw;font-family:var(--body);font-weight:900;font-size:4.6cqw;line-height:1.35;color:#141414">수요일, 어린 시절 TV 광고 속<br>스키 리조트로.</div>
+      <div style="position:absolute;left:6cqw;bottom:8cqw;font-family:var(--mono);font-size:2cqw;color:#141414">Cypher Vol.01 · 11월 18일 수요일 도착 · 사이퍼 미디어</div>
+      <div class="folio">AD</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;left:7cqw;top:6cqw;font-family:'Alfa Slab One',serif;font-size:13cqw;line-height:.9;color:#141414">contents</div>
+      <div class="lbl" style="position:absolute;left:7.5cqw;top:20cqw">feedback · vol.01 · 2026.11.16</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:27cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3.2cqw 5cqw">
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">2</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">편집장의 글</div><div class="cap">월요일에 나오는 이유</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">4</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">단신 · 숫자로 본 이번 주</div><div class="cap">10 · 13 · 1999 · 1</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">6</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">커버 스토리 — 거실로 돌아온 밴드</div><div class="cap">Kings of Leon [O My Beloved] · 윤서해 · 볼륨 7/11</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">12</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">이 판과 어울리는 밤 · 트랙 노트</div><div class="cap">아이가 잠든 뒤의 거실</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">14</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">이번 주 밴드 · 신인 앞줄</div><div class="cap">Spanish Love Songs · 볼륨 8/11</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">16</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">지난 열 장 · 판권</div><div class="cap">2003–2026</div></div>
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:'Alfa Slab One';font-size:6cqw;line-height:.9;color:#137a99">18</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;margin-top:1cqw">부록 · 이 호의 노래</div><div class="cap">부록 LP 1장 · 5곡</div></div>
+      </div>
+      <div class="folio">1</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Editor's letter</span><span>feedback · vol.01</span></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:11cqw;font-family:'Alfa Slab One',serif;font-size:7.6cqw;line-height:1;color:#141414">dear monday,</div>
+      <div class="k" style="position:absolute;left:7cqw;right:7cqw;top:21cqw;font-family:var(--body);font-weight:900;font-size:4.4cqw;line-height:1.3">월요일에 나오는 이유</div>
+      <div class="body2 cols" style="position:absolute;left:7cqw;right:7cqw;top:32cqw;bottom:12cqw;column-fill:auto;column-gap:3.6cqw">
+        <p class="drop">월요일은 한 주 가운데 가장 무거운 날이다. 그래서 이 잡지는 월요일에 나온다. 출근길 지하철에서, 아직 덜 깬 채로 펼쳐 볼 수 있게.</p>
+        <p>feedback은 앰프 앞에 기타를 댔을 때 생기는 울림이다. 소리가 돌아와 다시 소리를 만든다. 밴드와 관객, 노래와 듣는 사람 사이도 그렇다고 우리는 믿는다. 제호를 소문자로 쓰는 것은 크게 외치지 않고 가까이서 말하겠다는 뜻이다.</p>
+        <p>우리는 점수보다 장면을 믿는다. 이 판이 어떤 밤에, 어떤 거리에서, 누구 곁에서 울려야 하는지를 쓴다. 다만 우리는 판을 직접 듣지 못한다. 그래서 소리에 대한 문장은 들은 사람들의 말을 옮기고, 장면은 우리의 상상이라고 밝혀 둔다.</p>
+        <p>첫 호의 커버는 열 번째 앨범을 낸 킹스 오브 리온이다. 경기장을 울리던 밴드가 이번에는 거실 크기의 노래를 골랐다. 서툰 진심이 매끈한 거짓보다 낫다고 믿는 이 잡지가, 첫 장을 그 판에 내주는 이유다.</p>
+        <p class="ni" style="font-family:var(--it);font-style:italic;font-size:3.6cqw;text-align:right;margin-top:3cqw">— 윤서해</p>
+      </div>
+      <div class="folio">2</div>
+    </div>
+    <div class="pg R" style="background:#0d1220">
+      <div class="photo" style="inset:0;background-image:url(/mag/issues/fb-01/fd60b01ea1.jpg)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:46cqw;background:linear-gradient(180deg,transparent,rgba(10,14,28,.9))"></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;bottom:9cqw;color:#f4efe6">
+        <div class="lbl" style="color:#2bb3d9">Night of the week</div>
+        <div style="font-family:'Alfa Slab One',serif;font-size:7.6cqw;line-height:1;margin-top:1.6cqw">after the<br>last encore</div>
+        <div class="cap" style="color:#d9d2c4;margin-top:2cqw;font-size:2.1cqw">공연이 끝나고 공연장 밖으로 쏟아져 나온 밤. 아직 귀가 먹먹한 채로 막차를 기다리는 시간.</div>
+      </div>
+      <div class="credit" style="right:5cqw;top:5cqw">PHOTO FromTheNorth / CC BY-NC-SA 2.0</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Briefs</span><span>단신</span></div>
+      <div class="k" style="position:absolute;left:6cqw;top:10cqw;font-family:var(--body);font-weight:900;font-size:6cqw">이번 주 단신</div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:20cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 3.6cqw">
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">이번 주 밴드</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">스패니시 러브 송스, 다섯 번째 정규</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">[Future Nausea], 11월 6일 Pure Noise. 크리스 왈라와 사라 터드진이 프로듀서. 14쪽.</p></div></div>
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">같은 날</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">컴백 키드, 여덟 번째 앨범</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">11월 6일 SharpTone Records. 같은 금요일에 나온 하드코어 밴드의 여덟 번째 판이다.</p></div></div>
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">공연</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">이디오테잎, 11월 단독 공연</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">네 번째 정규 앨범의 곡들을 무대에서 처음 들려준다고 알려졌다.</p></div></div>
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">지난달의 판</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">단편선 모먼츠 [Lovers]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">10월 중순에 나온 두 번째 정규. 다음 호에서 늦게라도 다루고 싶은 판이다.</p></div></div>
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">데뷔</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">터치드, 첫 정규 [Polar Night]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">10월 15일 발매. 제목은 해가 뜨지 않는 극지의 밤, 극야다.</p></div></div>
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#d23a26;font-size:1.7cqw">금요일 Drop</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">U2, 9년 만의 새 노래</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">[Carnaval de Luz]는 자매지 Drop이 다뤘다. 이 잡지 편집장도 그 호 대담에 나온다.</p></div></div>
+      </div>
+      <div class="folio">4</div>
+    </div>
+    <div class="pg R" style="background:#2bb3d9">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#141414">This week in numbers</div>
+      <div class="k" style="position:absolute;left:7cqw;top:11cqw;font-family:var(--body);font-weight:900;font-size:6cqw;color:#141414">숫자로 본 이번 주</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:26cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 4cqw">
+        <div><div style="font-family:'Alfa Slab One';font-size:24cqw;line-height:.9;color:#141414">10</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">킹스 오브 리온의 열 번째 정규 앨범</div></div>
+        <div><div style="font-family:'Alfa Slab One';font-size:24cqw;line-height:.9;color:#f4efe6">13</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">[O My Beloved]에 실린 곡 수</div></div>
+        <div><div style="font-family:'Alfa Slab One';font-size:17cqw;line-height:.9;color:#f4efe6">1999</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">팔로윌 형제 셋과 사촌 하나가 내슈빌에서 처음 모인 해</div></div>
+        <div><div style="font-family:'Alfa Slab One';font-size:24cqw;line-height:.9;color:#141414">1</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">밴드가 처음으로 직접 프로듀서 자리에 앉은 판</div></div>
+      </div>
+      <div class="folio" style="color:#141414">5</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="photo" style="inset:0;background-image:url(/mag/issues/fb-01/5096f2f33a.jpg);z-index:1"></div>
+    <div style="position:absolute;inset:0;z-index:2;background:linear-gradient(270deg,rgba(20,12,6,.85),rgba(20,12,6,.25) 50%,transparent 75%)"></div>
+    <div style="position:absolute;z-index:3;right:4cqw;top:4cqw;font-family:var(--mono);font-size:1.1cqw;letter-spacing:.14em;color:#2bb3d9">COVER STORY · 커버 스토리 · 6–11쪽</div>
+    <div style="position:absolute;z-index:3;right:4cqw;top:9cqw;text-align:right;font-family:var(--body);font-weight:900;font-size:8.6cqw;line-height:1.08;color:#fff4e2">거실로<br>돌아온<br>밴드</div>
+    <div style="position:absolute;z-index:3;right:4cqw;top:41cqw;text-align:right;font-family:'Alfa Slab One',serif;font-size:3.4cqw;color:#ffe2a8;line-height:1.05">kings of leon<br>o my beloved</div>
+    <div style="position:absolute;z-index:3;right:4cqw;top:48cqw;width:32cqw;text-align:right;font-family:var(--body);font-size:1.35cqw;line-height:1.75;color:#f1e6d6">테네시의 형제들이 스물일곱 해 만에 처음으로 누구에게도 손잡이를 넘기지 않았다. 경기장 대신 거실 크기의 노래. — 글 윤서해 · 이럴 때 들을 것: 아이가 잠든 뒤, 불 하나만 켜 둔 거실</div>
+    <div style="position:absolute;z-index:3;right:40cqw;bottom:5cqw;width:13cqw;height:7.4cqw;border-radius:50%;background:#f4efe6;border:.4cqw solid #d23a26;transform:rotate(-10deg);display:flex;align-items:center;justify-content:center;color:#d23a26;font-family:'Alfa Slab One';font-size:2cqw">볼륨 7/11</div>
+    <div class="credit" style="z-index:3;left:2cqw;bottom:2cqw;font-size:.8cqw">PHOTO FromTheNorth / CC BY-NC-SA 2.0</div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Cover story · Kings of Leon</span><span>O My Beloved · 7/11</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;bottom:38cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.75cqw">
+        <p class="drop">테네시의 팔로윌 형제 셋과 사촌 하나. 넷이 내슈빌에서 처음 한 방에 모인 게 1999년이었다. 그로부터 스물일곱 해, 열 번째 앨범에서 그들은 처음으로 누구에게도 손잡이를 넘기지 않았다. 전작 [Can We Please Have Fun]을 키드 하푼에게 맡겼던 밴드가, 이번에는 직접 프로듀서 자리에 앉았다.</p>
+        <p>밴드는 이 판을 지금까지 가장 내밀하고 무방비한 기록이라고 불렀다. AP는 어쿠스틱하고 개인적인 쪽으로 방향을 틀었다고 썼고, 9월에 먼저 나온 'My Whole World'가 그 문을 열었다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:11cqw;border-top:1.4cqw solid #2bb3d9;padding-top:3cqw;font-family:var(--body);font-weight:900;font-size:5.4cqw;line-height:1.3;letter-spacing:-.02em;word-break:keep-all">경기장을 울리던 밴드가, 이번에는 거실 크기의 노래를 골랐다.</div>
+      <div class="folio">8</div>
+    </div>
+    <div class="pg R">
+      <div class="photo" style="left:0;right:0;top:0;height:58cqw;background-image:url(/mag/issues/fb-01/d041a0d96f.jpg)"></div>
+      <div class="cap" style="position:absolute;left:6cqw;right:6cqw;top:60cqw"><b>킹스 오브 리온의 공연.</b> 노란 조명 아래의 기타. 사진 wonker / CC BY 2.0</div>
+      <div class="body2" style="position:absolute;left:6cqw;right:6cqw;top:68cqw;font-size:2.55cqw">
+        <p class="ni">'KOYSAR'의 뮤직비디오에는 멤버들의 아이들이 가족 나들이처럼 등장한다. 무대 위의 밴드가 아니라 아버지들의 하루를 찍은 영상이다. 이 판이 어디를 향하는지, 그 영상 하나가 먼저 말해 준다.</p>
+        <p>모두가 반긴 것은 아니다. Riff는 너무 안전하고 되풀이된다며 10점 중 5점을 줬고, Clash는 아메리카나와 다정한 선율을 들어 8점을 줬다. Daily Bruin은 예전 히트곡보다 크게 울리려 하지 않아서 오히려 낫다고 했다.</p>
+      </div>
+      <div class="folio">9</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Cover story · Kings of Leon</span><span>O My Beloved · 7/11</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;bottom:38cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.75cqw">
+        <p class="ni">같은 판을 두고 '안전하다'와 '진심이다'가 함께 나온다. 나는 그게 이 판의 정확한 초상이라고 생각한다. 젊은 날의 킹스 오브 리온을 그리워하는 사람에게 이 판은 조금 심심할지 모른다.</p>
+        <p>열 장을 내는 동안 넷은 한 번도 얼굴을 바꾸지 않았다. 형제와 사촌으로 이루어진 밴드에게 가족 이야기는 새 주제가 아니다. 다만 이번에는 그 가족에 다음 세대가 들어왔다. 'KOYSAR'의 아이들 말이다. 16쪽에 지난 열 장을 적어 두었다.</p>
+        <p>하지만 밴드가 나이 드는 방법은 여러 가지이고, 그중 가장 다정한 것은 집으로 돌아오는 것이다. 볼륨은 7. 끝까지 올리지는 않되, 옆방에서 자는 사람이 깨지 않을 만큼만.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:11cqw;background:#efe6d6;padding:3cqw"><div class="lbl" style="color:#d23a26">다른 시각</div><div class="body2" style="font-size:2.4cqw;margin-top:1cqw"><p class="ni" style="margin:0">Riff의 말처럼, 이 판의 다정함은 같은 온도가 열세 곡 내내 이어진다는 뜻이기도 하다. 그 온도가 맞지 않는 밤도 있을 것이다.</p></div></div>
+      <div class="folio">10</div>
+    </div>
+    <div class="pg R" style="background:#141414;color:#f4efe6">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#2bb3d9">How loud · 볼륨 해부</div>
+      <svg viewBox="0 0 200 200" style="position:absolute;left:10cqw;top:14cqw;width:80cqw;height:80cqw" aria-label="볼륨 7/11">
+        <circle cx="100" cy="100" r="62" fill="#1f1f1f" stroke="#3a3a3a" stroke-width="2"/>
+        <circle cx="100" cy="100" r="50" fill="#262626"/>
+        <g font-family="Alfa Slab One" font-size="9" fill="#cfc6b6" text-anchor="middle"><text x="43.4" y="159.6" >1</text><line x1="54.7" y1="145.3" x2="50.5" y2="149.5" stroke="#cfc6b6" stroke-width="1.5"/><text x="23.9" y="127.7" >2</text><line x1="39.1" y1="119.8" x2="33.4" y2="121.6" stroke="#cfc6b6" stroke-width="1.5"/><text x="21.0" y="90.5" >3</text><line x1="36.8" y1="90.0" x2="30.9" y2="89.0" stroke="#cfc6b6" stroke-width="1.5"/><text x="35.3" y="56.0" >4</text><line x1="48.2" y1="62.4" x2="43.4" y2="58.9" stroke="#cfc6b6" stroke-width="1.5"/><text x="63.7" y="31.7" >5</text><line x1="70.9" y1="43.0" x2="68.2" y2="37.6" stroke="#cfc6b6" stroke-width="1.5"/><text x="100.0" y="23.0" >6</text><line x1="100.0" y1="36.0" x2="100.0" y2="30.0" stroke="#cfc6b6" stroke-width="1.5"/><text x="136.3" y="31.7" fill="#d23a26">7</text><line x1="129.1" y1="43.0" x2="131.8" y2="37.6" stroke="#cfc6b6" stroke-width="1.5"/><text x="164.7" y="56.0" >8</text><line x1="151.8" y1="62.4" x2="156.6" y2="58.9" stroke="#cfc6b6" stroke-width="1.5"/><text x="179.0" y="90.5" >9</text><line x1="163.2" y1="90.0" x2="169.1" y2="89.0" stroke="#cfc6b6" stroke-width="1.5"/><text x="176.1" y="127.7" >10</text><line x1="160.9" y1="119.8" x2="166.6" y2="121.6" stroke="#cfc6b6" stroke-width="1.5"/><text x="156.6" y="159.6" >11</text><line x1="145.3" y1="145.3" x2="149.5" y2="149.5" stroke="#cfc6b6" stroke-width="1.5"/></g>
+        <line x1="100" y1="100" x2="120.9" y2="59.0" stroke="#d23a26" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="100" cy="100" r="7" fill="#d23a26"/>
+      </svg>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:92cqw;display:grid;grid-template-columns:1fr auto;gap:1cqw 3cqw;font-family:var(--ui);font-size:2.3cqw;line-height:1.6">
+        <span>밴드의 합</span><span style="font-family:var(--mono)">5 · 30%</span><span>장면을 만드는 힘</span><span style="font-family:var(--mono)">8 · 30%</span><span>진심</span><span style="font-family:var(--mono)">8.5 · 20%</span><span>새로움</span><span style="font-family:var(--mono)">4 · 20%</span>
+      </div>
+      <div class="folio" style="color:#8d857a">11</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#1a2333;color:#f4efe6">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#2bb3d9">A night for this record</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:12cqw;font-family:var(--body);font-weight:900;font-size:6.4cqw;line-height:1.25">이 판과<br>어울리는 밤</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:34cqw;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2cqw;font-family:var(--ui);font-size:2.1cqw;line-height:1.4">
+        <div style="border-top:.3cqw solid #2bb3d9;padding-top:1.4cqw"><span style="color:#9fb4c8">시간</span><br><b>밤 11시 40분</b></div>
+        <div style="border-top:.3cqw solid #2bb3d9;padding-top:1.4cqw"><span style="color:#9fb4c8">날씨</span><br><b>첫눈 예보, 아직은 비</b></div>
+        <div style="border-top:.3cqw solid #2bb3d9;padding-top:1.4cqw"><span style="color:#9fb4c8">장소</span><br><b>문을 반쯤 닫은 거실</b></div>
+      </div>
+      <div class="body2" style="position:absolute;left:7cqw;right:7cqw;top:50cqw;color:#e6e1d6;font-size:2.6cqw">
+        <p class="ni">이건 내가 그려 본 장면이다. 하루가 끝나고 집 안의 소리가 하나씩 꺼진다. 냉장고 소리, 창밖의 빗소리, 그리고 판 하나.</p>
+        <p>제목부터 새벽 쪽으로 기우는 'Cold Blue Dawn'을 먼저 건다. 곁에 누가 있다는 것만으로 충분하다는 이름의 'Warm Company'가 그다음. 마지막으로 불을 끄기 전에 'My Whole World'. 이 세 곡을 고른 이유는 소리가 아니라 이름이다. 소리는 당신의 거실에서 확인해 주길.</p>
+      </div>
+      <div class="folio" style="color:#7d8aa0">12</div>
+    </div>
+    <div class="pg R">
+      <div class="rh"><span>Track notes</span><span>O My Beloved</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:'Alfa Slab One',serif;font-size:6.4cqw;color:#141414">track notes</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:20cqw;font-family:var(--ui);font-size:2.35cqw">
+        <div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">01</span><span><b style="font-weight:900">Intro</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.6cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">02</span><span><b style="font-weight:900">My Whole World</b><span class='cap' style='display:block;font-size:1.9cqw'>9월에 먼저 나온 첫 싱글.</span></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.6cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">03</span><span><b style="font-weight:900">Cold Blue Dawn</b><span class='cap' style='display:block;font-size:1.9cqw'>이 판과 어울리는 밤의 첫 곡으로 골랐다.</span></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">04</span><span><b style="font-weight:900">The Hand</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">05</span><span><b style="font-weight:900">Rose</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">06</span><span><b style="font-weight:900">Make It Count</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.6cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">07</span><span><b style="font-weight:900">KOYSAR</b><span class='cap' style='display:block;font-size:1.9cqw'>멤버들의 아이들이 나오는 뮤직비디오.</span></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">08</span><span><b style="font-weight:900">Feel The Love</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">09</span><span><b style="font-weight:900">Blue Jeans and Diamonds</b></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.6cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">10</span><span><b style="font-weight:900">Warm Company</b><span class='cap' style='display:block;font-size:1.9cqw'>곁에 누가 있다는 것만으로 충분하다는 이름.</span></span></div><div style="display:grid;grid-template-columns:7cqw 1fr;gap:2cqw;border-top:.15cqw solid rgba(18,18,18,.16);padding:1.1cqw 0"><span style="font-family:'Alfa Slab One';color:#137a99">11</span><span><b style="font-weight:900">Forever Endeavor</b></span></div>
+        <div class="cap" style="margin-top:2.4cqw;font-size:1.9cqw">출처들이 앞 열한 곡의 목록에는 동의하지만 마지막 두 곡은 엇갈려, 열한 곡까지만 적었다.</div>
+      </div>
+      <div class="folio">13</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Band of the week</span><span>이번 주 밴드</span></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:10cqw;font-family:'Alfa Slab One',serif;font-size:7cqw;line-height:1">spanish love songs —<br>future nausea</div>
+      <div style="position:absolute;left:7cqw;top:29cqw;display:flex;gap:3cqw;align-items:center"><span style="font-family:'Alfa Slab One';font-size:5.6cqw;color:#d23a26">볼륨 8/11</span><span class="cap">이럴 때 들을 것: 출근길 지하철, 이어폰 볼륨을 한 칸 더</span></div>
+      <div class="body2 cols" style="position:absolute;left:7cqw;right:7cqw;top:38cqw;bottom:12cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.6cqw">
+        <p class="drop">다섯 번째 정규, 11월 6일 Pure Noise. 크리스 왈라와 사라 터드진이 프로듀서로 앉았다. 정치적 폭력과 기후 불안, 끝물의 자본주의를 정면으로 다룬다.</p>
+        <p>Atwood는 첫 싱글 'Good American'을 격렬하게 앞으로 내달리는 록 노래라 했다. 보컬 딜런 슬로컴은 지금까지 만든 판 가운데 가장 덜 슬픈 판이라고 말했다고 전해진다.</p>
+        <p>세상이 무너지는 이야기를 하면서 덜 슬퍼지는 법. 밴드가 아니면 누가 가르쳐 줄까. 이번 주 이 잡지에서 볼륨을 가장 높이 올린 판이다.</p>
+      </div>
+      <div class="folio">14</div>
+    </div>
+    <div class="pg R" style="background:#efe6d6">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#d23a26">Front row · 신인 앞줄</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:14cqw;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3cqw">
+        <div style="aspect-ratio:3/4;border:.4cqw dashed #b9ad98"></div><div style="aspect-ratio:3/4;border:.4cqw dashed #b9ad98"></div><div style="aspect-ratio:3/4;border:.4cqw dashed #b9ad98"></div>
+      </div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:52cqw;font-family:var(--body);font-weight:900;font-size:6cqw;line-height:1.25">앞줄은 이번 주<br>비워 둔다.</div>
+      <div class="body2" style="position:absolute;left:7cqw;right:7cqw;top:72cqw;font-size:2.5cqw"><p class="ni">출처를 두 곳 이상 확인할 수 있는 신인을 이번 주에는 찾지 못했다. 첫 EP의 삐걱거림을 사랑하는 잡지가 신인 자리를 비우는 일은 마음이 아프다. 다음 주에는 꼭 채우겠다.</p><p class="ni" style="text-align:right;font-family:var(--it);font-style:italic">— 신인 데스크 '앞줄'</p></div>
+      <div class="folio">15</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#141414;color:#f4efe6">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#2bb3d9">Ten records</div>
+      <div style="position:absolute;left:7cqw;top:11cqw;font-family:var(--body);font-weight:900;font-size:6cqw">지난 열 장</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:24cqw"><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2003</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Youth & Young Manhood</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2004</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Aha Shake Heartbreak</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2007</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Because of the Times</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2008</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Only by the Night</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2010</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Come Around Sundown</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2013</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Mechanical Bull</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2016</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Walls</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2021</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">When You See Yourself</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#cfc6b6">2024</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#e6e1d6">Can We Please Have Fun</span></div><div style="display:grid;grid-template-columns:13cqw 1fr;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(244,239,230,.18);padding:1.5cqw 0"><span style="font-family:'Alfa Slab One';font-size:3.6cqw;color:#2bb3d9">2026</span><span style="font-family:var(--it);font-style:italic;font-size:3.6cqw;line-height:1.1;color:#fff4e2">O My Beloved</span></div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:9cqw;color:#9a9286;font-size:1.8cqw">연표는 편집부가 이미 가진 자료로 썼다.</div>
+      <div class="folio" style="color:#8d857a">16</div>
+    </div>
+    <div class="pg R">
+      <div class="rh"><span>Sources &amp; credits</span><span>판권</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:var(--body);font-weight:900;font-size:6cqw">출처와 편집 노트</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:22cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw">
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>기사 출처</b><br>Radio X, JamBase, AP, Stereogum, Riff, Clash, Louder, Daily Bruin, Atwood Magazine, JB Hi-Fi, Khan(이디오테잎·단편선 모먼츠·터치드), mxdwn</div>
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>사진</b><br>표지 — Jason Lander / CC BY 2.0, Flickr (Openverse 경유)<br>3쪽 — FromTheNorth / CC BY-NC-SA 2.0, Flickr (Openverse 경유)<br>6–7쪽 펼침 — FromTheNorth / CC BY-NC-SA 2.0, Flickr (Openverse 경유)<br>9쪽 — wonker / CC BY 2.0, Flickr (Openverse 경유)</div>
+      </div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:76cqw;background:#2bb3d9;padding:3cqw;color:#141414"><div class="lbl" style="color:#141414">편집 노트</div><div style="font-family:var(--ui);font-weight:700;font-size:2.3cqw;line-height:1.6;margin-top:1cqw">출처 12곳 · 신인 앞줄 비움<br>'이 판과 어울리는 밤'의 장면은 편집부의 상상이다. 소리에 대한 문장은 다른 매체의 말을 옮긴 것이다.</div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw;font-size:1.8cqw">feedback · 매주 월요일 · 피드백 프레스 · 편집장 윤서해(가상 인물)</div>
+      <div class="folio">17</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div style="position:absolute;left:7cqw;right:7cqw;top:7cqw;font-family:'Alfa Slab One',serif;font-size:10cqw;line-height:.95">supplement</div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:19cqw">부록 · 이 호의 노래 다섯 장</div>
+      <div class="body2" style="position:absolute;left:7cqw;right:7cqw;top:24cqw;font-size:2.3cqw"><p class="ni">이 호에서 이름이 나온 노래를 LP 한 장에 담아 투명 비닐째 붙였다. 테이프를 떼면 처음부터 재생되고, 피드백 프레스 크레이트에 꽂힌다.</p></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:52cqw;font-family:var(--body);font-weight:900;font-size:9cqw;line-height:1.15">다섯 곡,<br>한 장.</div>
+      <div class="folio">18</div>
+    </div>
+    <div class="pg R" style="background:#f2eee4"><div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:12cqw;top:22cqw;--r:-3deg;--w:74cqw"><span class="sl"><span class="ttl">feedback vol.01 — 부록 LP</span><span class="ho" style="--c:#2bb3d9"></span><span class="tl"><b>A1</b> My Whole World — Kings of Leon<br><b>A2</b> KOYSAR — Kings of Leon<br><b>A3</b> Cold Blue Dawn — Kings of Leon<br><b>B1</b> Warm Company — Kings of Leon<br><b>B2</b> Good American — Spanish Love Songs<br></span></span><span class="bg"></span><span class="tp" style="left:-8%;top:5%;width:40%;transform:rotate(-12deg)"></span><span class="tp" style="left:64%;top:74%;width:30%;transform:rotate(22deg)"></span><span class="c2">이 호의 노래 5곡, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div><div class="folio">19</div></div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Liner notes</span><span>부록 수록곡</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:var(--it);font-style:italic;font-size:9cqw;line-height:1">Liner notes</div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:21cqw">A면 · B면 — 이 호에서 이름이 나온 노래</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:27cqw"><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">My Whole World</b><span class="cap" style="display:block;margin-top:.6cqw">Kings of Leon</span></span><span class="cap" style="text-align:right">8쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">KOYSAR</b><span class="cap" style="display:block;margin-top:.6cqw">Kings of Leon</span></span><span class="cap" style="text-align:right">9쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A3</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Cold Blue Dawn</b><span class="cap" style="display:block;margin-top:.6cqw">Kings of Leon</span></span><span class="cap" style="text-align:right">12쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Warm Company</b><span class="cap" style="display:block;margin-top:.6cqw">Kings of Leon</span></span><span class="cap" style="text-align:right">12쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Good American</b><span class="cap" style="display:block;margin-top:.6cqw">Spanish Love Songs</span></span><span class="cap" style="text-align:right">14쪽</span></div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw">테이프를 떼면 Spotify에 이 호의 플레이리스트가 만들어지고 처음부터 재생된다. 플레이리스트는 출판사 크레이트에 한 장으로 꽂힌다.</div>
+      <div class="folio">20</div></div>
+    <div class="pg R" style="background:#fdfcf9">
+      <div style="position:absolute;left:3cqw;top:2cqw;font-family:'Archivo Black';font-size:30cqw;line-height:1;letter-spacing:-.05em;color:#f59ad6">Drop</div>
+      <div style="position:absolute;left:-6cqw;top:36cqw;font-family:'Archivo Black';font-size:64cqw;line-height:.8;letter-spacing:-.06em;color:#2a2fb0">U2</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;bottom:16cqw;font-family:var(--body);font-weight:900;font-size:4.6cqw;line-height:1.35">금요일엔 깐깐하게.<br>10년 뒤에도 꺼낼 판만.</div>
+      <div style="position:absolute;left:7cqw;bottom:8cqw;font-family:var(--mono);font-size:2cqw">Drop · 매주 금요일 · 드롭 레코드</div>
+      <div class="folio">AD</div>
+    </div>
+  </div></template>

@@ -1,0 +1,425 @@
+<title>Drop 배송 개봉</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Black+Han+Sans&family=Nanum+Gothic+Coding:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+/* 한 장면 = 책상 위 물건 하나. 상자 → 비닐에 싸인 잡지 → 넘기는 책 → 마지막 장 부록 싱글. 어두운 책상 한 가지 모습으로 고정 */
+:root{
+  --desk:#24201c; --desk2:#2e2924; --kraft:#c79f68; --kraft2:#a9814e; --kraftIn:#7d5f38;
+  --paper:#fbfaf6; --paper2:#f1ede4; --ink:#161514; --mute:#5c5852;
+  --pink:#f59ad6; --blue:#2a2fb0; --orange:#f08a16; --hint:#e9e2d6;
+  --packtape:rgba(150,104,52,.88); --clear:rgba(255,248,214,.5);
+  --sans:'Noto Sans KR',system-ui,sans-serif; --serif:'Noto Serif KR',Georgia,serif; --mono:'Nanum Gothic Coding',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(120% 90% at 50% 30%,var(--desk2),var(--desk));color:var(--hint);font-family:var(--sans);overflow:hidden;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-tap-highlight-color:transparent}
+#stage{position:relative;height:100%;display:flex;align-items:center;justify-content:center}
+button{font:inherit}
+
+/* 안내 줄 */
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;color:var(--hint);pointer-events:none;flex-wrap:wrap;text-align:center}
+#bar button{pointer-events:auto;background:transparent;color:var(--hint);border:1px solid rgba(233,226,214,.45);border-radius:999px;padding:6px 14px;min-height:36px;cursor:pointer}
+#bar button:focus-visible,#again:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+#again{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));background:transparent;color:var(--hint);border:1px solid rgba(233,226,214,.35);border-radius:999px;padding:6px 14px;min-height:36px;cursor:pointer;font-size:13px;z-index:50}
+#toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-140%);background:var(--paper);color:var(--ink);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .35s;z-index:60;max-width:calc(100% - 32px)}
+#toast.on{transform:translate(-50%,0)}
+
+/* ── 상자 ── */
+#box{position:absolute;width:var(--bw);height:calc(var(--bw)*1.12);touch-action:none;cursor:ew-resize;perspective:1400px;transition:opacity .6s, transform .8s}
+#box.gone{opacity:0;transform:translateY(60px) scale(.94);pointer-events:none}
+.inner{position:absolute;inset:0;background:var(--kraftIn);border-radius:4px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 30px 60px rgba(0,0,0,.5)}
+.inner .mag{position:absolute;inset:9% 14%;background:var(--pink);box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.inner .mag::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.4) 32%,transparent 40%)}
+.inner .mag b{position:absolute;left:6%;top:3%;font-family:'Archivo Black',sans-serif;font-size:calc(var(--bw)*.16);color:var(--paper);letter-spacing:-.04em}
+#box.open .inner .mag{transform:translateY(-6%) scale(1.04)}
+.flap{position:absolute;left:0;right:0;height:50%;background:linear-gradient(180deg,var(--kraft),var(--kraft2));transition:transform 1s cubic-bezier(.3,.7,.2,1);backface-visibility:hidden;border-radius:3px}
+.flap::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.035) 0 2px,transparent 2px 9px)}
+.flap.top{top:0;transform-origin:top center}
+.flap.bot{bottom:0;transform-origin:bottom center}
+#box.open .flap.top{transform:rotateX(178deg)}
+#box.open .flap.bot{transform:rotateX(-178deg)}
+.tape{position:absolute;left:-2%;right:-2%;height:28%;background:var(--packtape)}
+.tape::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 40%,rgba(0,0,0,.08))}
+.flap.top .tape{bottom:0}
+.flap.bot .tape{top:0}
+#slit{position:absolute;left:0;top:50%;height:3px;margin-top:-1.5px;background:#1a120a;width:0;z-index:5;box-shadow:0 0 4px rgba(0,0,0,.6)}
+#box.open #slit{opacity:0}
+.label{position:absolute;left:8%;top:9%;width:58%;background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:calc(var(--bw)*.028);line-height:1.5;padding:3% 4%;transform:rotate(-1.5deg);box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.label b{font-family:var(--sans);font-weight:900;font-size:1.15em;display:block;border-bottom:1.5px solid var(--ink);margin-bottom:4%;padding-bottom:2%}
+.label .bc{height:calc(var(--bw)*.05);margin-top:5%;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 3px,var(--ink) 3px 5px,transparent 5px 8px)}
+.warn{position:absolute;right:7%;top:12%;width:24%;aspect-ratio:1;border-radius:50%;background:#d23a26;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:calc(var(--bw)*.03);line-height:1.25;transform:rotate(8deg);box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.flap.bot .stamp{position:absolute;right:8%;bottom:12%;font-family:'Archivo Black',sans-serif;font-size:calc(var(--bw)*.05);color:rgba(60,35,12,.5);transform:rotate(-6deg);border:3px solid rgba(60,35,12,.45);padding:1% 3%}
+.flap.bot .arrow{position:absolute;left:8%;bottom:14%;font-family:var(--mono);font-size:calc(var(--bw)*.03);color:rgba(60,35,12,.7)}
+
+/* ── 책 ── */
+#bookWrap{position:absolute;perspective:2400px;opacity:0;transform:translateY(40px) scale(.92);transition:opacity .7s, transform .9s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+#bookWrap.on{opacity:1;transform:none;pointer-events:auto}
+#book{position:relative;width:var(--bkw);height:var(--ph);transition:transform .8s cubic-bezier(.3,.6,.2,1);touch-action:pan-y}
+.leaf{position:absolute;top:0;left:var(--lx);width:var(--pw);height:var(--ph);transform-origin:left center;transform-style:preserve-3d;transition:transform .85s cubic-bezier(.3,.6,.2,1)}
+.leaf.flipped{transform:rotateY(-180deg)}
+.face,.base{position:absolute;inset:0;background:var(--paper);color:var(--ink);backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;container-type:size;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.face.back{transform:rotateY(180deg)}
+.face.front::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.14),transparent 7%)}
+.face.back::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(270deg,rgba(0,0,0,.14),transparent 7%)}
+.base{left:var(--lx);width:var(--pw);right:auto}
+.blank{background:var(--paper2)}
+
+/* 지면 (cqw = 지면 폭의 1%) */
+.pg{position:absolute;inset:0;padding:7cqw 7cqw 9cqw;overflow:auto;font-size:3.05cqw;line-height:1.7;scrollbar-width:none}
+.pg::-webkit-scrollbar{display:none}
+.folio{position:absolute;bottom:3cqw;left:7cqw;right:7cqw;display:flex;justify-content:space-between;font-size:2.3cqw;color:var(--mute);letter-spacing:.04em}
+.kick{font-size:2.5cqw;font-weight:700;letter-spacing:.06em;color:var(--blue)}
+.h{font-family:var(--serif);font-weight:900;font-size:6cqw;line-height:1.25;margin:1.5cqw 0 2cqw}
+.p{font-family:var(--serif);margin:0 0 3cqw}
+.by{font-size:2.6cqw;color:var(--mute)}
+.score{display:flex;align-items:baseline;gap:3cqw;margin:2cqw 0 3cqw}
+.score b{font-family:'Archivo Black',sans-serif;font-size:15cqw;line-height:1}
+.facts{width:100%;border-collapse:collapse;font-size:2.6cqw;margin-bottom:4cqw}
+.facts td{border-top:1px solid rgba(22,21,20,.15);padding:1cqw 0}
+.facts td:first-child{color:var(--mute);width:26%}
+.pull{font-family:var(--serif);font-weight:900;font-size:5.4cqw;line-height:1.4;border-top:1.5cqw solid var(--pink);padding-top:3cqw;margin:0 0 4cqw}
+.box{border:1px solid rgba(22,21,20,.35);padding:3cqw;margin:0 0 3cqw;font-size:2.8cqw}
+.box b{display:block;font-size:2.5cqw;letter-spacing:.05em;color:var(--blue);margin-bottom:1cqw}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:1cqw 2cqw;align-items:center;font-size:2.5cqw}
+.bars i{display:block;height:1.6cqw;background:var(--ink)}
+.bars span.v{font-variant-numeric:tabular-nums}
+.toc{display:flex;flex-direction:column;margin-top:3cqw}
+.toc div{display:grid;grid-template-columns:9cqw 1fr;gap:2cqw;border-top:1px solid rgba(22,21,20,.18);padding:2.4cqw 0}
+.toc div b{font-family:'Archivo Black',sans-serif;font-size:6cqw;line-height:1}
+.toc small{display:block;color:var(--mute);font-size:2.5cqw}
+.sh{border-top:1px solid rgba(22,21,20,.2);padding-top:3cqw;margin-bottom:3cqw}
+.sh .t{font-weight:900;font-size:3.2cqw}
+.tag{display:inline-block;background:var(--blue);color:#fff;font-size:2.4cqw;font-weight:900;padding:.3cqw 1.5cqw;margin-left:1cqw}
+
+/* 표지 */
+.cover{position:absolute;inset:0;background:var(--paper);overflow:hidden}
+.cover .mh{position:absolute;left:3cqw;top:1cqw;font-family:'Archivo Black',sans-serif;font-size:27cqw;line-height:1;letter-spacing:-.05em;color:var(--pink)}
+.cover .sub{position:absolute;left:4cqw;top:29cqw;font-weight:900;font-size:3.4cqw}
+.cover .tr{position:absolute;right:4cqw;top:3cqw;font-size:2.5cqw;font-weight:700;text-align:right}
+.cover .blob{position:absolute;background:var(--blue)}
+.cover .ph{position:absolute;left:34cqw;top:36cqw;width:44cqw;height:62cqw;background-color:#b9b9b9;background-image:radial-gradient(rgba(20,20,20,.45) .35cqw,transparent .55cqw);background-size:1.3cqw 1.3cqw;clip-path:polygon(18% 0,100% 6%,100% 100%,0 100%,6% 30%)}
+.cover .vr{position:absolute;writing-mode:vertical-rl;font-family:'Black Han Sans',sans-serif;line-height:1}
+.cover .badge{position:absolute;right:4cqw;top:36cqw;width:13cqw;height:13cqw;border-radius:50%;background:var(--pink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:2.3cqw;line-height:1.05;font-weight:700}
+.cover .badge b{font-family:'Archivo Black',sans-serif;font-size:4.6cqw}
+.cover .sup{position:absolute;right:4cqw;top:52cqw;text-align:right;line-height:1.1}
+.cover .sup span{display:block;font-family:'Black Han Sans',sans-serif;font-size:6.4cqw;color:var(--orange)}
+.cover .sup small{font-weight:900;font-size:2.8cqw}
+.cover .lines{position:absolute;left:4cqw;bottom:4cqw;font-size:2.7cqw;font-weight:700;line-height:1.5}
+.cover .bcd{position:absolute;right:4cqw;bottom:4cqw;width:16cqw;height:8cqw;background:#fff;padding:1cqw}
+.cover .bcd i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--ink) 0 .4cqw,transparent .4cqw .7cqw,var(--ink) .7cqw 1.1cqw,transparent 1.1cqw 1.7cqw)}
+
+/* 비닐 */
+.wrap{position:absolute;inset:-1.5%;z-index:20;touch-action:none;cursor:ew-resize;border:1px solid rgba(255,255,255,.55);background:
+  linear-gradient(112deg,transparent 18%,rgba(255,255,255,.42) 24%,transparent 31%,transparent 55%,rgba(255,255,255,.16) 62%,transparent 70%),
+  linear-gradient(200deg,rgba(255,255,255,.14),transparent 30%),
+  repeating-linear-gradient(77deg,rgba(255,255,255,.05) 0 1px,transparent 1px 23px),
+  rgba(255,255,255,.07)}
+.wrap::before{content:"";position:absolute;left:0;right:0;top:0;height:2.4%;background:rgba(255,255,255,.25)}
+.wrap::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.4%;background:rgba(255,255,255,.25)}
+.wsticker{position:absolute;left:5cqw;top:62cqw;background:var(--orange);color:#fff;border-radius:50%;width:19cqw;height:19cqw;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:2.6cqw;line-height:1.25;transform:rotate(-10deg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.wbar{position:absolute;right:4cqw;top:90cqw;background:#fff;color:var(--ink);font-family:var(--mono);font-size:2.1cqw;padding:1cqw 2cqw;transform:rotate(2deg)}
+#tear{position:absolute;height:.5cqw;background:rgba(255,255,255,.9);box-shadow:0 0 1cqw rgba(255,255,255,.8);width:0;z-index:22;pointer-events:none}
+.shard{position:absolute;inset:-1.5%;z-index:21;pointer-events:none;background:inherit;transition:transform .9s cubic-bezier(.3,.6,.2,1),opacity .9s}
+
+/* 부록 싱글 */
+.sg-h{position:absolute;left:6cqw;right:6cqw;top:5cqw;display:flex;justify-content:space-between;align-items:baseline}
+.sg-h b{font-family:var(--serif);font-weight:900;font-size:5.4cqw}
+.sg-h span{font-size:2.4cqw;color:var(--mute)}
+.single{position:absolute;width:31cqw;height:31cqw;border:0;padding:0;background:none;cursor:pointer;transform:rotate(var(--r));transition:transform .5s cubic-bezier(.3,.6,.2,1)}
+.single:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.bag{position:absolute;inset:-4% -4% -7%;border:1px solid rgba(160,160,160,.55);background:
+  linear-gradient(125deg,transparent 20%,rgba(255,255,255,.75) 27%,transparent 34%),
+  linear-gradient(20deg,transparent 60%,rgba(255,255,255,.35) 66%,transparent 72%),
+  rgba(225,230,235,.28);box-shadow:0 .6cqw 1.6cqw rgba(0,0,0,.22);z-index:2;pointer-events:none}
+.bag::before{content:"";position:absolute;left:0;right:0;top:7%;height:1.5px;background:rgba(150,150,150,.5)}
+.sleeve{position:absolute;inset:0;background:#d4bf9e;box-shadow:inset 0 0 2cqw rgba(90,60,20,.25)}
+.sleeve::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 1px,transparent 1px 5px)}
+.hole{position:absolute;left:50%;top:50%;width:14cqw;height:14cqw;margin:-7cqw 0 0 -7cqw;border-radius:50%;background:radial-gradient(circle,#d4bf9e 0 .6cqw,var(--c) .6cqw 4.2cqw,#141414 4.2cqw 4.6cqw,#2a2a2a 4.6cqw 5cqw,#141414 5cqw 7cqw);box-shadow:inset 0 0 .6cqw rgba(0,0,0,.6)}
+.st{position:absolute;left:3cqw;right:3cqw;bottom:2.4cqw;font-family:var(--mono);font-size:2.2cqw;color:#4a3720;text-align:left;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn{position:absolute;left:3cqw;top:2.4cqw;font-family:var(--mono);font-size:2.2cqw;color:#4a3720}
+.ct{position:absolute;height:5.2cqw;background:var(--clear);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6);z-index:3;transform-origin:left center;transition:transform .45s, opacity .45s;box-shadow:0 .2cqw .4cqw rgba(0,0,0,.06)}
+.ct.curl{background:linear-gradient(90deg,var(--clear) 70%,rgba(255,250,225,.85) 85%,rgba(255,255,255,.2))}
+.single.taken{transform:rotate(0deg) translateY(-3cqw) scale(1.06);z-index:5}
+.single.taken .ct{transform:rotate(-35deg) translateY(-4cqw);opacity:0}
+.cap{position:absolute;left:0;right:0;top:calc(100% + 2.6cqw);font-size:2.3cqw;color:var(--mute);text-align:center;pointer-events:none}
+.single.taken .cap{color:var(--ink);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+
+<div id="stage">
+  <div id="box" role="button" tabindex="0" aria-label="택배 상자. 테이프를 가로로 그어서 열기">
+    <div class="inner"><div class="mag"><b>Drop</b></div></div>
+    <div class="flap top">
+      <div class="label"><b>드롭 레코드 → 구독자 님</b>보내는 곳: 드롭 레코드 편집부<br>받는 곳: Sabathia 우편함<br>내용물: 잡지 Drop Vol.01 1부<br>부록 7인치 싱글 5장<br>송장 1113-0001 · 2026.11.13<div class="bc"></div></div>
+      <div class="warn">구부리지<br>마세요</div>
+      <div class="tape"></div>
+    </div>
+    <div class="flap bot"><div class="tape"></div><div class="stamp">PRINTED MATTER</div><div class="arrow">↑ 이쪽이 위</div></div>
+    <div id="slit"></div>
+  </div>
+
+  <div id="bookWrap"><div id="book"></div></div>
+</div>
+
+<button id="again" type="button">다시 배송받기</button>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="bar"><span id="hint">테이프를 따라 가로로 그어서 상자를 여세요</span><button id="alt" type="button">칼로 자르기</button></div>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+
+/* 지면 — 샘플 호. 2024년 앨범을 다룬 말투 샘플이며 실제 호는 그 주 신보를 다룬다 */
+const fol = (n, t) => `<div class="folio"><span>Drop · Vol.01</span><span>${t ? t + ' · ' : ''}${n}</span></div>`;
+const PAGES = [
+`<div class="cover">
+  <div class="tr">새 음악, 금요일마다<br>2026.11.13</div>
+  <div class="mh">Drop</div>
+  <div class="sub">드롭 · 금요일 신곡</div>
+  <div class="blob" style="left:0;top:38cqw;width:40cqw;height:34cqw;border-radius:0 60% 50% 0"></div>
+  <div class="blob" style="left:0;top:84cqw;width:30cqw;height:30cqw;border-radius:0 50% 60% 0"></div>
+  <div class="ph"></div>
+  <div class="vr" style="left:5cqw;top:40cqw;font-size:8cqw;color:#fff">BRAT</div>
+  <div class="vr" style="right:3cqw;top:74cqw;font-size:9cqw;color:var(--pink);-webkit-text-stroke:.2cqw var(--ink)">찰리 XCX</div>
+  <div class="badge">Vol.<b>01</b></div>
+  <div class="sup"><small>이번 주 리뷰 BRAT 5.8</small><span>부록 싱글</span><span>5장 수록</span></div>
+  <div class="lines">단평 2 · 원본을 들어라<br>이번 주 실망: 없음</div>
+  <div class="bcd"><i></i></div>
+</div>`,
+`<div class="pg">
+  <div class="kick">차례</div>
+  <div class="h">Drop Vol.01</div>
+  <div class="by">2026년 11월 13일 · 드롭 레코드 · 편집 고한석</div>
+  <div class="toc">
+    <div><b>2</b><span>이번 주 리뷰<small>Charli xcx — [BRAT] · 고한석 · 5.8</small></span></div>
+    <div><b>5</b><span>단평<small>Billie Eilish 8.1 필청 · Beyoncé 6.2</small></span></div>
+    <div><b>6</b><span>원본을 들어라<small>Kate Bush — [Hounds of Love] (1985)</small></span></div>
+    <div><b>–</b><span>이번 주 실망<small>없음. 5.0 아래로 내려간 판이 없었다</small></span></div>
+    <div><b>7</b><span>출처와 편집 노트</span></div>
+    <div><b>8</b><span>부록 · 이 호의 노래<small>7인치 싱글 5장</small></span></div>
+  </div>
+  ${fol(1)}
+</div>`,
+`<div class="pg">
+  <div class="kick">이번 주 리뷰</div>
+  <div class="h">Charli xcx — BRAT</div>
+  <div class="by">글 고한석</div>
+  <div class="score"><b>5.8</b><span class="by">/ 10.0</span></div>
+  <table class="facts"><tr><td>발매</td><td>2024 · Atlantic</td></tr><tr><td>곡 수</td><td>15곡</td></tr><tr><td>함께 만든 이</td><td>A. G. 쿡 외</td></tr></table>
+  <p class="p">표지부터 시작하자. 형광 연두 바탕에 흐릿한 소문자 네 글자. 앨범이 스스로를 설명하는 방식은 대개 거기서 다 드러난다. 이 음반은 하나의 작품이기보다 하나의 여름을 팔기로 작정한 물건이다.</p>
+  ${fol(2, '리뷰')}
+</div>`,
+`<div class="pg">
+  <p class="p">A. G. 쿡과 함께 다듬은 소리는 분명 정교하다. 'Von dutch'의 킥은 클럽 스피커를 정확히 겨누고, '360'은 3분이 안 되는 시간에 자기소개를 끝낸다. 문제는 그다음이다. 열다섯 곡이 같은 질감, 같은 압축, 같은 자기 확신으로 밀려온다. 판 한 면을 다 듣고 났을 때 남는 것이 곡이 아니라 분위기라면, 그것은 앨범이 아니라 재생목록에 가깝다.</p>
+  <p class="p">그래도 이 판을 유행으로만 치울 수 없게 만드는 순간들이 있다. 'So I'에서 세상을 떠난 동료 소피를 향한 마음이 묻어날 때, 'Sympathy is a knife'에서 남과 자신을 견주는 불안이 비트 아래로 새어 나올 때다. 그 순간들은 너무 짧고, 그 위를 덮는 소음은 너무 길다.</p>
+  ${fol(3, '리뷰')}
+</div>`,
+`<div class="pg">
+  <div class="pull">남는 것이 곡이 아니라 분위기라면, 그것은 재생목록이다.</div>
+  <p class="p">평단은 이 앨범에 아낌없이 박수를 보냈다. 이 지면은 하나를 묻는다. 10년 뒤 이 판을 처음부터 끝까지 다시 걸 사람이 몇이나 될까. 나는 두세 곡을 남기고, 나머지는 그해 여름과 함께 보내겠다.</p>
+  <div class="box"><b>반론</b>이 판은 2024년 여름이라는 현상을 가장 정확하게 기록했다. 맞는 말이다. 다만 기록과 작품은 다르다.</div>
+  <div class="box"><b>점수 근거</b><div class="bars">
+    <span>완결성</span><i style="width:50%"></i><span class="v">5</span>
+    <span>곡</span><i style="width:70%"></i><span class="v">7</span>
+    <span>소리·연주</span><i style="width:65%"></i><span class="v">6.5</span>
+    <span>절제</span><i style="width:40%"></i><span class="v">4</span>
+    <span>오래 남을까</span><i style="width:50%"></i><span class="v">5</span>
+  </div></div>
+  ${fol(4, '리뷰')}
+</div>`,
+`<div class="pg">
+  <div class="kick">단평</div>
+  <div class="sh"><div class="t">Billie Eilish — HIT ME HARD AND SOFT <span class="tag">필청 8.1</span></div><p class="p">열 곡, 40분 남짓. 요즘 기준으로 보기 드문 절제다. 이번에는 한 곡 안에서 방향을 틀어 버리는 구성이 잦다. 'L'AMOUR DE MA VIE' 후반의 전환은 호불호가 갈리겠지만 적어도 의도가 있다.</p></div>
+  <div class="sh"><div class="t">Beyoncé — COWBOY CARTER · 6.2</div><p class="p">스물일곱 트랙, 80분 가까이. 컨트리의 뿌리에 흑인 음악이 있었다는 주장은 옳다. 다만 주장이 옳다고 앨범이 길어도 되는 것은 아니다. 절반으로 줄였다면 걸작 이야기가 나왔을 것이다.</p></div>
+  ${fol(5, '단평')}
+</div>`,
+`<div class="pg">
+  <div class="kick">원본을 들어라</div>
+  <div class="h">Kate Bush — Hounds of Love</div>
+  <div class="by">1985</div>
+  <p class="p" style="margin-top:3cqw">빌리 아일리시가 한 곡 안에서 방향을 트는 것이 마음에 들었다면, 이 판의 뒷면을 들어라. 'The Ninth Wave'라는 이름 아래 일곱 곡이 하나의 이야기로 이어진다. 'And Dream of Sheep'으로 시작하는 그 면 전체가 한 편의 곡이다.</p>
+  <p class="p">이 지면이 '앨범'이라고 부르는 것이 무엇인지 묻는다면, 대답은 이 한 면이다.</p>
+  ${fol(6, '원본을 들어라')}
+</div>`,
+`<div class="pg">
+  <div class="kick">출처와 편집 노트</div>
+  <div class="h" style="font-size:5cqw">이 호에 대해</div>
+  <p class="p">샘플 호다. 말투를 보여 주려고 2024년 앨범을 다뤘고, 글은 Claude가 알고 있는 사실(크레딧, 곡 목록, 발매 정보)로 썼다. 실제 호는 그 주 금요일 신보를 다루고, 웹에서 모은 출처를 이 쪽에 적는다.</p>
+  <div class="box"><b>편집 노트</b>출처 — 샘플이라 없음<br>이번 주 실망 — 해당 없음<br>필청 — 1장 (Billie Eilish 8.1)</div>
+  <div class="box"><b>판권</b>Drop · 매주 금요일 · 드롭 레코드<br>편집 고한석 (가상 인물)</div>
+  ${fol(7)}
+</div>`
+];
+const SINGLES = [
+  { t: '360', a: 'Charli xcx', pg: 3, c: '#b6e34a', x: 7, y: 17, r: -5, tapes: [[-8, 6, -12, 46], [60, 70, 20, 30]] },
+  { t: 'Von dutch', a: 'Charli xcx', pg: 3, c: '#e8f06a', x: 56, y: 15, r: 4, tapes: [[20, -4, 8, 60]] },
+  { t: 'So I', a: 'Charli xcx', pg: 3, c: '#9fd2ff', x: 10, y: 55, r: 3, tapes: [[-10, 30, -80, 40, 'curl'], [70, 80, 30, 36]] },
+  { t: "L'AMOUR DE MA VIE", a: 'Billie Eilish', pg: 5, c: '#6fb1a8', x: 58, y: 54, r: -3, tapes: [[30, -5, 4, 46]] },
+  { t: 'And Dream of Sheep', a: 'Kate Bush', pg: 6, c: '#c9b6e8', x: 33, y: 92, r: 6, tapes: [[-6, -4, 38, 36], [62, 76, -30, 34]] }
+];
+const singlesPage = () => `<div class="sg-h"><b>부록 · 이 호의 노래</b><span>8 · 눌러서 떼기</span></div>` +
+  SINGLES.map((s, i) => `<button class="single" type="button" data-i="${i}" style="left:${s.x}cqw;top:${s.y}cqw;--r:${s.r}deg" aria-label="부록 싱글 ${s.t}, ${s.a}. 눌러서 꺼내 재생">
+    <span class="sleeve"><span class="sn">7" · 45</span><span class="hole" style="--c:${s.c}"></span><span class="st">${s.t}</span></span>
+    <span class="bag"></span>
+    ${s.tapes.map(([x, y, r, w, k]) => `<span class="ct ${k || ''}" style="left:${x}%;top:${y}%;width:${w}%;transform:rotate(${r}deg)"></span>`).join('')}
+    <span class="cap">'${s.t}' · ${s.pg}쪽</span>
+  </button>`).join('');
+
+/* 소리 (Web Audio, 파일 없음) */
+let ac;
+function noise(dur, freq, type, gain) {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) * (Math.random() < .3 ? 1 : .45);
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = b; f.type = type; f.frequency.value = freq; g.gain.value = gain;
+    s.connect(f).connect(g).connect(ac.destination); s.start();
+  } catch (e) {}
+}
+const sfx = { tape: () => noise(.6, 1800, 'bandpass', .5), tear: () => noise(.4, 2500, 'highpass', .4), page: () => noise(.22, 700, 'lowpass', .35), peel: () => noise(.3, 3000, 'bandpass', .35) };
+
+const hint = $('#hint'), alt = $('#alt'), toastEl = $('#toast');
+let toastT;
+function toast(m) { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 2600); }
+function setHint(t, a) { hint.textContent = t; alt.hidden = !a; if (a) alt.textContent = a; }
+
+let state = 'box', torn = false, k = 0, spread = false, leaves = [];
+
+/* 크기 */
+function measure() {
+  const vw = innerWidth - 32, vh = innerHeight - 140;
+  spread = innerWidth >= 820;
+  let w = spread ? Math.min(380, vw / 2) : Math.min(420, vw);
+  w = Math.min(w, vh * .75);
+  const r = document.documentElement.style;
+  r.setProperty('--pw', w + 'px'); r.setProperty('--ph', w * 4 / 3 + 'px');
+  r.setProperty('--bkw', (spread ? 2 * w : w) + 'px'); r.setProperty('--lx', (spread ? w : 0) + 'px');
+  r.setProperty('--bw', Math.min(420, vw, vh * .85) + 'px');
+}
+
+/* 책 만들기: 넓은 화면은 한 장 = 앞뒤 두 쪽, 좁은 화면은 한 장 = 한 쪽 */
+function build() {
+  const book = $('#book');
+  const groups = spread ? [[0, 1], [2, 3], [4, 5], [6, 7]] : PAGES.map((_, i) => [i, -1]);
+  book.innerHTML = groups.map(([f, b], i) => `<div class="leaf" data-i="${i}"><div class="face front">${PAGES[f]}${i === 0 && !torn ? wrapHTML() : ''}</div><div class="face back ${b < 0 ? 'blank' : ''}">${b < 0 ? '' : PAGES[b]}</div></div>`).join('') +
+    `<div class="base">${singlesPage()}</div>`;
+  leaves = [...book.querySelectorAll('.leaf')];
+  if (!torn) bindWrap();
+  apply(false);
+}
+const wrapHTML = () => `<div class="wrap" aria-label="비닐 포장. 가로로 그어서 뜯기"><div class="wsticker">부록 싱글<br>5장 수록</div><div class="wbar">Drop Vol.01 · 드롭 레코드</div></div><div id="tear"></div>`;
+
+function apply(anim = true, moving = -1) {
+  const n = leaves.length;
+  leaves.forEach((L, i) => {
+    L.classList.toggle('flipped', i < k);
+    L.style.zIndex = i === moving ? 200 : (i < k ? i + 1 : n - i + 10);
+  });
+  if (moving >= 0) setTimeout(() => apply(false), 860);
+  $('#book').style.transform = spread && k === 0 ? `translateX(calc(var(--pw) * -.5))` : '';
+  if (state === 'read') setHint(k >= n ? '싱글을 누르면 테이프를 떼고 꺼냅니다' : '오른쪽을 누르거나 밀어서 넘기기');
+}
+function turn(d) {
+  if (state !== 'read') return;
+  const n = leaves.length;
+  if (d > 0 && k < n) { k++; sfx.page(); apply(true, k - 1); }
+  else if (d < 0 && k > 0) { k--; sfx.page(); apply(true, k); }
+}
+
+/* 상자 */
+const box = $('#box'), slit = $('#slit');
+let bx = null;
+box.addEventListener('pointerdown', e => { if (state !== 'box') return; bx = { x: e.clientX, max: 0, r: box.getBoundingClientRect() }; box.setPointerCapture(e.pointerId); });
+box.addEventListener('pointermove', e => {
+  if (!bx) return;
+  const p = Math.min(1, Math.abs(e.clientX - bx.x) / bx.r.width);
+  if (p > bx.max) { bx.max = p; slit.style.width = p * 100 + '%'; slit.style.left = Math.max(0, (Math.min(e.clientX, bx.x) - bx.r.left) / bx.r.width * 100) + '%'; if (Math.random() < .3) noise(.05, 1800, 'bandpass', .25); }
+  if (p > .7) { bx = null; openBox(); }
+});
+box.addEventListener('pointerup', () => { if (bx && bx.max < .7) { slit.style.width = 0; } bx = null; });
+box.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && state === 'box') { e.preventDefault(); openBox(); } });
+function openBox() {
+  state = 'opening'; slit.style.left = 0; slit.style.width = '100%'; sfx.tape();
+  setHint('상자를 여는 중…');
+  setTimeout(() => box.classList.add('open'), 250);
+  setTimeout(() => { box.classList.add('gone'); $('#bookWrap').classList.add('on'); state = 'wrap'; setHint('비닐을 가로로 그어 뜯으세요', '비닐 뜯기'); }, 2000);
+}
+
+/* 비닐 */
+function bindWrap() {
+  const w = $('.wrap'), line = $('#tear');
+  if (!w) return;
+  let t = null;
+  w.addEventListener('pointerdown', e => { if (state !== 'wrap') return; const r = w.getBoundingClientRect(); t = { x: e.clientX, y: e.clientY - r.top, r, max: 0 }; w.setPointerCapture(e.pointerId); line.style.top = t.y + 'px'; line.style.left = (e.clientX - r.left) + 'px'; });
+  w.addEventListener('pointermove', e => {
+    if (!t) return;
+    const dx = e.clientX - t.x, p = Math.min(1, Math.abs(dx) / t.r.width);
+    if (p > t.max) { t.max = p; line.style.width = Math.abs(dx) + 'px'; line.style.left = (Math.min(e.clientX, t.x) - t.r.left) + 'px'; if (Math.random() < .25) noise(.04, 2600, 'highpass', .2); }
+    if (p > .7) { const y = t.y / t.r.height; t = null; tearWrap(y); }
+  });
+  w.addEventListener('pointerup', () => { if (t) line.style.width = 0; t = null; });
+}
+function tearWrap(y = .5) {
+  if (torn) return;
+  torn = true; sfx.tear();
+  const w = $('.wrap'), line = $('#tear');
+  if (!w) return;
+  const yy = Math.max(15, Math.min(85, y * 100));
+  let zig = []; for (let i = 0; i <= 20; i++) zig.push(`${i * 5}% ${yy + (i % 2 ? 1.5 : -1.5)}%`);
+  const top = w.cloneNode(true), bot = w.cloneNode(true);
+  [top, bot].forEach(s => { s.classList.add('shard'); s.classList.remove('wrap'); w.parentNode.appendChild(s); });
+  top.style.background = bot.style.background = getComputedStyle(w).background;
+  top.style.clipPath = `polygon(0 0,100% 0,${zig.slice().reverse().join(',')})`;
+  bot.style.clipPath = `polygon(${zig.join(',')},100% 100%,0 100%)`;
+  w.remove(); line.remove();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    top.style.transform = 'translate(-30%,-70%) rotate(-14deg)'; top.style.opacity = 0;
+    bot.style.transform = 'translate(25%,70%) rotate(10deg)'; bot.style.opacity = 0;
+  }));
+  setTimeout(() => { top.remove(); bot.remove(); }, 950);
+  state = 'read'; apply(false);
+}
+
+alt.addEventListener('click', () => { if (state === 'box') openBox(); else if (state === 'wrap') tearWrap(.5); });
+
+/* 넘기기와 싱글 */
+const bookEl = $('#book');
+let sw = null;
+bookEl.addEventListener('pointerdown', e => { if (state !== 'read') return; sw = { x: e.clientX, y: e.clientY }; });
+bookEl.addEventListener('pointerup', e => {
+  if (!sw || state !== 'read') return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  const one = e.target.closest('.single');
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { turn(dx < 0 ? 1 : -1); return; }
+  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
+  if (one && k >= leaves.length) { takeSingle(one); return; }
+  const r = bookEl.getBoundingClientRect();
+  const mid = spread ? r.left + r.width / 2 : r.left + r.width * .35;
+  turn(e.clientX > mid ? 1 : -1);
+});
+bookEl.addEventListener('keydown', e => { if (e.target.closest('.single') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); takeSingle(e.target.closest('.single')); } });
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); });
+function takeSingle(el) {
+  const s = SINGLES[+el.dataset.i];
+  if (!el.classList.contains('taken')) { el.classList.add('taken'); sfx.peel(); }
+  toast(`▶ '${s.t}' — ${s.a}  (실제 앱에서는 Spotify로 재생되고 드롭 레코드 크레이트에 꽂힙니다)`);
+}
+
+/* 처음부터 */
+function reset() {
+  state = 'box'; torn = false; k = 0;
+  box.classList.remove('open', 'gone'); slit.style.width = 0;
+  $('#bookWrap').classList.remove('on');
+  setHint('테이프를 따라 가로로 그어서 상자를 여세요', '칼로 자르기');
+  build();
+}
+$('#again').addEventListener('click', reset);
+
+let lastSpread = null;
+addEventListener('resize', () => { const before = spread; measure(); if (before !== spread) { k = spread ? Math.ceil(k / 2) : k * 2; build(); } });
+measure(); build(); setHint('테이프를 따라 가로로 그어서 상자를 여세요', '칼로 자르기');
+})();
+</script>

@@ -1,0 +1,326 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+/* 시안 시트: 어두운 책상 위에 펼침면을 위에서 아래로. 펼침 = 지면 두 장(3:4). 지면 안 단위는 cqw(지면 폭 1%) */
+:root{
+  --desk:#1d1a17; --label:#bdb4a6;
+  --paper:#fbfaf6; --ink:#121212; --mute:#6b665e; --rule:rgba(18,18,18,.16);
+  --pink:#f59ad6; --blue:#2a2fb0; --orange:#f08a16; --navy:#16185a;
+  --dl:'Archivo Black',sans-serif; --dk:'Black Han Sans',sans-serif; --it:'Instrument Serif',Georgia,serif;
+  --body:'Noto Serif KR',Georgia,serif; --ui:'Noto Sans KR',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--label);font-family:var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 80px}
+.sheet{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.intro{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.intro h1{margin:0;font-family:var(--it);font-style:italic;font-weight:400;font-size:clamp(34px,5vw,56px);color:#f3eee6;line-height:1}
+.intro p{margin:0;font-size:14px;line-height:1.6}
+figure.sp{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{display:flex;gap:12px;align-items:baseline;font-size:13px}
+figcaption b{font-family:var(--mono);color:#f3eee6;font-weight:600}
+.spread{position:relative;color:var(--ink);display:grid;grid-template-columns:1fr 1fr;aspect-ratio:3/2;width:100%;container-type:inline-size;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.spread.single{grid-template-columns:1fr;aspect-ratio:3/4;width:min(100%,560px)}
+.spread::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6cqw;margin-left:-3cqw;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(0,0,0,.13) 45%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.13) 55%,transparent);z-index:30}
+.spread.single::after{display:none}
+.pg{position:relative;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size}
+.folio{position:absolute;bottom:3.4cqw;font-family:var(--mono);font-size:1.9cqw;letter-spacing:.06em;color:var(--mute)}
+.L .folio{left:6cqw}.R .folio{right:6cqw}
+.photo{position:absolute;background-size:cover;background-position:center}
+.credit{position:absolute;font-family:var(--mono);font-size:1.5cqw;color:rgba(255,255,255,.75);letter-spacing:.03em}
+.lbl{font-family:var(--mono);font-size:2cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:600}
+.k{font-family:var(--dk);font-weight:400;line-height:1.02;letter-spacing:-.02em}
+.body{font-family:var(--body);font-size:2.55cqw;line-height:1.78;word-break:keep-all;color:#1d1c1a}
+.body p{margin:0 0 2.2cqw}
+.drop::first-letter{font-family:var(--dl);float:left;font-size:9.6cqw;line-height:.82;padding:1cqw 1.6cqw 0 0;color:var(--blue)}
+.cols{column-count:2;column-gap:4cqw}
+.cap{font-family:var(--ui);font-size:1.9cqw;line-height:1.5;color:var(--mute)}
+.cap b{color:var(--ink)}
+.rule{border-top:.25cqw solid var(--ink)}
+.stamp{position:absolute;border:.7cqw solid #d23a26;color:#d23a26;font-family:var(--dk);text-align:center;line-height:1;padding:1.5cqw 3cqw;transform:rotate(-12deg);mix-blend-mode:multiply}
+.bar{display:block;height:100%;background:repeating-linear-gradient(90deg,#121212 0 .5cqw,transparent .5cqw .8cqw,#121212 .8cqw 1.3cqw,transparent 1.3cqw 2cqw)}
+/* 부록 싱글 */
+.single7{position:absolute;width:30cqw;aspect-ratio:1;transform:rotate(var(--r))}
+.single7 .sl{position:absolute;inset:0;background:#d4bf9e;box-shadow:inset 0 0 2cqw rgba(90,60,20,.25),0 .6cqw 1.4cqw rgba(0,0,0,.18)}
+.single7 .sl::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 1px,transparent 1px 5px)}
+.single7 .ho{position:absolute;left:50%;top:50%;width:13cqw;height:13cqw;margin:-6.5cqw 0 0 -6.5cqw;border-radius:50%;background:radial-gradient(circle,#d4bf9e 0 .6cqw,var(--c) .6cqw 4cqw,#141414 4cqw 4.4cqw,#2a2a2a 4.4cqw 4.8cqw,#141414 4.8cqw 6.5cqw)}
+.single7 .bg{position:absolute;inset:-4% -4% -7%;border:1px solid rgba(160,160,160,.55);background:linear-gradient(125deg,transparent 20%,rgba(255,255,255,.75) 27%,transparent 34%),rgba(225,230,235,.28)}
+.single7 .tp{position:absolute;height:5cqw;background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.single7 .t{position:absolute;left:2.6cqw;bottom:2.2cqw;font-family:var(--mono);font-size:1.9cqw;color:#4a3720}
+.single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 2.6cqw);text-align:center;font-family:var(--ui);font-size:1.9cqw;color:var(--mute)}
+.pg::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:25;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.rh{position:absolute;top:3.4cqw;left:6cqw;right:6cqw;display:flex;justify-content:space-between;font-family:var(--mono);font-size:1.6cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);border-bottom:.12cqw solid var(--rule);padding-bottom:1cqw}
+.body2{font-family:var(--body);font-size:2.42cqw;line-height:1.8;word-break:keep-all;color:#1d1c1a}
+.body2 p{margin:0 0 2cqw;text-indent:2.4cqw}
+.body2 p.ni,.body2 p.drop{text-indent:0}
+.q{font-family:var(--ui);font-weight:900;color:var(--blue);margin-right:1cqw}
+.qa{font-family:var(--ui);font-weight:900;color:#c03d8f;margin-right:1cqw}
+.big7{--w:44cqw}
+.single7{width:var(--w,30cqw)}
+.single7 .ho{width:calc(var(--w,30cqw)*.44);height:calc(var(--w,30cqw)*.44);margin:calc(var(--w,30cqw)*-.22) 0 0 calc(var(--w,30cqw)*-.22);background:radial-gradient(circle,#d4bf9e 0 2%,var(--c) 2% 30%,#141414 30% 33%,#2a2a2a 33% 36%,#141414 36% 50%,transparent 50%)}
+.single7 .tp{height:calc(var(--w,30cqw)*.16)}
+.single7 .t{font-size:calc(var(--w,30cqw)*.065)}
+.single7 .no{position:absolute;left:6%;top:5%;font-family:var(--mono);font-size:calc(var(--w,30cqw)*.055);color:#4a3720}
+.single7 .c2{font-size:2.1cqw;color:var(--ink)}
+.single7 .c2 small{display:block;color:var(--mute);font-size:1.8cqw}
+.single7.bigs .ho{width:calc(var(--w)*.34);height:calc(var(--w)*.34);margin:calc(var(--w)*-.24) 0 0 calc(var(--w)*-.17)}
+.single7 .tl{position:absolute;left:7%;right:7%;bottom:6%;font-family:var(--mono);font-size:calc(var(--w)*.03);line-height:1.55;color:#4a3720;white-space:nowrap;overflow:hidden}
+.single7 .tl b{font-weight:600;color:#2d2014}
+.single7 .ttl{position:absolute;left:7%;right:7%;top:12%;font-family:var(--mono);font-size:calc(var(--w)*.04);color:#2d2014;letter-spacing:.06em}
+@media (max-width:700px){.sheet{gap:40px}}
+</style>
+<template class="sp"><div class="spread single"><div class="pg">
+    <div class="photo" style="inset:0;background-image:url(/mag/issues/drop-01/86726d1906.jpg)"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(22,24,90,0) 55%,rgba(22,24,90,.7))"></div>
+    <div style="position:absolute;left:3cqw;top:-2.5cqw;font-family:var(--dl);font-size:33cqw;letter-spacing:-.06em;line-height:1;color:var(--pink)">Drop</div>
+    <div style="position:absolute;right:4cqw;top:4cqw;text-align:right;font-family:var(--mono);font-size:2.2cqw;line-height:1.5;color:#fff">VOL.01<br>2026.11.13 FRI<br>드롭 레코드</div>
+    <div class="k" style="position:absolute;right:4cqw;top:30cqw;writing-mode:vertical-rl;font-size:9.4cqw;color:#fff;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.35)">아홉 해 만의 축제</div>
+    <div style="position:absolute;left:5cqw;bottom:24cqw;color:#fff">
+      <div style="font-family:var(--it);font-style:italic;font-size:9cqw;line-height:.95">Carnaval<br>de Luz</div>
+      <div style="font-family:var(--dl);font-size:4.4cqw;letter-spacing:.02em;margin-top:1.5cqw">U2 <span style="color:var(--pink)">6.5</span></div>
+    </div>
+    <div style="position:absolute;left:5cqw;bottom:5cqw;color:#fff;font-family:var(--ui);font-weight:700;font-size:2.3cqw;line-height:1.65">편집장의 글 · 평론가 대담<br>긴 읽을거리 — 이노가 거쳐 간 방<br>원본을 들어라 — 토킹 헤즈 1979</div>
+    <div style="position:absolute;right:18cqw;bottom:15cqw;width:19cqw;aspect-ratio:1;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--dk);font-size:3.6cqw;line-height:1.1;transform:rotate(-9deg)">부록<br>LP 1장</div>
+    <div style="position:absolute;right:5cqw;bottom:5cqw;width:15cqw;height:8cqw;background:#fff;padding:1cqw"><i class="bar"></i></div>
+    <div class="credit" style="left:5cqw;top:31cqw;writing-mode:vertical-rl;transform:rotate(180deg)">PHOTO Anirudh Koul / CC BY-NC 2.0</div>
+  </div></div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#141414;color:#f4efe6">
+      <div style="position:absolute;left:8cqw;right:8cqw;top:12cqw;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 46% 40%,#ffe2a8 0 6%,#f2a65a 20%,#a8552c 42%,#3a1d12 66%,#141414 82%)"></div>
+      <div style="position:absolute;left:0;right:0;top:40cqw;text-align:center;font-family:'Archivo Black';font-size:11cqw;line-height:.95;color:#fff4e2;letter-spacing:-.03em">o my<br>beloved</div>
+      <div style="position:absolute;left:8cqw;right:8cqw;bottom:22cqw;font-family:var(--body);font-weight:600;font-size:5cqw;line-height:1.35">월요일 아침,<br>거실로 돌아온 밴드.</div>
+      <div style="position:absolute;left:8cqw;right:8cqw;bottom:9cqw;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:2cqw;line-height:1.6;color:#d8cfbf"><span>feedback vol.01<br>11월 16일 월요일 도착</span><span style="font-family:'Archivo Black';font-size:5.4cqw;color:#2bb3d9">feedback</span></div>
+      <div class="folio" style="color:#8d857a">AD — 피드백 프레스</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;left:7cqw;top:6cqw;font-family:var(--it);font-style:italic;font-size:15cqw;line-height:.9">Contents</div>
+      <div class="lbl" style="position:absolute;left:7.5cqw;top:22cqw">Drop · Vol.01 · 2026.11.13</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:29cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3.2cqw 5cqw"><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:var(--pink)"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">2</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">편집장의 글</div><div class="cap" style="margin-top:.6cqw">판을 끝까지 듣는 사람들을 위해</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:url(/mag/issues/drop-01/c8c7022eef.jpg) center/cover"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">4</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">단신 여섯 · 이번 주의 장면</div><div class="cap" style="margin-top:.6cqw">스피어, 라스베이거스</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:url(/mag/issues/drop-01/578cfbd656.jpg) center/cover"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">6</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">이번 주 리뷰 — 같은 방, 다시</div><div class="cap" style="margin-top:.6cqw">U2 [Carnaval de Luz] · 고한석 · 6.5</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:var(--pink)"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">11</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">대담</div><div class="cap" style="margin-top:.6cqw">베테랑은 전성기를 다시 불러도 되는가</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:url(/mag/issues/drop-01/337ce0d3f5.jpg) center/cover"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">12</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">긴 읽을거리 — 이노가 거쳐 간 방</div><div class="cap" style="margin-top:.6cqw">Brian Eno 1979–2026</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:url(/mag/issues/drop-01/2ca240a2bd.jpg) center/cover"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">15</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">원본을 들어라</div><div class="cap" style="margin-top:.6cqw">Talking Heads [Fear of Music]</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:var(--pink)"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">16</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">단평 · 이번 주 필청</div><div class="cap" style="margin-top:.6cqw">판정 보류 1 · 필청 비움</div></div></div><div style="display:flex;gap:3cqw;align-items:flex-start;border-top:.25cqw solid var(--ink);padding-top:2cqw"><div style="width:12cqw;aspect-ratio:1;flex:0 0 12cqw;background:url(/mag/issues/drop-01/907002f1e2.jpg) center/cover"></div><div><div style="font-family:var(--dl);font-size:6cqw;line-height:.9;color:var(--blue)">19</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">부록 · 이 호의 노래</div><div class="cap" style="margin-top:.6cqw">부록 LP 1장 · 5곡</div></div></div></div>
+      <div class="folio">1</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Editor's letter</span><span>Drop · Vol.01</span></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:11cqw;font-family:var(--it);font-style:italic;font-size:8cqw;line-height:1">From the editor</div>
+      <div class="k" style="position:absolute;left:7cqw;right:7cqw;top:21cqw;font-size:4.6cqw;line-height:1.25">판을 끝까지 듣는<br>사람들을 위해</div>
+      <div class="body2 cols" style="position:absolute;left:7cqw;right:7cqw;top:35cqw;bottom:12cqw;column-fill:auto;column-gap:3.6cqw">
+        <p class="drop">첫 호를 낸다. Drop은 매주 금요일, 그 주에 나온 앨범을 다룬다. 금요일마다 수백 장이 나오고, 대부분은 다음 금요일이면 잊힌다. 우리는 그중 10년 뒤에도 꺼낼 판을 찾는다. 찾지 못한 주에는 찾지 못했다고 쓴다. 이번 호가 그렇다. 필청 자리는 비어 있다.</p>
+        <p>이 잡지에는 몇 가지 고집이 있다. 앨범은 처음부터 끝까지 듣는 물건이라는 것. 곡이 아니라 곡 순서를, 하이라이트가 아니라 앞면과 뒷면을 본다는 것. 화제와 판매량과 다른 매체의 박수는 점수에 넣지 않는다는 것.</p>
+        <p>첫 호에서 밝혀 둘 것이 있다. 이 지면의 편집부는 판을 직접 듣지 못한다. 그래서 소리에 대한 문장은 들은 사람들의 말을 옮기고, 그 출처를 뒤에 적는다. 우리가 하는 일은 확인한 사실을 쌓고 그 위에서 판단하는 것이다. 판단은 틀릴 수 있다. 그래서 점수마다 이유를 남긴다.</p>
+        <p>이번 주 우리가 붙든 판은 U2의 열여섯 번째 정규 앨범이다. 9년 만의 새 노래들이고, 이 지면은 6.5를 줬다. 낮다고 느낄 독자도 있을 것이다. 6쪽부터 그 이유를 길게 적었다. 같은 날 다시 나온 1979년의 한 장도 함께 권한다. 새 판이 어디에 기대고 있는지 알고 싶다면, 거기서 시작하면 된다.</p>
+        <p class="ni" style="font-family:var(--it);font-style:italic;font-size:3.6cqw;text-align:right;margin-top:3cqw">— 고한석</p>
+      </div>
+      <div class="folio">2</div>
+    </div>
+    <div class="pg R" style="background:var(--pink)">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:var(--navy)">This week in numbers</div>
+      <div class="k" style="position:absolute;left:7cqw;top:11cqw;font-size:6.4cqw;color:var(--navy)">숫자로 본 이번 주</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:26cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 4cqw">
+        <div><div style="font-family:var(--dl);font-size:26cqw;line-height:.85;color:var(--navy);letter-spacing:-.05em">9</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;color:var(--navy);margin-top:1.5cqw">U2가 새 노래로만 채운 정규 앨범을 낸 것이 9년 만이다</div></div>
+        <div><div style="font-family:var(--dl);font-size:26cqw;line-height:.85;color:#fff;letter-spacing:-.05em">12</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;color:var(--navy);margin-top:1.5cqw">[Carnaval de Luz]의 곡 수. 이 지면이 가장 먼저 반긴 숫자</div></div>
+        <div><div style="font-family:var(--dl);font-size:26cqw;line-height:.85;color:#fff;letter-spacing:-.05em">3</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;color:var(--navy);margin-top:1.5cqw">브라이언 이노가 함께 쓰고 신시사이저를 친 곡</div></div>
+        <div><div style="font-family:var(--dl);font-size:26cqw;line-height:.85;color:var(--navy);letter-spacing:-.05em">1</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;color:var(--navy);margin-top:1.5cqw">돌리 파튼의 마지막 녹음, 마지막 곡 'Torn'</div></div>
+      </div>
+      <div class="folio" style="color:var(--navy)">3</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Briefs</span><span>단신</span></div>
+      <div class="k" style="position:absolute;left:6cqw;top:10cqw;font-size:6.4cqw">이번 주 단신</div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:20cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 3.6cqw">
+        <div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">재발매</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">토킹 헤즈 [Fear of Music] 확장판</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">11월 13일 라이노. 새 리마스터, 희귀 녹음과 스튜디오 아웃테이크, 1979년 투어 공연 두 편(보스턴 버클리 퍼포먼스 센터, 뉴저지 캐피톨 시어터). 3CD·블루레이, 6LP, 2LP. 60쪽 하드커버 책에 윌 허미스의 해설. 15쪽.</p></div></div><div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">판정 보류</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">스노 알레그라, 5년 만의 정규</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">[Legendary Love]가 오늘 나왔다. 2021년 이후 첫 정규 앨범이고, 2년 반 동안 만들었다. 들은 사람들의 평이 아직 없어 이번 호는 판정을 미룬다. 16쪽.</p></div></div><div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">판 공장</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">U2 한정반, 서드 맨에서</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">[Carnaval de Luz]는 디럭스 박스와 여러 한정반으로도 나왔다. 그중 한 장은 잭 화이트의 서드 맨 레코드와 함께 찍었다. 이 지면은 한정반을 권하지 않지만, 판을 찍은 곳은 기록해 둔다.</p></div></div><div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">월요일 feedback</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">킹스 오브 리온, 처음으로 직접 프로듀스</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">열 번째 앨범 [O My Beloved]. 자매지 feedback이 월요일 커버로 다룬다. 그쪽 편집장 윤서해는 11쪽 대담에도 나온다.</p></div></div><div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">수요일 Cypher</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">웨스트사이드 건 [HEELMATIC]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">16곡, Griselda와 Mass Appeal. Mass Appeal에서 내는 첫 음반이고, 마지막 솔로작이라던 [Awesome God 3] 대신 나왔다.</p></div></div><div class="rule" style="padding-top:1.8cqw"><div class="lbl" style="color:#c03d8f;font-size:1.7cqw">수요일 Cypher</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">이솝 록과 블록헤드의 포코노 리조트</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">두 사람의 두 번째 공동 앨범 [Trouble Mountain]. 어린 시절 뉴욕 TV의 휴양지 광고에서 출발한 콘셉트 앨범이다.</p></div></div>
+      </div>
+      <div class="folio">4</div>
+    </div>
+    <div class="pg R" style="background:#10123c">
+      <div class="photo" style="inset:0;background-image:url(/mag/issues/drop-01/45ef781dd4.jpg)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:40cqw;background:linear-gradient(180deg,transparent,rgba(16,18,60,.85))"></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;bottom:9cqw;color:#fff">
+        <div class="lbl" style="color:var(--pink)">Scene of the week</div>
+        <div style="font-family:var(--it);font-style:italic;font-size:7.4cqw;line-height:1;margin-top:1.6cqw">The Sphere,<br>Las Vegas</div>
+        <div class="cap" style="color:#e4e1f3;margin-top:2cqw;font-size:2.1cqw">U2는 2023년 9월, 이 구형 공연장의 문을 처음 연 밴드다. 그때 무대에 올린 것은 1991년의 [Achtung Baby]였다.</div>
+      </div>
+      <div class="credit" style="right:5cqw;top:5cqw">PHOTO cygenta / CC BY-NC-SA 2.0</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="photo" style="inset:0;background-image:url(/mag/issues/drop-01/4530d43388.jpg);z-index:1"></div>
+    <div style="position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(10,10,30,.8),rgba(10,10,30,.2) 45%,transparent 70%)"></div>
+    <div style="position:absolute;z-index:3;left:4cqw;top:4cqw;font-family:var(--mono);font-size:1.1cqw;letter-spacing:.14em;color:var(--pink)">REVIEW · 이번 주 리뷰 · 6–11쪽</div>
+    <div class="k" style="position:absolute;z-index:3;left:3.5cqw;top:9cqw;font-size:13cqw;color:#fff">같은 방,<br>다시.</div>
+    <div style="position:absolute;z-index:3;left:4cqw;top:38cqw;font-family:var(--it);font-style:italic;font-size:4.2cqw;color:#fff;line-height:1">U2 — Carnaval de Luz</div>
+    <div style="position:absolute;z-index:3;left:4cqw;top:44cqw;width:34cqw;font-family:var(--body);font-size:1.35cqw;line-height:1.75;color:#ece8f6">9년 만에 같은 사람들이 같은 방에 다시 모였다. 열두 곡으로 끝낼 줄 아는 베테랑, 그러나 그 방은 1991년을 닮았다. — 글 고한석</div>
+    <div style="position:absolute;z-index:3;left:4cqw;bottom:4cqw;width:10cqw;aspect-ratio:1;border-radius:50%;background:var(--pink);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--navy);line-height:1"><span style="font-family:var(--mono);font-size:.9cqw">SCORE</span><b style="font-family:var(--dl);font-size:4cqw">6.5</b></div>
+    <div class="credit" style="z-index:3;right:2cqw;bottom:2cqw;font-size:.8cqw">PHOTO cygenta / CC BY-NC-SA 2.0</div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Review · U2</span><span>Carnaval de Luz · 6.5</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;bottom:38cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.75cqw">
+        <p class="drop">9년이다. U2가 새 노래로만 채운 정규 앨범을 내놓은 것이 그만큼 만이다. 올해 초의 EP 두 장 [Days of Ash]와 [Easter Lily]가 예고였다면, 이 판은 그보다 앞에 있던 축제의 밤을 그린다고 밴드는 설명한다. 열두 곡. 이 지면이 가장 먼저 반긴 숫자다.</p>
+        <p>판은 'Go (Carnaval De Luz)'로 문을 연다. 브라이언 이노의 신시사이저 리프 위에 세운 곡이고, Riff는 그 에너지를 신경질적으로 떨린다고 적었다. 이노는 세 곡을 함께 썼고 대니얼 라노이도 이름을 올렸다. 전체를 다듬은 잭나이프 리는 2004년부터 밴드 곁에 있었다. 같은 사람들이 같은 방에 다시 모였다는 뜻이다.</p>
+        <p>축제는 어디서 왔나. 밴드는 2006년 브라질 카니발에서 질베르투 질과 보낸 시간이 이 앨범의 씨앗이 됐다고 돌아봤다. 제목 그대로 빛의 축제다. 그런데 앨범을 발표하며 먼저 들려준 곡의 제목은 'Silencio', 침묵이다. 축제의 판에서 침묵이라는 이름을 단 곡을 먼저 내놓는 순서. 이 지면은 그 선택을 이 앨범에서 가장 흥미로운 대목으로 본다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:11cqw;border-top:1.4cqw solid var(--pink);padding-top:3cqw;font-family:var(--body);font-weight:900;font-size:5.4cqw;line-height:1.3;letter-spacing:-.02em;color:var(--ink);word-break:keep-all">축제의 판에서, 침묵이라는 이름을 먼저 들려주다.</div><div class="folio">6</div>
+    </div>
+    <div class="pg R">
+      <div class="photo" style="left:0;right:0;top:0;height:54cqw;background-image:url(/mag/issues/drop-01/7ab5b67d4d.jpg)"></div>
+      <div class="cap" style="position:absolute;left:6cqw;right:6cqw;top:56cqw"><b>2023년 라스베이거스 스피어 공연.</b> 같은 밴드, 같은 사람들. 사진 cygenta / CC BY-NC-SA 2.0</div>
+      <div class="body2" style="position:absolute;left:6cqw;right:6cqw;top:64cqw">
+        <p class="ni">그 방이 어디를 향하는지는 평단에서도 갈린다. 아이리시 이그재미너는 30년 만의 최고작이라 했고, Riff는 [Achtung Baby]를 꺼냈다. 루더는 쉰 해 가까운 경력의 열여섯 번째 앨범에서 이만큼 깊이 파고드는 것 자체가 놀랍다고 썼다. 반대편에서 롤링스톤 브라질은 얕은 가사를 문제 삼으며 'The Mirror Maker (Rosalía)'를 가장 낮은 곳으로 꼽았다. 이 지면은 남의 점수를 빌리지 않는다. 다만 의견이 갈린 곳이 가사라는 사실은 적어 둔다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:102cqw;font-family:var(--body);font-weight:900;font-size:5.6cqw;line-height:1.25;color:var(--blue);letter-spacing:-.02em"><span style="font-family:var(--it);font-style:italic;font-weight:400;font-size:11cqw;line-height:0;vertical-align:-3cqw;color:var(--pink)">“</span>그 방은 1991년을 닮았다.</div>
+      <div class="folio">7</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Review · U2</span><span>Carnaval de Luz · 6.5</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;bottom:38cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.75cqw">
+        <p class="ni">구성을 보자. 열두 곡이고, 올해 초 EP 두 장의 이야기를 이어받는다고 밴드는 말한다. 그렇다면 이 판은 홀로 서는 작품인가, 3부작의 마지막 장인가. 이 지면은 앨범을 처음부터 끝까지 듣는 물건으로 본다. 앞의 두 장을 들어야 완성되는 판이라면, 그만큼 완결성 점수는 깎인다.</p>
+        <p>마틴 개릭스가 'Glorify'를 함께 썼고, 로살리아의 이름이 곡 제목에 들어갔다. 이 밴드가 여전히 바깥의 새 이름을 방 안에 들이려 한다는 뜻이다. 다만 방의 주인은 그대로다.</p>
+        <p>마지막 곡 'Torn'은 보노와 돌리 파튼의 이중창이다. 밴드는 이것이 파튼이 생전에 남긴 마지막 녹음이라고 밝혔다. 판의 무게중심이 끝에 놓인 셈이다.</p>
+        <p>그래서 6.5다. 잘 만든 판이다. 열두 곡으로 끝낼 줄 아는 절제는 이 지면이 가장 높이 사는 덕목이고, 그 칸에는 7.5를 적었다. 그러나 10년 뒤에도 꺼낼지를 묻는 마지막 칸에는 5.5를 적었다. 그 칸을 채우는 것은 시간이지 우리가 아니다. 틀렸다면 10년 뒤의 Drop이 정정할 것이다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:11cqw;border-top:1.4cqw solid var(--pink);padding-top:3cqw;font-family:var(--body);font-weight:900;font-size:5.4cqw;line-height:1.3;letter-spacing:-.02em;color:var(--ink);word-break:keep-all">그 칸을 채우는 것은 시간이지 우리가 아니다.</div><div class="folio">8</div>
+    </div>
+    <div class="pg R" style="background:var(--navy);color:#fff">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:var(--pink)">Anatomy of a score</div>
+      <div style="position:absolute;left:5cqw;top:9cqw;font-family:var(--it);font-size:52cqw;line-height:.85;letter-spacing:-.03em;color:var(--pink)">6.5</div>
+      <svg viewBox="0 0 200 200" style="position:absolute;right:6cqw;top:52cqw;width:46cqw;height:46cqw" aria-label="기준별 점수"><circle cx="100" cy="100" r="92" fill="none" stroke="rgba(245,154,214,.25)" stroke-width=".6"/><circle cx="100" cy="100" r="46" fill="none" stroke="rgba(245,154,214,.25)" stroke-width=".6"/><path d="M100,100 L100.0,40.0 A60.0,60.0 0 0 1 158.2,114.5 Z" fill="#f59ad6" fill-opacity="1"/><path d="M100,100 L160.9,119.8 A64.0,64.0 0 0 1 84.5,162.1 Z" fill="#f59ad6" fill-opacity="0.82"/><path d="M100,100 L79.0,164.7 A68.0,68.0 0 0 1 32.2,104.7 Z" fill="#f59ad6" fill-opacity="0.66"/><path d="M100,100 L28.0,100.0 A72.0,72.0 0 0 1 53.7,44.8 Z" fill="#f59ad6" fill-opacity="0.5"/><path d="M100,100 L67.1,54.7 A56.0,56.0 0 0 1 96.1,44.1 Z" fill="#f59ad6" fill-opacity="0.36"/><circle cx="100" cy="100" r="9" fill="#16185a"/></svg>
+      <div style="position:absolute;left:7cqw;top:56cqw;width:38cqw;font-family:var(--ui);font-size:2.2cqw;line-height:1.9"><div style="display:flex;justify-content:space-between;border-bottom:.15cqw solid rgba(245,154,214,.3)"><span><i style="display:inline-block;width:1.6cqw;height:1.6cqw;background:#f59ad6;opacity:1;margin-right:1.4cqw"></i>완결성</span><span style="font-family:var(--mono)">6 · 30%</span></div><div style="display:flex;justify-content:space-between;border-bottom:.15cqw solid rgba(245,154,214,.3)"><span><i style="display:inline-block;width:1.6cqw;height:1.6cqw;background:#f59ad6;opacity:0.82;margin-right:1.4cqw"></i>곡</span><span style="font-family:var(--mono)">6.5 · 25%</span></div><div style="display:flex;justify-content:space-between;border-bottom:.15cqw solid rgba(245,154,214,.3)"><span><i style="display:inline-block;width:1.6cqw;height:1.6cqw;background:#f59ad6;opacity:0.66;margin-right:1.4cqw"></i>소리·연주</span><span style="font-family:var(--mono)">7 · 20%</span></div><div style="display:flex;justify-content:space-between;border-bottom:.15cqw solid rgba(245,154,214,.3)"><span><i style="display:inline-block;width:1.6cqw;height:1.6cqw;background:#f59ad6;opacity:0.5;margin-right:1.4cqw"></i>절제</span><span style="font-family:var(--mono)">7.5 · 15%</span></div><div style="display:flex;justify-content:space-between;border-bottom:.15cqw solid rgba(245,154,214,.3)"><span><i style="display:inline-block;width:1.6cqw;height:1.6cqw;background:#f59ad6;opacity:0.36;margin-right:1.4cqw"></i>오래 남을까</span><span style="font-family:var(--mono)">5.5 · 10%</span></div></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw;border-top:.25cqw solid var(--pink);padding-top:2.4cqw;font-family:var(--body);font-size:2.4cqw;line-height:1.7;color:#e6e4f6"><b style="font-family:var(--mono);font-size:1.9cqw;letter-spacing:.12em;color:var(--pink)">반론 —</b> 베테랑이 자기 전성기를 다시 부르는 것이 잘못인가. 아니다. 다만 이 지면은 원본이 이미 집에 있는 판을 한 번 더 사라고 권하지 않는다.</div>
+      <div class="folio" style="color:#9b9ddc">9</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Track by track</span><span>Carnaval de Luz</span></div>
+      <div class="k" style="position:absolute;left:7cqw;top:10cqw;font-size:6.4cqw">트랙별로</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:21cqw"><div style="display:grid;grid-template-columns:9cqw 1fr;gap:2.4cqw;border-top:.2cqw solid var(--rule);padding:2.2cqw 0"><div style="font-family:var(--dl);font-size:5cqw;line-height:1;color:var(--pink)">01</div><div><div style="font-family:var(--it);font-style:italic;font-size:4.2cqw;line-height:1.05">Go (Carnaval De Luz)</div><div class="body" style="font-size:2.2cqw;margin-top:.8cqw">첫 곡. 브라이언 이노의 신시사이저 리프 위에 세웠다. Riff는 그 에너지를 신경질적으로 떨린다고 적었다.</div></div></div><div style="display:grid;grid-template-columns:9cqw 1fr;gap:2.4cqw;border-top:.2cqw solid var(--rule);padding:2.2cqw 0"><div style="font-family:var(--dl);font-size:5cqw;line-height:1;color:var(--pink)">—</div><div><div style="font-family:var(--it);font-style:italic;font-size:4.2cqw;line-height:1.05">Silencio</div><div class="body" style="font-size:2.2cqw;margin-top:.8cqw">앨범 발표와 함께 먼저 공개된 싱글.</div></div></div><div style="display:grid;grid-template-columns:9cqw 1fr;gap:2.4cqw;border-top:.2cqw solid var(--rule);padding:2.2cqw 0"><div style="font-family:var(--dl);font-size:5cqw;line-height:1;color:var(--pink)">—</div><div><div style="font-family:var(--it);font-style:italic;font-size:4.2cqw;line-height:1.05">Glorify</div><div class="body" style="font-size:2.2cqw;margin-top:.8cqw">마틴 개릭스가 함께 썼다.</div></div></div><div style="display:grid;grid-template-columns:9cqw 1fr;gap:2.4cqw;border-top:.2cqw solid var(--rule);padding:2.2cqw 0"><div style="font-family:var(--dl);font-size:5cqw;line-height:1;color:var(--pink)">—</div><div><div style="font-family:var(--it);font-style:italic;font-size:4.2cqw;line-height:1.05">The Mirror Maker (Rosalía)</div><div class="body" style="font-size:2.2cqw;margin-top:.8cqw">롤링스톤 브라질이 앨범에서 가장 낮은 곳으로 꼽은 곡.</div></div></div><div style="display:grid;grid-template-columns:9cqw 1fr;gap:2.4cqw;border-top:.2cqw solid var(--rule);padding:2.2cqw 0"><div style="font-family:var(--dl);font-size:5cqw;line-height:1;color:var(--pink)">12</div><div><div style="font-family:var(--it);font-style:italic;font-size:4.2cqw;line-height:1.05">Torn</div><div class="body" style="font-size:2.2cqw;margin-top:.8cqw">마지막 곡. 보노와 돌리 파튼의 이중창, 파튼의 마지막 녹음.</div></div></div><div class="cap" style="border-top:.2cqw solid var(--rule);padding-top:2cqw">그 밖에 La Reina, Street of Dreams, Superficiality, If The World Is At War We Better Not Be. 곡별 자료를 이번 호에서는 찾지 못했다. 번호는 확인된 순서만 적었다.</div></div>
+      <div class="folio">10</div>
+    </div>
+    <div class="pg R" style="background:#f4ece9">
+      <div class="rh"><span>Conversation</span><span>대담</span></div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:9cqw;font-family:var(--it);font-style:italic;font-size:6.6cqw;line-height:1">Can a veteran<br>sing his prime again?</div>
+      <div class="k" style="position:absolute;left:6cqw;right:6cqw;top:24cqw;font-size:3.6cqw;line-height:1.3">베테랑은 전성기를 다시 불러도 되는가<span style="display:block;font-family:var(--ui);font-weight:500;font-size:2cqw;color:var(--mute);margin-top:1cqw">고한석(Drop 편집장) × 윤서해(feedback 편집장)</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:38cqw;bottom:11cqw;column-fill:auto;column-gap:3.6cqw;font-size:2.3cqw">
+        <p class="ni"><span class="q">고</span>6.5를 줬습니다. 열두 곡으로 끝낸 건 반갑지만, 이 판을 꺼낼 이유가 1991년에 있는 것 같아서요.</p>
+        <p class="ni"><span class="qa">윤</span>저는 반대로 읽었어요. 우리 둘 다 판을 직접 듣지는 못하니까, 읽었다고 해야죠. 같은 사람들이 9년 만에 같은 방에 모였다는 것 자체가 저한테는 이야기예요. 밴드가 나이 드는 방법 중에 가장 다정한 건 집으로 돌아오는 거라고 생각하거든요.</p>
+        <p class="ni"><span class="q">고</span>집으로 돌아오는 것과 예전 집을 다시 짓는 건 다르죠. 이노와 라노이가 다시 이름을 올렸고, 평단은 [Achtung Baby]를 꺼냈어요. 칭찬으로 한 말이겠지만 이 지면에선 경고로 읽힙니다.</p>
+        <p class="ni"><span class="qa">윤</span>그럼 킹스 오브 리온은요? 저희는 이번 주 커버로 그 밴드를 다뤘는데, 그쪽은 반대로 예전 소리를 내려놓았어요. 그런데도 '안전하다'는 소리를 들었고요.</p>
+        <p class="ni"><span class="q">고</span>그러니까 문제는 예전이냐 새것이냐가 아니라, 판이 홀로 서느냐예요. 그 판은 홀로 서 있나요?</p>
+        <p class="ni"><span class="qa">윤</span>거실에서는요. 경기장에서는 모르겠어요.</p>
+        <p class="ni"><span class="q">고</span>좋은 답이네요. 저는 U2의 판이 경기장에서는 설 거라고 봅니다. 거실에서 끝까지 들을지는 모르겠고요.</p>
+        <p class="ni"><span class="qa">윤</span>그럼 점수는 그대로인가요?</p>
+        <p class="ni"><span class="q">고</span>그대로입니다. 'Torn'에 파튼의 마지막 녹음이 있다는 사실은 무겁지만, 그건 이 판의 무게가 아니라 그 곡의 무게니까요.</p>
+        <p class="ni cap" style="font-size:1.8cqw;margin-top:2cqw">두 사람은 T/L/L 잡지의 가상 평론가다. 대담 속 사실은 이번 호 리뷰와 같은 출처를 따른다.</p>
+      </div>
+      <div class="folio">11</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#3a0f2e">
+      <div class="photo" style="inset:0;background-image:url(/mag/issues/drop-01/5315fe3bfe.jpg)"></div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:7cqw;color:#fff">
+        <div class="lbl" style="color:#ffe0f2">Long read</div>
+        <div class="k" style="font-size:12cqw;margin-top:2cqw;line-height:1">이노가<br>거쳐 간<br>방</div>
+      </div>
+      <div class="credit" style="left:6cqw;bottom:5cqw;right:6cqw;line-height:1.5">브라이언 이노의 사운드 설치 작품 속 휴대용 카세트 플레이어들.<br>PHOTO Dominic's pics / CC BY 2.0</div>
+    </div>
+    <div class="pg R">
+      <div class="rh"><span>Long read</span><span>Brian Eno · 1979–2026</span></div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:10cqw;font-family:var(--it);font-style:italic;font-size:5.4cqw;line-height:1.15;color:var(--blue)">1979년의 토킹 헤즈와 2026년의 U2 사이에는 한 사람이 서 있다.</div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:30cqw;bottom:11cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.6cqw">
+        <p class="drop">브라이언 이노. 그는 자신을 연주자보다 '비음악가'라고 부르곤 했다. 1975년에는 화가 피터 슈미트와 함께, 작업이 막혔을 때 한 장씩 뽑아 보는 카드 [Oblique Strategies]를 만들었다. 1978년의 [Music for Airports]로는 '앰비언트'라는 말을 하나의 장르 이름으로 만들었다.</p>
+        <p>그런 사람이 밴드의 방에 들어가면 무슨 일이 벌어지는가. 토킹 헤즈와는 1978년부터 1980년까지 세 장을 함께 만들었다. [Fear of Music]은 그 가운데 두 번째다. 이번 주 확장판으로 돌아온 바로 그 판이다.</p>
+        <p>U2가 그를 부른 것은 1984년이다. 대니얼 라노이와 함께 [The Unforgettable Fire]를 맡았고, 일부는 아일랜드의 슬레인 성에서 녹음했다. 3년 뒤 [The Joshua Tree], 다시 4년 뒤 베를린의 한자 스튜디오를 거친 [Achtung Baby]. 밴드의 가장 큰 세 장이 모두 이노와 라노이의 손을 거쳤다.</p>
+      </div>
+      <div class="folio">13</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Long read</span><span>Brian Eno · 1979–2026</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;height:66cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.6cqw">
+        <p class="ni">1995년에는 아예 함께 이름을 바꿨다. Passengers라는 이름으로 [Original Soundtracks 1]을 냈다. 2000년 [All That You Can't Leave Behind], 2009년 [No Line on the Horizon]에서도 두 사람은 다시 프로듀서 자리에 앉았다.</p>
+        <p>그리고 2026년. 이번에는 프로듀서가 아니다. 세 곡을 함께 쓰고 신시사이저를 쳤다. 첫 곡 'Go (Carnaval De Luz)'의 리프가 그의 것이다.</p>
+        <p>40년 넘게 한 밴드의 방을 드나든 사람은 흔치 않다. 이 지면이 U2의 새 판에서 1991년을 떠올리는 이유의 절반은 이 사람이다. 나머지 절반은 밴드가 그 사람을 다시 부른 이유다. 그 이유를 이 판이 말해 주지는 않는다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:80cqw">
+        <div class="lbl" style="margin-bottom:2.4cqw">이노가 거쳐 간 방 — 연표</div>
+        <div style="position:relative;height:34cqw">
+          <div style="position:absolute;left:0;right:0;top:4.6cqw;height:.4cqw;background:var(--ink)"></div>
+          <div style="position:absolute;left:2.0%;top:3.4cqw;width:2.6cqw;height:2.6cqw;margin-left:-1.3cqw;border-radius:50%;background:#121212"></div><div style="position:absolute;left:2.0%;top:9cqw;width:20cqw"><div style="font-family:var(--dl);font-size:3cqw;line-height:1;color:var(--blue)">1979</div><div style="font-family:var(--it);font-style:italic;font-size:2.9cqw;line-height:1.05">Fear of Music</div><div class="cap" style="font-size:1.7cqw">토킹 헤즈 · 공동 프로듀스</div></div><div style="position:absolute;left:25.0%;top:3.4cqw;width:2.6cqw;height:2.6cqw;margin-left:-1.3cqw;border-radius:50%;background:#121212"></div><div style="position:absolute;left:25.0%;top:19cqw;width:20cqw"><div style="font-family:var(--dl);font-size:3cqw;line-height:1;color:var(--blue)">1984</div><div style="font-family:var(--it);font-style:italic;font-size:2.9cqw;line-height:1.05">The Unforgettable Fire</div><div class="cap" style="font-size:1.7cqw">U2 · 라노이와 프로듀스</div></div><div style="position:absolute;left:48.0%;top:3.4cqw;width:2.6cqw;height:2.6cqw;margin-left:-1.3cqw;border-radius:50%;background:#121212"></div><div style="position:absolute;left:48.0%;top:9cqw;width:20cqw"><div style="font-family:var(--dl);font-size:3cqw;line-height:1;color:var(--blue)">1987</div><div style="font-family:var(--it);font-style:italic;font-size:2.9cqw;line-height:1.05">The Joshua Tree</div><div class="cap" style="font-size:1.7cqw">U2 · 라노이와 프로듀스</div></div><div style="position:absolute;left:71.0%;top:3.4cqw;width:2.6cqw;height:2.6cqw;margin-left:-1.3cqw;border-radius:50%;background:#121212"></div><div style="position:absolute;left:71.0%;top:19cqw;width:20cqw"><div style="font-family:var(--dl);font-size:3cqw;line-height:1;color:var(--blue)">1991</div><div style="font-family:var(--it);font-style:italic;font-size:2.9cqw;line-height:1.05">Achtung Baby</div><div class="cap" style="font-size:1.7cqw">U2 · 라노이와 함께</div></div><div style="position:absolute;left:94.0%;top:3.4cqw;width:2.6cqw;height:2.6cqw;margin-left:-1.3cqw;border-radius:50%;background:#f59ad6"></div><div style="position:absolute;left:78.0%;top:9cqw;width:20cqw"><div style="font-family:var(--dl);font-size:3cqw;line-height:1;color:var(--blue)">2026</div><div style="font-family:var(--it);font-style:italic;font-size:2.9cqw;line-height:1.05">Carnaval de Luz</div><div class="cap" style="font-size:1.7cqw">U2 · 세 곡을 함께 씀</div></div>
+        </div>
+      </div>
+      <div class="folio">14</div>
+    </div>
+    <div class="pg R" style="background:var(--blue);color:#fff">
+      <div class="photo" style="left:0;right:0;top:0;height:62cqw;background-image:url(/mag/issues/drop-01/2ba2c97ae0.jpg)"></div>
+      <div class="credit" style="left:6cqw;top:4cqw;right:6cqw;line-height:1.5">이노의 사운드 설치 작품 'Speaker Flowers'. PHOTO Dominic's pics / CC BY 2.0</div>
+      <div class="lbl" style="position:absolute;left:6cqw;top:66cqw;color:var(--pink)">Listen to the original · 원본을 들어라</div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:70cqw;font-family:var(--it);font-style:italic;font-size:7.2cqw;line-height:.98">Talking Heads —<br>Fear of Music</div>
+      <div class="body2" style="position:absolute;left:6cqw;right:6cqw;top:89cqw;color:#e9eaff;font-size:2.3cqw">
+        <p class="ni">1979년, 프로듀서 이노. 첫 곡 'I Zimbra'의 가사는 다다이스트 후고 발의 소리 시에서 가져왔고, 'Life During Wartime'도 이 판에 있다. 11월 13일 라이노가 새 리마스터와 희귀 녹음, 1979년 투어 공연 두 편, 60쪽 책을 묶어 다시 냈다. U2의 새 판에서 이노의 이름을 봤다면, 이 판을 먼저 집어라.</p>
+      </div>
+      <div class="folio" style="color:#c3c6ff">15</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Short takes</span><span>단평</span></div>
+      <div class="k" style="position:absolute;left:7cqw;top:10cqw;font-size:6.4cqw">단평</div>
+      <div style="position:absolute;left:7cqw;top:22cqw;width:38cqw;aspect-ratio:1;background:linear-gradient(135deg,#efe7f7,#d9c6ef);display:flex;align-items:flex-end;padding:3cqw"><span style="font-family:var(--it);font-style:italic;font-size:5.4cqw;line-height:1;color:#3d2a63">Legendary<br>Love</span></div>
+      <div class="cap" style="position:absolute;left:7cqw;top:62cqw;width:38cqw">앨범 표지 자리 — 실제 지면에서는 원본 표지를 손대지 않고 그대로 싣는다</div>
+      <div class="stamp" style="left:15cqw;top:36cqw;font-size:7cqw">판정<br>보류</div>
+      <div style="position:absolute;left:51cqw;right:7cqw;top:22cqw">
+        <div style="font-family:var(--ui);font-weight:900;font-size:3.2cqw;line-height:1.3">Snoh Aalegra<span style="display:block;font-family:var(--it);font-style:italic;font-weight:400;font-size:3.6cqw">Legendary Love</span></div>
+        <div class="body2" style="font-size:2.25cqw;margin-top:1.5cqw"><p class="ni">2021년 [Temporary Highs in the Violet Skies] 이후 첫 정규. 2년 반 동안 쓰고 녹음했다. 선공개곡 'I Love You'는 알레그라와 Compass, Josh Grant가 만들었고, 나일 로저스와 라파엘 사딕이 연주로 참여했다. 오늘 나왔고, 들어 본 사람들의 평은 아직 없다. 이 지면은 짐작으로 점수를 매기지 않는다. 다음 호에서 판정한다.</p></div>
+      </div>
+      <div class="rule" style="position:absolute;left:7cqw;right:7cqw;top:84cqw;padding-top:2.4cqw"><span class="lbl" style="color:#d23a26">이번 주 실망</span><div style="font-family:var(--ui);font-weight:900;font-size:3.2cqw;margin-top:1cqw">없음. 5.0 아래로 내려간 판이 없었다.</div></div>
+      <div class="rule" style="position:absolute;left:7cqw;right:7cqw;top:100cqw;padding-top:2.4cqw"><span class="lbl">다음 호 예고</span><div class="body2" style="font-size:2.3cqw;margin-top:1cqw"><p class="ni">스노 알레그라 판정, 그리고 이번 주 판정을 미룬 판들의 두 번째 기회.</p></div></div>
+      <div class="folio">16</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;inset:9cqw 9cqw 12cqw;border:.5cqw dashed var(--pink)"></div>
+      <div class="lbl" style="position:absolute;left:13cqw;top:14cqw;color:var(--pink)">Essential · 이번 주 필청</div>
+      <div style="position:absolute;left:13cqw;right:13cqw;top:40cqw;text-align:center">
+        <div style="font-family:var(--body);font-weight:900;font-size:16cqw;line-height:.9;color:var(--pink)">비움.</div>
+        <div class="body2" style="margin-top:5cqw;font-size:2.6cqw;text-align:center"><p class="ni">8.0에 닿은 판이 없었다.<br>좋은 판이 없는 주에는 자리를 비운다.<br>그것이 이 지면이 독자에게 한 첫 약속이다.</p></div>
+      </div>
+      <div class="folio">17</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Sources &amp; credits</span><span>판권</span></div>
+      <div class="k" style="position:absolute;left:7cqw;top:10cqw;font-size:6.4cqw">출처와 편집 노트</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:22cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw">
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>기사 출처</b><br>Khan, AP, mxdwn, Irish Examiner, Louder, Riff, Rolling Stone Brasil, Rolling Stone Italia, Deadset Live(질베르투 질 일화), Rockol(서드 맨 한정반), The Line of Best Fit, Clash, Ultimate Classic Rock, Darko Audio, Stereogum, Ratings Game Music</div>
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>사진</b><br>표지 — Anirudh Koul / CC BY-NC 2.0, Flickr (Openverse 경유)<br>6–7쪽 펼침 — cygenta / CC BY-NC-SA 2.0, Flickr (Openverse 경유)<br>7쪽 — cygenta / CC BY-NC-SA 2.0, Flickr (Openverse 경유)<br>15쪽 — Dominic's pics / CC BY 2.0, Flickr (Openverse 경유)<br>5쪽 — cygenta / CC BY-NC-SA 2.0, Flickr (Openverse 경유)<br>12쪽 — Dominic's pics / CC BY 2.0, Flickr (Openverse 경유)</div>
+      </div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;top:66cqw;font-size:1.8cqw;line-height:1.7"><b>편집부 자료</b><br>'긴 읽을거리'의 연표(1975–2009)와 [Fear of Music]의 곡 정보는 편집부가 이미 가진 자료로 썼다.</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:80cqw;background:var(--pink);padding:3cqw;color:var(--navy)"><div class="lbl" style="color:var(--navy)">편집 노트</div><div style="font-family:var(--ui);font-weight:700;font-size:2.3cqw;line-height:1.6;margin-top:1cqw">출처 16곳 · 판정 보류 1장 · 필청 비움<br>편집부는 판을 직접 듣지 못한다. 소리에 대한 문장은 모두 다른 매체의 말을 옮긴 것이다.</div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw;font-size:1.8cqw">Drop · 매주 금요일 · 드롭 레코드 · 편집장 고한석(가상 인물) · 대담 윤서해(가상 인물)</div>
+      <div class="folio">18</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;left:7cqw;right:7cqw;top:7cqw;font-family:var(--it);font-style:italic;font-size:13cqw;line-height:.9">Supplement</div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:21cqw">부록 · 이 호의 노래 다섯 장</div>
+      <div class="body2" style="position:absolute;left:7cqw;right:7cqw;top:26cqw;font-size:2.3cqw"><p class="ni">이 호에서 이름이 나온 노래를 LP 한 장에 담아 투명 비닐째 붙였다. 테이프를 떼면 처음부터 재생되고, 드롭 레코드 크레이트에 꽂힌다.</p></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:52cqw;font-family:var(--dl);font-size:15cqw;line-height:.88;color:var(--pink);letter-spacing:-.04em">5 songs,<br>1 single.</div>
+      <div class="folio">19</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#f2eee4"><div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:12cqw;top:22cqw;--r:-3deg;--w:74cqw"><span class="sl"><span class="ttl">Drop Vol.01 — 부록 LP</span><span class="ho" style="--c:#f59ad6"></span><span class="tl"><b>A1</b> Go (Carnaval De Luz) — U2<br><b>A2</b> Silencio — U2<br><b>A3</b> The Mirror Maker (Rosalía) — U2<br><b>B1</b> Torn — U2<br><b>B2</b> I Zimbra — Talking Heads<br></span></span><span class="bg"></span><span class="tp" style="left:-8%;top:5%;width:40%;transform:rotate(-12deg)"></span><span class="tp" style="left:64%;top:74%;width:30%;transform:rotate(22deg)"></span><span class="c2">이 호의 노래 5곡, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div><div class="folio">20</div></div>
+    <div class="pg R">
+      <div class="rh"><span>Liner notes</span><span>부록 수록곡</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:var(--it);font-style:italic;font-size:9cqw;line-height:1">Liner notes</div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:21cqw">A면 · B면 — 이 호에서 이름이 나온 노래</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:27cqw"><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Go (Carnaval De Luz)</b><span class="cap" style="display:block;margin-top:.6cqw">U2</span></span><span class="cap" style="text-align:right">6쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Silencio</b><span class="cap" style="display:block;margin-top:.6cqw">U2</span></span><span class="cap" style="text-align:right">6쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A3</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">The Mirror Maker (Rosalía)</b><span class="cap" style="display:block;margin-top:.6cqw">U2</span></span><span class="cap" style="text-align:right">7쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Torn</b><span class="cap" style="display:block;margin-top:.6cqw">U2 · Dolly Parton</span></span><span class="cap" style="text-align:right">8쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">I Zimbra</b><span class="cap" style="display:block;margin-top:.6cqw">Talking Heads</span></span><span class="cap" style="text-align:right">15쪽</span></div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw">테이프를 떼면 Spotify에 이 호의 플레이리스트가 만들어지고 처음부터 재생된다. 플레이리스트는 출판사 크레이트에 한 장으로 꽂힌다.</div>
+      <div class="folio">21</div></div>
+  </div></template>

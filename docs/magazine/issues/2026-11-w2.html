@@ -1,0 +1,648 @@
+<title>Sabathia 우편함</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo+Black&family=Archivo:ital,wght@1,700;1,800&family=Black+Han+Sans&family=Jost:wght@700;900&family=Nanum+Gothic+Coding:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+/* 책상 위 우편함 → 상자 → 비닐 → 넘기는 잡지 → 부록 싱글. 어두운 책상 한 가지 모습. 잡지마다 지면 색·글꼴은 .t-* 변수로 */
+:root{
+  --desk:#24201c; --desk2:#2e2924; --kraft:#c79f68; --kraft2:#a9814e; --kraftIn:#7d5f38;
+  --ink:#161514; --mute:#5c5852; --hint:#e9e2d6;
+  --packtape:rgba(150,104,52,.88); --clear:rgba(255,248,214,.5);
+  --sans:'Noto Sans KR',system-ui,sans-serif; --serif:'Noto Serif KR',Georgia,serif; --mono:'Nanum Gothic Coding',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(120% 90% at 50% 30%,var(--desk2),var(--desk));color:var(--hint);font-family:var(--sans);overflow:hidden;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-tap-highlight-color:transparent}
+#stage{position:relative;height:100%;display:flex;align-items:center;justify-content:center}
+button{font:inherit}
+.chip{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));background:rgba(36,32,28,.6);color:var(--hint);border:1px solid rgba(233,226,214,.35);border-radius:999px;padding:6px 14px;min-height:36px;cursor:pointer;font-size:13px;z-index:50}
+.chip:focus-visible,#bar button:focus-visible{outline:2px solid #f59ad6;outline-offset:2px}
+#home{left:max(16px,env(safe-area-inset-left,0px))}
+#again{right:max(16px,env(safe-area-inset-right,0px))}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;pointer-events:none;flex-wrap:wrap;text-align:center}
+#bar button{pointer-events:auto;background:transparent;color:var(--hint);border:1px solid rgba(233,226,214,.45);border-radius:999px;padding:6px 14px;min-height:36px;cursor:pointer}
+#toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);background:#fbfaf6;color:var(--ink);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .35s;z-index:60;max-width:calc(100% - 32px)}
+#toast.on{transform:translate(-50%,0)}
+
+/* ── 우편함 ── */
+#mail{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:70px 0 80px;transition:opacity .5s}
+#mail.off{opacity:0;pointer-events:none}
+#mail h1{margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(22px,4vw,30px);text-align:center}
+#mail p{margin:0;color:#b9b0a2;font-size:14px;text-align:center}
+.parcels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;width:min(900px,100%)}
+@media (max-width:700px){.parcels{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
+.parcel{position:relative;aspect-ratio:1/1.08;border:0;padding:0;cursor:pointer;background:linear-gradient(180deg,var(--kraft),var(--kraft2));border-radius:4px;box-shadow:0 16px 30px rgba(0,0,0,.45);transform:rotate(var(--r));transition:transform .25s}
+.parcel:hover,.parcel:focus-visible{transform:rotate(var(--r)) translateY(-6px);outline:none}
+.parcel::before{content:"";position:absolute;left:0;right:0;top:44%;height:14%;background:var(--packtape)}
+.parcel .lb{position:absolute;left:9%;top:10%;width:72%;background:#fbfaf6;color:var(--ink);font-family:var(--mono);font-size:clamp(9px,1.2vw,11px);line-height:1.45;padding:6px 8px;text-align:left;transform:rotate(-2deg)}
+.parcel .lb b{display:block;font-family:var(--sans);font-weight:900;font-size:1.15em;border-bottom:1.5px solid var(--ink);margin-bottom:3px}
+.parcel .dot{position:absolute;right:8%;bottom:10%;width:30%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Archivo Black',sans-serif;font-size:clamp(10px,1.6vw,15px);color:#fff;transform:rotate(-8deg)}
+.parcel .new{position:absolute;left:8%;bottom:10%;font-size:12px;font-weight:900;color:#3b2a14}
+.parcel.read .new{opacity:.45}
+
+/* ── 상자 ── */
+#box{position:absolute;width:var(--bw);height:calc(var(--bw)*1.12);touch-action:none;cursor:ew-resize;perspective:1400px;transition:opacity .6s,transform .8s}
+#box.off{opacity:0;transform:translateY(60px) scale(.94);pointer-events:none}
+.inner{position:absolute;inset:0;background:var(--kraftIn);border-radius:4px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 30px 60px rgba(0,0,0,.5)}
+.inner .mag{position:absolute;inset:9% 14%;background:var(--magc,#f59ad6);box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.inner .mag::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.4) 32%,transparent 40%)}
+#box.open .inner .mag{transform:translateY(-6%) scale(1.04)}
+.flap{position:absolute;left:0;right:0;height:50%;background:linear-gradient(180deg,var(--kraft),var(--kraft2));transition:transform 1s cubic-bezier(.3,.7,.2,1);backface-visibility:hidden;border-radius:3px}
+.flap::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.035) 0 2px,transparent 2px 9px)}
+.flap.top{top:0;transform-origin:top center}
+.flap.bot{bottom:0;transform-origin:bottom center}
+#box.open .flap.top{transform:rotateX(178deg)}
+#box.open .flap.bot{transform:rotateX(-178deg)}
+.tape{position:absolute;left:-2%;right:-2%;height:28%;background:var(--packtape)}
+.tape::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 40%,rgba(0,0,0,.08))}
+.flap.top .tape{bottom:0}.flap.bot .tape{top:0}
+#slit{position:absolute;left:0;top:50%;height:3px;margin-top:-1.5px;background:#1a120a;width:0;z-index:5;box-shadow:0 0 4px rgba(0,0,0,.6)}
+#box.open #slit{opacity:0}
+.label{position:absolute;left:8%;top:9%;width:60%;background:#fbfaf6;color:var(--ink);font-family:var(--mono);font-size:calc(var(--bw)*.028);line-height:1.5;padding:3% 4%;transform:rotate(-1.5deg);box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.label b{font-family:var(--sans);font-weight:900;font-size:1.15em;display:block;border-bottom:1.5px solid var(--ink);margin-bottom:4%;padding-bottom:2%}
+.label .bc{height:calc(var(--bw)*.05);margin-top:5%;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 3px,var(--ink) 3px 5px,transparent 5px 8px)}
+.warn{position:absolute;right:7%;top:12%;width:24%;aspect-ratio:1;border-radius:50%;background:#d23a26;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:calc(var(--bw)*.03);line-height:1.25;transform:rotate(8deg)}
+.flap.bot .stamp{position:absolute;right:8%;bottom:12%;font-family:'Archivo Black',sans-serif;font-size:calc(var(--bw)*.05);color:rgba(60,35,12,.5);transform:rotate(-6deg);border:3px solid rgba(60,35,12,.45);padding:1% 3%}
+
+/* ── 책 ── */
+#bookWrap{position:absolute;perspective:2400px;opacity:0;transform:translateY(40px) scale(.92);transition:opacity .7s,transform .9s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+#bookWrap.on{opacity:1;transform:none;pointer-events:auto}
+#book{position:relative;width:var(--bkw);height:var(--ph);transition:transform .8s cubic-bezier(.3,.6,.2,1);touch-action:pan-y}
+.leaf{position:absolute;top:0;left:var(--lx);width:var(--pw);height:var(--ph);transform-origin:left center;transform-style:preserve-3d;transition:transform .85s cubic-bezier(.3,.6,.2,1)}
+.leaf.flipped{transform:rotateY(-180deg)}
+.face,.base{position:absolute;inset:0;background:var(--paper);color:var(--ink);backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;container-type:size;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.face.back{transform:rotateY(180deg)}
+.face.front::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.14),transparent 7%)}
+.face.back::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(270deg,rgba(0,0,0,.14),transparent 7%)}
+.base{left:var(--lx);width:var(--pw);right:auto}
+.blank{filter:brightness(.97)}
+
+/* 잡지별 변수 */
+.t-drop{--paper:#fdfcf9;--acc:#f59ad6;--acc2:#2a2fb0;--acc3:#f08a16;--kick:#2a2fb0;--hf:'Archivo Black',sans-serif}
+.t-fb{--paper:#f4efe6;--acc:#2bb3d9;--acc2:#141414;--acc3:#d23a26;--kick:#137a99;--hf:'Alfa Slab One',serif}
+.t-cy{--paper:#efebe3;--acc:#b0201e;--acc2:#141414;--acc3:#b0201e;--kick:#b0201e;--hf:'Archivo Black',sans-serif}
+.t-33{--paper:#f6f1e7;--acc:#d62718;--acc2:#1f2a8a;--acc3:#ffd84d;--kick:#1f2a8a;--hf:'Jost',sans-serif}
+
+/* 지면 (cqw = 지면 폭 1%) */
+.pg{position:absolute;inset:0;padding:7cqw 7cqw 10cqw;overflow:auto;font-size:3.05cqw;line-height:1.72;scrollbar-width:none}
+.pg::-webkit-scrollbar{display:none}
+.folio{position:absolute;bottom:3cqw;left:7cqw;right:7cqw;display:flex;justify-content:space-between;font-size:2.3cqw;color:var(--mute);letter-spacing:.04em}
+.kick{font-size:2.5cqw;font-weight:900;letter-spacing:.08em;color:var(--kick)}
+.h{font-family:var(--serif);font-weight:900;font-size:6.2cqw;line-height:1.25;margin:1.4cqw 0 1.6cqw;text-wrap:balance}
+.t-fb .h{font-family:var(--hf),var(--serif);font-weight:900;font-synthesis:none;letter-spacing:-.01em}
+.t-cy .h,.t-drop .h{font-family:var(--hf),var(--sans);font-weight:900;font-synthesis:none;letter-spacing:-.02em}
+.t-33 .h{font-family:var(--hf),var(--sans);font-weight:900}
+.p{font-family:var(--serif);margin:0 0 3cqw;word-break:keep-all}
+.sub{font-family:var(--sans);font-weight:900;font-size:3.1cqw;margin:1cqw 0 1.2cqw;color:var(--acc)}
+.t-cy .sub{display:inline-block;background:var(--acc);color:#fff;padding:.2cqw 1.6cqw}
+.by{font-size:2.6cqw;color:var(--mute)}
+.score{display:flex;align-items:baseline;gap:3cqw;margin:1.5cqw 0 2.5cqw}
+.score b{font-family:var(--hf);font-size:15cqw;line-height:1;color:var(--ink)}
+.t-drop .score b{color:var(--acc2)}
+.stars{font-size:8cqw;color:var(--acc);letter-spacing:.5cqw;line-height:1}
+.facts{width:100%;border-collapse:collapse;font-size:2.55cqw;margin-bottom:3cqw}
+.facts td{border-top:1px solid rgba(22,21,20,.15);padding:.9cqw 0;vertical-align:top}
+.facts td{color:var(--ink)}.facts td:first-child{color:var(--mute);width:24%}
+.pull{font-family:var(--serif);font-weight:900;font-size:5.4cqw;line-height:1.42;border-top:1.6cqw solid var(--acc);padding-top:3cqw;margin:0 0 4cqw;text-wrap:balance}
+.t-cy .pull{border:0;padding:0;position:relative;padding-left:9cqw}
+.t-cy .pull::before{content:"“";position:absolute;left:-1cqw;top:-6cqw;font-family:'Archivo Black';font-size:22cqw;color:var(--acc);line-height:1}
+.box{border:1px solid rgba(22,21,20,.35);padding:2.6cqw 3cqw;margin:0 0 3cqw;font-size:2.75cqw;line-height:1.6}
+.box b{display:block;font-size:2.4cqw;letter-spacing:.06em;color:var(--kick);margin-bottom:.8cqw}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:1cqw 2cqw;align-items:center;font-size:2.45cqw}
+.bars i{display:block;height:1.6cqw;background:var(--ink)}
+.bars .v{font-variant-numeric:tabular-nums}
+.toc{display:flex;flex-direction:column;margin-top:3cqw}
+.toc div{display:grid;grid-template-columns:9cqw 1fr;gap:2cqw;border-top:1px solid rgba(22,21,20,.18);padding:2.3cqw 0}
+.toc div b{font-family:var(--hf);font-size:6cqw;line-height:1;color:var(--acc2)}
+.t-fb .toc div b{color:var(--kick)}
+.toc small{display:block;color:var(--mute);font-size:2.5cqw}
+.sh{border-top:1px solid rgba(22,21,20,.2);padding-top:2.6cqw;margin-bottom:2.4cqw}
+.sh .t{font-weight:900;font-size:3.15cqw;line-height:1.4}
+.tag{display:inline-block;background:var(--acc2);color:#fff;font-size:2.3cqw;font-weight:900;padding:.2cqw 1.4cqw;margin-left:1cqw;vertical-align:middle}
+.tag.hold{background:transparent;color:var(--mute);border:1px solid var(--mute)}
+.src{font-size:2.3cqw;line-height:1.55;color:var(--mute);margin:0;padding-left:4cqw}
+.src a{color:var(--mute)}
+.chart{width:100%;border-collapse:collapse;font-size:2.5cqw;font-variant-numeric:tabular-nums}
+.chart th{text-align:left;color:var(--mute);font-weight:700;border-bottom:2px solid var(--ink);padding:.8cqw .6cqw}
+.chart td{border-bottom:1px solid rgba(22,21,20,.15);padding:.75cqw .6cqw;color:#9a958d}
+.chart td:first-child{font-family:var(--hf);font-weight:900;color:var(--ink);width:7cqw}
+.nodes{position:relative;height:62cqw;margin:2cqw 0 3cqw}
+.nodes svg{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:50%;font-weight:900;line-height:1.15;background:var(--paper);border:.5cqw solid var(--ink);font-size:2.3cqw;padding:1cqw}
+.node.core{background:var(--acc);color:#fff;border-color:var(--acc);font-size:2.7cqw}
+
+/* 표지 공통 */
+.cover{position:absolute;inset:0;overflow:hidden;background:var(--paper)}
+.bcd{position:absolute;width:15cqw;height:8cqw;background:#fff;padding:1cqw}
+.bcd i{display:block;height:100%;background:repeating-linear-gradient(90deg,#161514 0 .4cqw,transparent .4cqw .7cqw,#161514 .7cqw 1.1cqw,transparent 1.1cqw 1.7cqw)}
+.vr{position:absolute;writing-mode:vertical-rl;line-height:1}
+
+/* 비닐 */
+.wrap{position:absolute;inset:-1.5%;z-index:20;touch-action:none;cursor:ew-resize;border:1px solid rgba(255,255,255,.55);background:
+  linear-gradient(112deg,transparent 18%,rgba(255,255,255,.42) 24%,transparent 31%,transparent 55%,rgba(255,255,255,.16) 62%,transparent 70%),
+  linear-gradient(200deg,rgba(255,255,255,.14),transparent 30%),
+  repeating-linear-gradient(77deg,rgba(255,255,255,.05) 0 1px,transparent 1px 23px),rgba(255,255,255,.07)}
+.wrap::before,.wrap::after{content:"";position:absolute;left:0;right:0;height:2.4%;background:rgba(255,255,255,.25)}
+.wrap::before{top:0}.wrap::after{bottom:0}
+.wsticker{position:absolute;left:5cqw;bottom:22cqw;background:#f08a16;color:#fff;border-radius:50%;width:19cqw;height:19cqw;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:2.6cqw;line-height:1.25;transform:rotate(-10deg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.wbar{position:absolute;right:4cqw;bottom:6cqw;background:#fff;color:var(--ink);font-family:var(--mono);font-size:2.1cqw;padding:1cqw 2cqw;transform:rotate(2deg)}
+#tear{position:absolute;height:.5cqw;background:rgba(255,255,255,.9);box-shadow:0 0 1cqw rgba(255,255,255,.8);width:0;z-index:22;pointer-events:none}
+.shard{position:absolute;inset:-1.5%;z-index:21;pointer-events:none;transition:transform .9s cubic-bezier(.3,.6,.2,1),opacity .9s}
+
+/* 부록 싱글 */
+.sg-h{position:absolute;left:6cqw;right:6cqw;top:5cqw;display:flex;justify-content:space-between;align-items:baseline;border-bottom:.4cqw solid var(--acc);padding-bottom:1.5cqw}
+.sg-h b{font-family:var(--serif);font-weight:900;font-size:5.2cqw}
+.sg-h span{font-size:2.4cqw;color:var(--mute)}
+.single{position:absolute;width:31cqw;height:31cqw;border:0;padding:0;background:none;cursor:pointer;transform:rotate(var(--r));transition:transform .5s cubic-bezier(.3,.6,.2,1)}
+.single:focus-visible{outline:2px solid var(--acc2);outline-offset:3px}
+.bag{position:absolute;inset:-4% -4% -7%;border:1px solid rgba(160,160,160,.55);background:linear-gradient(125deg,transparent 20%,rgba(255,255,255,.75) 27%,transparent 34%),linear-gradient(20deg,transparent 60%,rgba(255,255,255,.35) 66%,transparent 72%),rgba(225,230,235,.28);box-shadow:0 .6cqw 1.6cqw rgba(0,0,0,.22);z-index:2;pointer-events:none}
+.bag::before{content:"";position:absolute;left:0;right:0;top:7%;height:1.5px;background:rgba(150,150,150,.5)}
+.sleeve{position:absolute;inset:0;background:#d4bf9e;box-shadow:inset 0 0 2cqw rgba(90,60,20,.25)}
+.sleeve::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 1px,transparent 1px 5px)}
+.hole{position:absolute;left:50%;top:50%;width:14cqw;height:14cqw;margin:-7cqw 0 0 -7cqw;border-radius:50%;background:radial-gradient(circle,#d4bf9e 0 .6cqw,var(--c) .6cqw 4.2cqw,#141414 4.2cqw 4.6cqw,#2a2a2a 4.6cqw 5cqw,#141414 5cqw 7cqw);box-shadow:inset 0 0 .6cqw rgba(0,0,0,.6)}
+.st{position:absolute;left:3cqw;right:3cqw;bottom:2.4cqw;font-family:var(--mono);font-size:2.1cqw;color:#4a3720;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn{position:absolute;left:3cqw;top:2.4cqw;font-family:var(--mono);font-size:2.1cqw;color:#4a3720}
+.ct{position:absolute;height:5.2cqw;background:var(--clear);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6);z-index:3;transition:transform .45s,opacity .45s}
+.ct.curl{background:linear-gradient(90deg,var(--clear) 70%,rgba(255,250,225,.85) 85%,rgba(255,255,255,.2))}
+.single.taken{transform:rotate(0deg) translateY(-3cqw) scale(1.06);z-index:5}
+.single.taken .ct{transform:rotate(-35deg) translateY(-4cqw)!important;opacity:0}
+.cap{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 2.6cqw);font-size:2.2cqw;color:var(--mute);text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.single.taken .cap{color:var(--ink);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+
+<div id="stage">
+  <section id="mail" aria-label="우편함">
+    <h1>11월 둘째 주 우편함</h1>
+    <p>잡지 네 권이 도착했습니다. 상자를 골라 여세요.</p>
+    <div class="parcels" id="parcels"></div>
+  </section>
+  <div id="box" class="off" role="button" tabindex="0" aria-label="택배 상자. 테이프를 가로로 그어서 열기">
+    <div class="inner"><div class="mag"></div></div>
+    <div class="flap top"><div class="label" id="lbl"></div><div class="warn">구부리지<br>마세요</div><div class="tape"></div></div>
+    <div class="flap bot"><div class="tape"></div><div class="stamp">PRINTED MATTER</div></div>
+    <div id="slit"></div>
+  </div>
+  <div id="bookWrap"><div id="book"></div></div>
+</div>
+<button id="home" class="chip" type="button" hidden>← 우편함</button>
+<button id="again" class="chip" type="button" hidden>다시 배송받기</button>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="bar"><span id="hint"></span><button id="alt" type="button" hidden></button></div>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const fol = (mag, n, t) => `<div class="folio"><span>${mag}</span><span>${t ? t + ' · ' : ''}${n}</span></div>`;
+const src = list => `<ol class="src">${list.map(([t, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${t}</a></li>`).join('')}</ol>`;
+const bars = rows => `<div class="bars">${rows.map(([k, v, note]) => `<span>${k}</span><i style="width:${v * 10}%"></i><span class="v">${v}${note ? ' ' + note : ''}</span>`).join('')}</div>`;
+
+/* ───────── Drop Vol.01 · 2026.11.13 ───────── */
+const D = 'Drop · Vol.01';
+const DROP = {
+  id: 'drop', theme: 't-drop', name: 'Drop', color: '#f59ad6', mag: '#f59ad6', r: -3,
+  label: ['드롭 레코드 → 구독자 님', '내용물: Drop Vol.01 1부', '부록 7인치 싱글 5장', '2026.11.13 금요일'],
+  pages: [
+`<div class="cover">
+  <div style="position:absolute;right:4cqw;top:3cqw;font-size:2.4cqw;font-weight:700;text-align:right;line-height:1.4">새 음악, 금요일마다<br>2026.11.13</div>
+  <div style="position:absolute;left:3cqw;top:0;font-family:'Archivo Black';font-size:28cqw;line-height:1;letter-spacing:-.05em;color:var(--acc)">Drop</div>
+  <div style="position:absolute;left:4cqw;top:28.5cqw;font-weight:900;font-size:3.3cqw">드롭 · 금요일 신곡 · 편집 고한석</div>
+  <div style="position:absolute;left:-6cqw;top:36cqw;font-family:'Archivo Black';font-size:66cqw;line-height:.8;letter-spacing:-.06em;color:var(--acc2)">U2</div>
+  <div style="position:absolute;left:6cqw;top:41cqw;width:22cqw;height:22cqw;border-radius:50%;background:var(--paper);mix-blend-mode:normal;opacity:.12"></div>
+  <div style="position:absolute;left:0;top:84cqw;width:62cqw;height:30cqw;background-color:#bdbdbd;background-image:radial-gradient(rgba(20,20,20,.55) .35cqw,transparent .6cqw);background-size:1.3cqw 1.3cqw;clip-path:polygon(0 12%,100% 0,92% 100%,0 100%)"></div>
+  <div class="vr" style="left:5cqw;top:88cqw;font-family:'Black Han Sans';font-size:7cqw;color:#fff;writing-mode:horizontal-tb">9년 만의 축제</div>
+  <div class="vr" style="right:3cqw;top:40cqw;font-family:'Black Han Sans';font-size:8.6cqw;color:var(--acc);-webkit-text-stroke:.2cqw var(--ink)">카르나발 데 루스</div>
+  <div style="position:absolute;right:16cqw;top:38cqw;width:15cqw;height:15cqw;border-radius:50%;background:var(--acc);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:2.2cqw;font-weight:700">이번 주 리뷰</span><b style="font-family:'Archivo Black';font-size:6cqw">6.5</b></div>
+  <div style="position:absolute;right:16cqw;top:58cqw;text-align:right;line-height:1.08"><span style="display:block;font-family:'Black Han Sans';font-size:6.4cqw;color:var(--acc3)">부록 싱글</span><span style="display:block;font-family:'Black Han Sans';font-size:6.4cqw;color:var(--acc3)">5장 수록</span></div>
+  <div style="position:absolute;left:66cqw;bottom:16cqw;font-size:2.5cqw;font-weight:700;line-height:1.5">원본을 들어라<br>Talking Heads 1979<br>판정 보류 1장</div>
+  <div class="bcd" style="right:4cqw;bottom:4cqw"><i></i></div>
+</div>`,
+`<div class="pg"><div class="kick">차례</div><div class="h">Drop Vol.01</div><div class="by">2026년 11월 13일 · 드롭 레코드 · 편집 고한석</div>
+<div class="toc">
+<div><b>2</b><span>이번 주 리뷰<small>U2 — [Carnaval de Luz] · 고한석 · 6.5</small></span></div>
+<div><b>5</b><span>단평<small>Snoh Aalegra — [Legendary Love] · 판정 보류</small></span></div>
+<div><b>–</b><span>이번 주 필청<small>비움. 8.0에 닿은 판이 없었다</small></span></div>
+<div><b>–</b><span>이번 주 실망<small>없음</small></span></div>
+<div><b>6</b><span>원본을 들어라<small>Talking Heads — [Fear of Music] (1979)</small></span></div>
+<div><b>7</b><span>출처와 편집 노트</span></div>
+<div><b>8</b><span>부록 · 이 호의 노래<small>7인치 싱글 5장</small></span></div>
+</div>${fol(D, 1)}</div>`,
+`<div class="pg"><div class="kick">이번 주 리뷰</div><div class="h">U2 — Carnaval de Luz</div><div class="by">글 고한석</div>
+<div class="score"><b>6.5</b><span class="by">/ 10.0</span></div>
+<table class="facts"><tr><td>발매</td><td>2026.11.13 · Interscope</td></tr><tr><td>곡 수</td><td>12곡 · 열여섯 번째 정규</td></tr><tr><td>프로듀서</td><td>Jacknife Lee</td></tr><tr><td>함께</td><td>Brian Eno(3곡 작곡·신시사이저), Daniel Lanois</td></tr></table>
+<p class="p">9년이다. U2가 새 노래로만 채운 정규 앨범을 내놓은 것이 그만큼 만이다. 올해 초의 EP 두 장 [Days of Ash]와 [Easter Lily]가 예고였다면, 이 판은 그보다 앞에 있던 축제의 밤을 그린다고 밴드는 설명한다. 열두 곡. 이 지면이 가장 먼저 반긴 숫자다.</p>${fol(D, 2, '리뷰')}</div>`,
+`<div class="pg">
+<p class="p">판은 'Go (Carnaval De Luz)'로 문을 연다. 브라이언 이노의 신시사이저 리프 위에 세운 곡이고, Riff는 그 에너지를 신경질적으로 떨린다고 적었다. 이노는 세 곡을 함께 썼고 대니얼 라노이도 이름을 올렸다. 전체를 다듬은 잭나이프 리는 2004년부터 밴드 곁에 있었다. 같은 사람들이 같은 방에 다시 모였다는 뜻이다.</p>
+<p class="p">그 방이 어디를 향하는지는 평단에서도 갈린다. 아이리시 이그재미너는 30년 만의 최고작이라 했고, Riff는 [Achtung Baby]를 꺼냈다. 롤링스톤 브라질은 얕은 가사를 문제 삼으며 'The Mirror Maker (Rosalía)'를 가장 낮은 곳으로 꼽았다. 이 지면은 남의 점수를 빌리지 않는다. 다만 의견이 갈린 곳이 가사라는 사실은 적어 둔다.</p>${fol(D, 3, '리뷰')}</div>`,
+`<div class="pg">
+<div class="pull">같은 사람들이 같은 방에 다시 모였다. 문제는 그 방이 1991년을 닮았다는 것이다.</div>
+<p class="p">마지막 곡 'Torn'은 보노와 돌리 파튼의 이중창이고, 밴드는 이것이 파튼의 마지막 녹음이라고 밝혔다. 열두 곡으로 끝낼 줄 아는 밴드가 아직 있다는 것은 반갑다. 그러나 10년 뒤 이 판을 꺼낼 이유가 [Achtung Baby]가 아니라 이 판 자신에게 있는지는, 지금 나온 자료로는 장담하지 못한다.</p>
+<div class="box"><b>반론</b>베테랑이 자기 전성기를 다시 부르는 것이 잘못인가. 아니다. 다만 이 지면은 원본이 이미 집에 있는 판을 한 번 더 사라고 권하지 않는다.</div>
+<div class="box"><b>점수 근거</b>${bars([['완결성', 6], ['곡', 6.5], ['소리·연주', 7], ['절제', 7.5], ['오래 남을까', 5.5]])}</div>${fol(D, 4, '리뷰')}</div>`,
+`<div class="pg"><div class="kick">단평</div>
+<div class="sh"><div class="t">Snoh Aalegra — Legendary Love <span class="tag hold">판정 보류</span></div><p class="p">2021년 [Temporary Highs in the Violet Skies] 이후 첫 정규 앨범. 2년 반 동안 쓰고 녹음했고, 선공개곡 'I Love You'에는 나일 로저스와 라파엘 사딕이 연주로 참여했다. 오늘 나왔고, 들어 본 사람들의 평은 아직 없다. 이 지면은 짐작으로 점수를 매기지 않는다. 다음 호에서 판정한다.</p></div>
+<div class="sh"><div class="t">이번 주 필청 — 비움</div><p class="p">8.0에 닿은 판이 없었다. 좋은 판이 없는 주에는 자리를 비운다는 것이 이 지면의 약속이다.</p></div>
+<div class="sh"><div class="t">이번 주 실망 — 없음</div><p class="p">5.0 아래로 내려간 판이 없었다. 힙합 신보는 수요일 Cypher가 다룬다.</p></div>${fol(D, 5, '단평')}</div>`,
+`<div class="pg"><div class="kick">원본을 들어라</div><div class="h">Talking Heads — Fear of Music</div><div class="by">1979 · 오늘 나온 재발매 · 프로듀서 Brian Eno</div>
+<p class="p" style="margin-top:3cqw">U2의 새 판에서 이노의 이름을 봤다면, 같은 날 다시 나온 이 판을 먼저 집어라. 토킹 헤즈의 세 번째 앨범 [Fear of Music]이 새 리마스터와 미발표 녹음, 1979년 투어 공연 두 편을 묶어 돌아왔다. 이 판을 함께 만든 사람이 이노였다.</p>
+<p class="p">'I Zimbra'로 시작하는 앞면에서, 한 밴드가 낯선 소리를 집 안에 들이는 방식이 정해졌다. 이노가 다음 십 년 동안 다른 밴드들의 방에 들고 간 것이 거기서 나왔다. 새 판이 기대는 곳이 궁금하다면 거기서 시작하면 된다.</p>${fol(D, 6, '원본을 들어라')}</div>`,
+`<div class="pg"><div class="kick">출처와 편집 노트</div><div class="h" style="font-size:5cqw">이 호에 대해</div>
+<div class="box"><b>편집 노트</b>출처 11곳 · 판정 보류 1장 · 필청 비움<br>편집부는 판을 직접 듣지 못한다. 소리에 대한 문장은 모두 다른 매체의 말을 옮긴 것이다.</div>
+${src([['Khan · U2 11월 13일 발매', 'https://sports.khan.co.kr/en/article/202609281815017'], ['AP · Dolly Parton 마지막 녹음', 'https://abcnews.com/Entertainment/wireStory/u2s-new-album-carnaval-de-luz-november-feature-136728947'], ['mxdwn · 앨범 발표', 'https://music.mxdwn.com/2026/09/24/news/u2-announce-new-album-carnaval-de-luz-for-november-2026-release-featuring-dolly-partons-final-recorded-vocals-share-new-single-silencio/'], ['Irish Examiner 리뷰', 'https://www.irishexaminer.com/lifestyle/artsandculture/arid-41935233.html'], ['Louder 리뷰', 'https://www.loudersound.com/bands-artists/u2-carnaval-de-luz-review'], ['Riff 리뷰', 'https://riffmagazine.com/album-reviews/u2-carnaval-de-luz/'], ['Rolling Stone Brasil', 'https://rollingstone.com.br/?p=327099'], ['Rolling Stone Italia', 'https://www.rollingstone.it/musica/recensioni-album/carnaval-de-luz-gli-u2-dalla-parte-giusta-della-storia-con-qualche-canzone-sbagliata/1044534/'], ['The Line of Best Fit · Snoh Aalegra', 'https://www.thelineofbestfit.com/news/snoh-aalegra-announces-new-album-legendary-love'], ['Ultimate Classic Rock · Fear of Music 재발매', 'https://ultimateclassicrock.com/talking-heads-fear-of-music-2026/'], ['Darko Audio · 재발매 구성', 'https://darko.audio/2026/10/talking-heads-fear-of-music-gets-the-super-deluxe-treatment/']])}
+<div class="box" style="margin-top:2cqw"><b>판권</b>Drop · 매주 금요일 · 드롭 레코드 · 편집 고한석(가상 인물)</div>${fol(D, 7)}</div>`
+  ],
+  singles: [
+    { t: 'Go (Carnaval De Luz)', a: 'U2', pg: 3, c: '#f59ad6' },
+    { t: 'The Mirror Maker (Rosalía)', a: 'U2', pg: 3, c: '#e8c14a' },
+    { t: 'Torn', a: 'U2 · Dolly Parton', pg: 4, c: '#9fc4ff' },
+    { t: 'I Love You', a: 'Snoh Aalegra', pg: 5, c: '#c9b6e8' },
+    { t: 'I Zimbra', a: 'Talking Heads', pg: 6, c: '#ef6b4a' }
+  ]
+};
+
+/* ───────── feedback Vol.01 · 2026.11.16 ───────── */
+const F = 'feedback · vol.01';
+const FEED = {
+  id: 'fb', theme: 't-fb', name: 'feedback', color: '#2bb3d9', mag: '#f4efe6', r: 2,
+  label: ['피드백 프레스 → 구독자 님', '내용물: feedback vol.01 1부', '부록 7인치 싱글 5장', '2026.11.16 월요일'],
+  pages: [
+`<div class="cover" style="background:#141414">
+  <div style="position:absolute;left:0;top:0;right:0;height:42cqw;background:var(--paper);border-bottom-right-radius:70cqw 26cqw"></div>
+  <div style="position:absolute;left:-2cqw;top:-3cqw;font-family:'Alfa Slab One';font-size:23.5cqw;line-height:1;letter-spacing:-.04em;color:#141414">feedback</div>
+  <div style="position:absolute;left:5cqw;top:23cqw;font-weight:900;font-size:2.8cqw;line-height:1.35;color:var(--kick)">11월 16일 월요일<br>vol.01 · 편집 윤서해</div>
+  <div style="position:absolute;left:5cqw;top:36cqw;width:90cqw;height:90cqw;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 46% 38%,#ffe2a8 0 6%,#f2a65a 18%,#a8552c 38%,#3a1d12 62%,#140c08 80%)">
+    <div style="position:absolute;inset:0;background:repeating-radial-gradient(circle at 46% 38%,rgba(255,255,255,.06) 0 1.2cqw,transparent 1.2cqw 3.4cqw)"></div>
+    <div style="position:absolute;left:0;right:0;top:44%;text-align:center;color:#fff4e2;font-family:'Alfa Slab One';font-size:9.5cqw;line-height:1.05;text-shadow:0 .6cqw 2cqw rgba(0,0,0,.5)">o my<br>beloved</div>
+    <div style="position:absolute;left:0;right:0;top:74%;text-align:center;color:#ffe2a8;font-weight:900;font-size:3cqw;letter-spacing:.3em">KINGS OF LEON</div>
+  </div>
+  <div style="position:absolute;left:5cqw;top:120cqw;color:var(--paper);font-family:'Alfa Slab One';font-size:4.4cqw;line-height:1.2;transform:rotate(-6deg);transform-origin:left">거실로 돌아온 밴드</div>
+  <div style="position:absolute;right:3cqw;bottom:4cqw;width:30cqw;height:17cqw;border-radius:50%;background:var(--paper);border:.8cqw solid var(--acc3);transform:rotate(-12deg);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--acc3);line-height:1.1"><b style="font-family:'Alfa Slab One';font-size:4.6cqw">볼륨 7/11</b><span style="font-weight:900;font-size:2.4cqw">부록 싱글 5장</span></div>
+</div>`,
+`<div class="pg"><div class="kick">차례</div><div class="h">feedback vol.01</div><div class="by">2026년 11월 16일 · 피드백 프레스 · 편집 윤서해</div>
+<div class="toc">
+<div><b>2</b><span>커버 스토리<small>Kings of Leon — [O My Beloved] · 볼륨 7/11</small></span></div>
+<div><b>5</b><span>이 판과 어울리는 밤<small>아이가 잠든 뒤의 거실에서</small></span></div>
+<div><b>6</b><span>이번 주 밴드<small>Spanish Love Songs — [Future Nausea] · 볼륨 8/11</small></span></div>
+<div><b>6</b><span>신인 세 팀<small>이번 주는 쉰다</small></span></div>
+<div><b>7</b><span>출처와 편집 노트</span></div>
+<div><b>8</b><span>부록 · 이 호의 노래<small>7인치 싱글 5장</small></span></div>
+</div>${fol(F, 1)}</div>`,
+`<div class="pg"><div class="kick">커버 스토리</div><div class="h">Kings of Leon — O My Beloved</div><div class="by">글 윤서해 · 이럴 때 들을 것: 아이가 잠든 뒤, 불 하나만 켜 둔 거실</div>
+<div class="score"><b style="font-family:'Alfa Slab One';font-size:11cqw">볼륨 7</b><span class="by">/ 11</span></div>
+<table class="facts"><tr><td>발매</td><td>2026.11.6 · Love Tap / Virgin</td></tr><tr><td>곡 수</td><td>13곡 · 열 번째 정규</td></tr><tr><td>프로듀서</td><td>밴드 스스로 (처음)</td></tr></table>
+<p class="p">테네시의 팔로윌 형제 셋과 사촌 하나. 넷이 내슈빌에서 처음 한 방에 모인 게 1999년이었다. 그로부터 스물일곱 해, 열 번째 앨범에서 그들은 처음으로 누구에게도 손잡이를 넘기지 않았다. 전작을 키드 하푼에게 맡겼던 밴드가 이번에는 직접 프로듀서 자리에 앉았다.</p>${fol(F, 2, '커버 스토리')}</div>`,
+`<div class="pg">
+<p class="p">밴드는 이 판을 지금까지 가장 내밀하고 무방비한 기록이라고 불렀다. AP는 어쿠스틱하고 개인적인 쪽으로 방향을 틀었다고 썼고, 첫 싱글 'My Whole World'가 그 문을 열었다. 'KOYSAR'의 뮤직비디오에는 멤버들의 아이들이 가족 나들이처럼 등장한다. 경기장을 울리던 밴드가 이번에는 거실 크기의 노래를 골랐다.</p>
+<p class="p">모두가 반긴 것은 아니다. Riff는 너무 안전하고 되풀이된다며 10점 중 5점을 줬고, Clash는 아메리카나와 다정한 선율을 들어 8점을 줬다. Daily Bruin은 예전 히트곡보다 크게 울리려 하지 않아서 오히려 낫다고 했다. 같은 판을 두고 '안전하다'와 '진심이다'가 함께 나온다. 나는 그게 이 판의 정확한 초상이라고 생각한다.</p>${fol(F, 3, '커버 스토리')}</div>`,
+`<div class="pg">
+<div class="pull">경기장을 울리던 밴드가, 이번에는 거실 크기의 노래를 골랐다.</div>
+<p class="p">젊은 날의 킹스 오브 리온을 그리워하는 사람에게 이 판은 조금 심심할지 모른다. 하지만 밴드가 나이 드는 방법은 여러 가지이고, 그중 가장 다정한 것은 집으로 돌아오는 것이다. 볼륨은 7. 끝까지 올리지는 않되, 옆방에서 자는 사람이 깨지 않을 만큼만.</p>
+<div class="box"><b>다른 시각</b>Riff의 말처럼, 이 판의 다정함은 같은 온도가 열세 곡 내내 이어진다는 뜻이기도 하다. 그 온도가 맞지 않는 밤도 있을 것이다.</div>
+<div class="box"><b>볼륨 근거</b>${bars([['밴드의 합', 5], ['장면을 만드는 힘', 8], ['진심', 8.5], ['새로움', 4]])}</div>${fol(F, 4, '커버 스토리')}</div>`,
+`<div class="pg"><div class="kick">이 판과 어울리는 밤</div><div class="h">아이가 잠든 뒤의 거실</div>
+<table class="facts"><tr><td>시간</td><td>밤 11시 40분</td></tr><tr><td>날씨</td><td>첫눈 예보, 아직은 비</td></tr><tr><td>장소</td><td>아이 방 문을 반쯤 닫아 둔 거실</td></tr></table>
+<p class="p">이건 내가 그려 본 장면이다. 하루가 끝나고 집 안의 소리가 하나씩 꺼진다. 냉장고 소리, 창밖의 빗소리, 그리고 판 하나.</p>
+<p class="p">제목부터 새벽 쪽으로 기우는 'Cold Blue Dawn'을 먼저 건다. 곁에 누가 있다는 것만으로 충분하다는 이름의 'Warm Company'가 그다음. 마지막으로 불을 끄기 전에 'My Whole World'. 이 세 곡을 고른 이유는 소리가 아니라 이름이다. 소리는 당신의 거실에서 확인해 주길.</p>${fol(F, 5, '이 판과 어울리는 밤')}</div>`,
+`<div class="pg"><div class="kick">이번 주 밴드</div>
+<div class="sh"><div class="t">Spanish Love Songs — Future Nausea · 볼륨 8/11</div><p class="by">이럴 때 들을 것: 출근길 지하철, 이어폰 볼륨을 한 칸 더</p><p class="p">다섯 번째 정규, 11월 6일 Pure Noise. 크리스 왈라와 사라 터드진이 프로듀서로 앉았다. 정치적 폭력과 기후 불안, 끝물의 자본주의를 정면으로 다룬다. Atwood는 첫 싱글 'Good American'을 격렬하게 앞으로 내달리는 록 노래라 했고, 보컬 딜런 슬로컴은 지금까지 만든 판 중 가장 덜 슬픈 판이라고 말했다고 전해진다. 세상이 무너지는 이야기를 하면서 덜 슬퍼지는 법, 밴드가 아니면 누가 가르쳐 줄까.</p></div>
+<div class="sh"><div class="t">신인 세 팀 — 이번 주는 쉰다</div><p class="p">출처를 두 곳 이상 확인할 수 있는 신인을 이번 주에는 찾지 못했다. 다음 주에는 앞줄을 채우겠다. — 신인 데스크 '앞줄'</p></div>${fol(F, 6, '이번 주 밴드')}</div>`,
+`<div class="pg"><div class="kick">출처와 편집 노트</div><div class="h" style="font-size:5cqw">이 호에 대해</div>
+<div class="box"><b>편집 노트</b>출처 10곳 · 신인 세 팀 쉼<br>'이 판과 어울리는 밤'의 장면은 편집부의 상상이다. 소리에 대한 문장은 다른 매체의 말을 옮긴 것이다.</div>
+${src([['Radio X · 열 번째 앨범 발표', 'https://www.radiox.co.uk/artists/kings-of-leon/announce-10th-album-o-my-beloved-new-single-my-whole-world/'], ['JamBase · 첫 셀프 프로듀스', 'https://www.jambase.com/article/kings-of-leon-o-my-beloved-album-my-whole-world'], ['AP · 어쿠스틱한 방향', 'https://abcnews.com/Entertainment/wireStory/kings-leon-reveal-new-personal-acoustic-songwriting-direction-136338451'], ['Radio X · KOYSAR 뮤직비디오', 'https://www.radiox.co.uk/artists/kings-of-leon/enlist-kids-on-family-day-out-koysar-video/'], ['Riff 리뷰', 'https://riffmagazine.com/album-reviews/kings-of-leon-o-my-beloved/'], ['Clash 리뷰', 'https://www.clashmusic.com/reviews/kings-of-leon-o-my-beloved/'], ['Daily Bruin 리뷰', 'https://dailybruin.com/2026/11/07/kings-of-leon-leave-the-roaring-guitars-in-the-rearview-on-o-my-beloved/'], ['Stereogum · 곡 목록', 'https://stereogum.com/2510984/kings-of-leon-announce-new-album-o-my-beloved-hear-my-whole-world/music'], ['Atwood · Future Nausea', 'https://atwoodmagazine.com/slsfn-future-nausea-spanish-love-songs-album-review/'], ['JB Hi-Fi · 프로듀서·주제', 'https://www.jbhifi.com.au/products/cd-spanish-love-songs-future-nausea-cd']])}
+<div class="box" style="margin-top:2cqw"><b>판권</b>feedback · 매주 월요일 · 피드백 프레스 · 편집 윤서해(가상 인물)</div>${fol(F, 7)}</div>`
+  ],
+  singles: [
+    { t: 'My Whole World', a: 'Kings of Leon', pg: 3, c: '#f2a65a' },
+    { t: 'KOYSAR', a: 'Kings of Leon', pg: 3, c: '#ffe2a8' },
+    { t: 'Cold Blue Dawn', a: 'Kings of Leon', pg: 5, c: '#7fb8d6' },
+    { t: 'Warm Company', a: 'Kings of Leon', pg: 5, c: '#e07a4a' },
+    { t: 'Good American', a: 'Spanish Love Songs', pg: 6, c: '#2bb3d9' }
+  ]
+};
+
+/* ───────── Cypher Vol.01 · 2026.11.18 ───────── */
+const C = 'Cypher · Vol.01';
+const CY = {
+  id: 'cy', theme: 't-cy', name: 'Cypher', color: '#b0201e', mag: '#b0201e', r: -1.5,
+  label: ['사이퍼 미디어 → 구독자 님', '내용물: Cypher Vol.01 1부', '부록 7인치 싱글 5장', '2026.11.18 수요일'],
+  pages: [
+`<div class="cover">
+  <div style="position:absolute;inset:0;background-color:#d9d4ca;background-image:radial-gradient(rgba(20,20,20,.5) .32cqw,transparent .62cqw);background-size:1.4cqw 1.4cqw"></div>
+  <div style="position:absolute;left:-3cqw;top:26cqw;font-family:'Archivo Black';font-size:26cqw;line-height:.86;letter-spacing:-.05em;color:var(--acc);mix-blend-mode:multiply">TROU<br>BLE<br>MOUN<br>TAIN</div>
+  <div style="position:absolute;right:3cqw;top:14cqw;font-family:'Archivo Black';font-size:46cqw;line-height:1;color:#141414">“</div>
+  <div style="position:absolute;left:5cqw;top:4cqw;background:var(--acc);padding:.5cqw 3.5cqw 1.5cqw"><span style="font-family:'Archivo Black';font-size:13cqw;color:#fff;letter-spacing:-.03em">Cypher</span></div>
+  <div style="position:absolute;right:5cqw;top:5cqw;text-align:right;font-weight:900;font-size:2.6cqw;line-height:1.4">수요일 힙합 주간<br>사이퍼 미디어 · 편집 박지후</div>
+  <div style="position:absolute;right:5cqw;top:62cqw;text-align:right;line-height:1.2"><span style="display:block;font-weight:900;font-size:3.2cqw">Aesop Rock &amp; Blockhead</span><span style="font-size:6.4cqw;color:var(--acc);letter-spacing:.4cqw">★★★½</span></div>
+  <div style="position:absolute;right:0;bottom:17cqw;background:var(--acc);color:#fff;padding:1.4cqw 5cqw 1.4cqw 4cqw;font-family:'Archivo';font-style:italic;font-weight:800;font-size:3.4cqw">VOL.01 &nbsp; <span style="font-size:6cqw">11.18</span></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:15cqw;background:var(--acc);display:flex;align-items:center;gap:3cqw;padding:0 4cqw;color:#fff">
+    <div class="bcd" style="position:static;flex:0 0 15cqw"><i></i></div>
+    <span style="font-family:'Archivo','Noto Sans KR';font-style:italic;font-weight:700;font-size:2.3cqw;line-height:1.5">앨범 리뷰 [Trouble Mountain] — 포코노 휴양지 광고 속으로. 피처링 지도 · 씬 리포트: 황지상 [#800080] · 다음 호 예고: 듀스 [4th Deux] · 부록 싱글 5장</span>
+  </div>
+</div>`,
+`<div class="pg"><div class="kick">차례</div><div class="h">Cypher Vol.01</div><div class="by">2026년 11월 18일 · 사이퍼 미디어 · 편집 박지후</div>
+<div class="toc">
+<div><b>2</b><span>앨범 리뷰<small>Aesop Rock &amp; Blockhead — [Trouble Mountain] · 박지후 · ★★★½</small></span></div>
+<div><b>5</b><span>피처링 지도<small>두 사람과 다섯 명</small></span></div>
+<div><b>6</b><span>씬 리포트<small>황지상 [#800080] · Westside Gunn [HEELMATIC] · 다음 호 예고</small></span></div>
+<div><b>7</b><span>출처와 편집 노트</span></div>
+<div><b>8</b><span>부록 · 이 호의 노래<small>7인치 싱글 5장</small></span></div>
+</div>${fol(C, 1)}</div>`,
+`<div class="pg"><div class="kick">앨범 리뷰</div><div class="h">Aesop Rock &amp; Blockhead — [Trouble Mountain]</div><div class="by">글 박지후</div>
+<div class="score"><span class="stars">★★★½</span><span class="by">3.5 / 5</span></div>
+<table class="facts"><tr><td>발매</td><td>2026.11.13 · Rhymesayers</td></tr><tr><td>위치</td><td>두 사람의 두 번째 공동 앨범 · 이솝 록 열세 번째 정규</td></tr><tr><td>참여</td><td>Open Mike Eagle, Cavalier, 4-IZE, Hanni El Khatib, Baby Dayliner</td></tr></table>
+<div class="sub">소개</div>
+<p class="p">2021년 [Garbology] 이후 5년 만의 공동 작업이다. 출발점은 두 사람이 어린 시절 뉴욕 TV에서 보던 포코노 산맥 휴양지 광고. 앨범은 그 광고 속 스키 리조트를 가상의 목적지로 세운다.</p>${fol(C, 2, '앨범 리뷰')}</div>`,
+`<div class="pg"><div class="sub">가사와 주제</div>
+<p class="p">더 나은 삶을 찾아 떠난 곳이 떠나온 곳만큼 이상하고 복잡하다는 이야기다. Riff는 이 앨범이 예술가로 사는 일, 고립, 동물, 노동, 생존이라는 이솝 록의 익숙한 영토를 다시 걷는다고 짚었다. 주제는 분명하다. 다만 같은 리뷰는 리조트라는 콘셉트가 끝까지 앨범을 붙들지는 못한다고 평했다.</p>
+<div class="sub">랩</div>
+<p class="p">이번 호는 랩의 결을 곡 단위로 판정할 자료를 충분히 모으지 못했다. 확인된 것은 구성이다. 선공개곡 'Trouble Trouble'이 앨범의 얼굴이고, 'Eat And Grow'에서는 Cavalier와 4-IZE가 마이크를 나눠 잡는다. 이 항목의 점수는 기본값으로 두었다.</p>${fol(C, 3, '앨범 리뷰')}</div>`,
+`<div class="pg"><div class="sub">프로덕션</div>
+<p class="p">비트는 블록헤드다. 두 사람은 2000년대 초부터 함께 작업해 온 사이다. 앨범 중간에는 'TM Tours'라는 가짜 광고가 끼어 있고, 가수 Baby Dayliner가 광고 목소리를 맡았다. 광고 한 편을 통째로 만들어 넣는 방식은, 프로덕션이 이야기를 떠받치는 장치가 된다는 점에서 이 앨범의 가장 영리한 선택이다.</p>
+<div class="pull">어린 시절의 광고 한 편을 앨범 한 장의 세계로 바꾸는 상상력.</div>
+<div class="sub">총평</div>
+<p class="p">[Garbology]만큼 단단한 작품은 아닐지 모른다. 그러나 이 듀오가 여전히 앨범 단위로 생각한다는 증거로는 충분하다. 별 셋 반.</p>
+<div class="box"><b>점수 근거</b>${bars([['가사와 주제', 7], ['랩', 5, '(자료 부족·기본값)'], ['프로덕션', 7.5], ['앨범 완성도', 6.5]])}</div>${fol(C, 4, '앨범 리뷰')}</div>`,
+`<div class="pg"><div class="kick">피처링 지도</div><div class="h">두 사람과 다섯 명</div>
+<div class="nodes">
+<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g stroke="#161514" stroke-width=".5" fill="none"><line x1="50" y1="50" x2="16" y2="18"/><line x1="50" y1="50" x2="84" y2="18"/><line x1="50" y1="50" x2="12" y2="70"/><line x1="50" y1="50" x2="88" y2="70"/><line x1="50" y1="50" x2="50" y2="92"/><line x1="12" y1="70" x2="50" y2="92" stroke-dasharray="1.5 1.5"/></g></svg>
+<div class="node core" style="left:50%;top:50%;width:26cqw;height:26cqw">Aesop Rock<br>&amp;<br>Blockhead</div>
+<div class="node" style="left:16%;top:18%;width:17cqw;height:17cqw">Hanni El Khatib</div>
+<div class="node" style="left:84%;top:18%;width:17cqw;height:17cqw">Baby Dayliner</div>
+<div class="node" style="left:12%;top:70%;width:15cqw;height:15cqw">Cavalier</div>
+<div class="node" style="left:50%;top:92%;width:13cqw;height:13cqw">4-IZE</div>
+<div class="node" style="left:88%;top:70%;width:17cqw;height:17cqw;border-style:dashed">Open Mike Eagle</div>
+</div>
+<p class="p">Hanni El Khatib은 'Coyote Summer', Cavalier와 4-IZE는 함께 'Eat And Grow', Baby Dayliner는 가짜 광고 'TM Tours'. 4-IZE는 한때 Ludacris 쪽 사람으로 소개된 래퍼다. Open Mike Eagle은 참여가 확인됐지만 어느 곡인지는 이번 호에서 확인하지 못해 점선으로 그렸다.</p>${fol(C, 5, '피처링 지도')}</div>`,
+`<div class="pg"><div class="kick">씬 리포트</div>
+<div class="sh"><div class="t">황지상 — [#800080] <span class="tag hold">판정 보류</span></div><p class="p">11월 11일, 첫 정규 앨범. 제목은 보라를 뜻하는 색상 코드로, 빨강과 파랑을 같은 비율로 섞은 색이다. 음악을 이어 오며 겪은 불안과 고민, 정체성에 대한 질문을 담았다고 알려졌다. 확인한 출처가 한 곳뿐이라 이번 호에서는 소개만 한다.</p></div>
+<div class="sh"><div class="t">Westside Gunn — [HEELMATIC] <span class="tag hold">판정 보류</span></div><p class="p">11월 13일, 16곡, Griselda와 Mass Appeal. 마지막 솔로작으로 예고했던 [Awesome God 3] 대신 새 테이프를 냈다. 선공개곡 'Zilla'의 비트는 Denny La Flare. 평이 나오면 다음 호에서 다룬다.</p></div>
+<div class="sh"><div class="t">다음 호 예고 — 듀스 [4th Deux]</div><p class="p">11월 21일 예정. 31년 만의 정규, 9곡. AI로 재현한 고 김성재의 목소리가 담긴다고 보도됐다. 이 지면은 음악과 함께 그 방식에 대한 질문도 다룰 것이다.</p></div>${fol(C, 6, '씬 리포트')}</div>`,
+`<div class="pg"><div class="kick">출처와 편집 노트</div><div class="h" style="font-size:5cqw">이 호에 대해</div>
+<div class="box"><b>편집 노트</b>출처 9곳 · 판정 보류 2장 · 국내 1장(소개)<br>랩 항목은 자료가 모자라 기본값 5로 두었다. 소리에 대한 문장은 다른 매체의 말을 옮긴 것이다.</div>
+${src([['Treble · 앨범 발표', 'https://www.treblezine.com/aesop-rock-and-blockhead-announce-new-album-trouble-mountain/'], ['Stereogum · 콘셉트와 곡', 'https://stereogum.com/2511606/aesop-rock-blockhead-announce-new-album-trouble-mountain-hear-trouble-trouble/music'], ['mxdwn · Coyote Summer', 'https://music.mxdwn.com/2026/10/13/news/aesop-rock-blockhead-team-up-with-hanni-el-khatib-for-new-single-coyote-summer/'], ['Riff 리뷰 (7/10)', 'https://riffmagazine.com/album-reviews/aesop-rock-blockhead-trouble-mountain/'], ['Music Direct · 곡 목록', 'https://www.musicdirect.com/vinyl/aesop-rock-blockhead-trouble-mountain-vinyl-2lp/'], ['iMBC · 황지상 첫 정규', 'https://enews.imbc.com/News/RetrieveNewsInfo/523452'], ['Stereogum · HEELMATIC', 'https://stereogum.com/2515336/westside-gunn-announces-new-album-heelmatic-hear-zilla/music'], ['Ratings Game · HEELMATIC', 'https://ratingsgamemusic.com/2026/10/22/westside-gunn-heelmatic-album-november-13-zilla/'], ['더팩트 · 듀스 새 정규', 'https://news.tf.co.kr/read/ogmeta/2386784.htm']])}
+<div class="box" style="margin-top:2cqw"><b>판권</b>Cypher · 매주 수요일 · 사이퍼 미디어 · 편집 박지후(가상 인물)</div>${fol(C, 7)}</div>`
+  ],
+  singles: [
+    { t: 'Trouble Trouble', a: 'Aesop Rock & Blockhead', pg: 3, c: '#b0201e' },
+    { t: 'Eat And Grow', a: 'Aesop Rock & Blockhead', pg: 3, c: '#e8e2d4' },
+    { t: 'TM Tours', a: 'Aesop Rock & Blockhead', pg: 4, c: '#7fb8d6' },
+    { t: 'Coyote Summer', a: 'Aesop Rock & Blockhead', pg: 5, c: '#e8b14a' },
+    { t: 'Zilla', a: 'Westside Gunn', pg: 6, c: '#3a3a3a' }
+  ]
+};
+
+/* ───────── 33⅓ Vol.00 · 창간 준비호 ───────── */
+const M = '33⅓ · Vol.00';
+const rays = `conic-gradient(from -8deg at 50% 62%,#1f2a8a 0 14deg,#f4efe6 14deg 22deg,#d62718 22deg 52deg,#1f2a8a 52deg 70deg,#f4efe6 70deg 78deg,#d62718 78deg 120deg,#1f2a8a 120deg 140deg,#f4efe6 140deg 148deg,#d62718 148deg 200deg,#1f2a8a 200deg 222deg,#f4efe6 222deg 230deg,#d62718 230deg 290deg,#1f2a8a 290deg 312deg,#f4efe6 312deg 320deg,#d62718 320deg 360deg)`;
+const MON = {
+  id: 'mo', theme: 't-33', name: '33⅓', color: '#d62718', mag: '#d62718', r: 3,
+  label: ['T/L/L 출판 → 구독자 님', '내용물: 33⅓ Vol.00 창간 준비호', '부록 7인치 싱글 3장', '2026.11.13'],
+  pages: [
+`<div class="cover" style="background:${rays}">
+  <div style="position:absolute;left:0;right:0;top:-1cqw;text-align:center;font-family:'Jost';font-weight:900;font-size:36cqw;line-height:1;letter-spacing:-.02em;color:#f4efe6;text-shadow:1cqw 1cqw 0 #141414">33⅓</div>
+  <div style="position:absolute;right:4cqw;top:38cqw;text-align:right;font-weight:900;font-size:2.6cqw;line-height:1.4;color:#f4efe6;text-shadow:.3cqw .3cqw 0 #141414">Vol.00 · 창간 준비호<br>T/L/L 출판 · 차트 데스크</div>
+  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-10%);font-family:'Jost';font-weight:900;font-size:58cqw;line-height:1;color:transparent;-webkit-text-stroke:.6cqw #f4efe6">0</div>
+  <div style="position:absolute;left:2cqw;top:98cqw;transform:rotate(-14deg);transform-origin:left;font-family:'Jost','Noto Sans KR';font-weight:900;font-size:6.6cqw;color:#fff;text-shadow:.5cqw .7cqw 0 #141414;white-space:nowrap">기록 0일치에서 시작한다</div>
+  <div style="position:absolute;right:4cqw;top:60cqw;text-align:right;font-weight:900;font-size:3.6cqw;line-height:1.35;color:#ffd84d;text-shadow:.3cqw .4cqw 0 #141414">세는 법<br>세 잡지 결산<br>12월 1일 첫 차트</div>
+  <div style="position:absolute;right:4cqw;bottom:5cqw;text-align:right;font-family:'Jost','Noto Sans KR';font-weight:900;font-size:4.4cqw;line-height:1.15;color:#f4efe6;text-shadow:.3cqw .4cqw 0 #141414">부록:<br>세 잡지의 싱글 3장</div>
+  <div class="bcd" style="left:4cqw;bottom:5cqw"><i></i></div>
+</div>`,
+`<div class="pg"><div class="kick">차례</div><div class="h">33⅓ Vol.00</div><div class="by">창간 준비호 · 2026년 11월 13일 · T/L/L 출판 · 차트 데스크</div>
+<div class="toc">
+<div><b>2</b><span>창간사<small>기억은 과장하고 기록은 정확하다</small></span></div>
+<div><b>3</b><span>세는 법<small>재생 1회, 순위, 변동, 장르, 시간대</small></span></div>
+<div><b>4</b><span>이달의 차트<small>기록 0일치 · 빈 칸</small></span></div>
+<div><b>5</b><span>이번 주 세 잡지 결산<small>Drop · feedback · Cypher</small></span></div>
+<div><b>6</b><span>12월호에서 만날 것</span></div>
+<div><b>8</b><span>부록 · 세 잡지의 싱글<small>3장</small></span></div>
+</div>${fol(M, 1)}</div>`,
+`<div class="pg"><div class="kick">창간사</div><div class="h">기억은 과장하고 기록은 정확하다</div>
+<p class="p">우리는 한 달 동안 무엇을 몇 번 들었는지를 센다. 센 것만 쓴다.</p>
+<p class="p">순위는 평가가 아니다. 많이 들은 곡이 좋은 곡이라고 우리는 말하지 않는다. 많이 들었다고 말할 뿐이다. 숫자 사이의 흐름은 읽되, 이유를 지어내지 않는다.</p>
+<p class="p">그래서 이 준비호에는 차트가 없다. 재생 기록은 앱이 기록을 쌓기 시작한 날부터 센다. 이번 달 우리가 가진 기록은 0일치다. 기록이 모자란 달에는 모자라다고 쓴다는 약속을, 첫 호부터 지킨다.</p>${fol(M, 2, '창간사')}</div>`,
+`<div class="pg"><div class="kick">세는 법</div><div class="h">숫자는 이렇게 만든다</div>
+<table class="facts">
+<tr><td>재생 1회</td><td>30초 넘게 들은 곡. 건너뛴 곡은 세지 않는다</td></tr>
+<tr><td>순위</td><td>재생 수 → 같으면 들은 총 시간 → 같으면 먼저 들어온 곡</td></tr>
+<tr><td>변동</td><td>지난달과 비교. 20위 밖이었으면 NEW, 두 달 넘게 빠졌다 돌아오면 RE</td></tr>
+<tr><td>차트 개월</td><td>20위 안에 든 달의 수. 12개월을 넘기면 '스테디'</td></tr>
+<tr><td>장르</td><td>밴드 · 힙합 · 팝 · R&amp;B · 전자 · 기타, 여섯 갈래</td></tr>
+<tr><td>시간대</td><td>한국 시각, 요일 × 시간 7 × 24 칸</td></tr>
+<tr><td>밖으로</td><td>내 기록은 T/L/L 밖으로 나가지 않는다</td></tr>
+</table>${fol(M, 3, '세는 법')}</div>`,
+`<div class="pg"><div class="kick">이달의 차트</div><div class="h">TOP 20</div><div class="by" style="margin-bottom:2cqw">기록 0일치 · 첫 집계 12월 1일</div>
+<table class="chart"><tr><th>#</th><th>변동</th><th>곡</th><th>재생</th><th>개월</th></tr>
+${Array.from({ length: 12 }, (_, i) => `<tr><td>${i + 1}</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`).join('')}</table>${fol(M, 4, '이달의 차트')}</div>`,
+`<div class="pg"><div class="kick">이번 주 세 잡지 결산</div><div class="h">편집부가 매긴 것</div>
+<table class="chart"><tr><th>잡지</th><th>판</th><th>점수</th></tr>
+<tr><td style="font-size:2.4cqw">Drop</td><td style="color:var(--ink)">U2 [Carnaval de Luz]</td><td style="color:var(--ink)">6.5</td></tr>
+<tr><td style="font-size:2.4cqw">Drop</td><td style="color:var(--ink)">Snoh Aalegra [Legendary Love]</td><td style="color:var(--ink)">보류</td></tr>
+<tr><td style="font-size:2.4cqw">fb</td><td style="color:var(--ink)">Kings of Leon [O My Beloved]</td><td style="color:var(--ink)">볼륨 7</td></tr>
+<tr><td style="font-size:2.4cqw">fb</td><td style="color:var(--ink)">Spanish Love Songs [Future Nausea]</td><td style="color:var(--ink)">볼륨 8</td></tr>
+<tr><td style="font-size:2.4cqw">Cy</td><td style="color:var(--ink)">Aesop Rock &amp; Blockhead [Trouble Mountain]</td><td style="color:var(--ink)">★3.5</td></tr>
+<tr><td style="font-size:2.4cqw">Cy</td><td style="color:var(--ink)">황지상 [#800080] · Westside Gunn [HEELMATIC]</td><td style="color:var(--ink)">보류</td></tr>
+</table>
+<p class="p" style="margin-top:3cqw">12월호부터는 이 옆에 '내가 실제로 들은 횟수'와 '독자 점수'가 붙는다. 편집부와 내가 얼마나 같은 판을 골랐는지, 숫자로 보게 될 것이다.</p>${fol(M, 5, '결산')}</div>`,
+`<div class="pg"><div class="kick">12월호에서 만날 것</div><div class="h">2026년 12월 1일</div>
+<div class="box"><b>이달의 차트 TOP 20</b>재생 수, 변동, 차트 개월</div>
+<div class="box"><b>언제 듣나</b>요일 × 시간 히트맵, 가장 많이 들은 시간과 그때의 곡</div>
+<div class="box"><b>편집부 vs 나</b>주간지 점수와 내 재생 수·독자 점수가 가장 어긋난 판 세 장</div>
+<div class="box"><b>발견</b>처음 들은 아티스트 가운데 가장 많이 들은 셋</div>
+<div class="box"><b>잼 일지</b>잼 셋리스트, 펭귄 p가 넘긴 곡</div>${fol(M, 6, '예고')}</div>`,
+`<div class="pg"><div class="kick">편집 노트</div><div class="h" style="font-size:5cqw">이 호에 대해</div>
+<div class="box"><b>편집 노트</b>기록 0일치 · 지어낸 숫자 0<br>결산 표의 점수는 이번 주 Drop · feedback · Cypher에 실린 것을 그대로 옮겼다.</div>
+<div class="box"><b>판권</b>33⅓ · 매달 1일 · T/L/L 출판 · 차트 데스크</div>${fol(M, 7)}</div>`
+  ],
+  singles: [
+    { t: 'Go (Carnaval De Luz)', a: 'U2 · Drop에서', pg: 5, c: '#f59ad6' },
+    { t: 'My Whole World', a: 'Kings of Leon · feedback에서', pg: 5, c: '#2bb3d9' },
+    { t: 'Trouble Trouble', a: 'Aesop Rock & Blockhead · Cypher에서', pg: 5, c: '#b0201e' }
+  ]
+};
+
+const ISSUES = [DROP, FEED, CY, MON];
+const SLOTS5 = [[7, 17, -5], [56, 15, 4], [10, 55, 3], [58, 54, -3], [33, 92, 6]];
+const SLOTS3 = [[9, 22, -4], [56, 40, 5], [20, 80, 2]];
+const TAPES = [[[-8, 6, -12, 46], [60, 70, 20, 30]], [[20, -4, 8, 60]], [[-10, 30, -80, 40, 'curl'], [70, 80, 30, 36]], [[30, -5, 4, 46]], [[-6, -4, 38, 36], [62, 76, -30, 34]]];
+function singlesPage(I) {
+  const slots = I.singles.length === 3 ? SLOTS3 : SLOTS5;
+  return `<div class="sg-h"><b>부록 · 이 호의 노래</b><span>8 · 눌러서 떼기</span></div>` + I.singles.map((s, i) => {
+    const [x, y, r] = slots[i];
+    return `<button class="single" type="button" data-i="${i}" style="left:${x}cqw;top:${y}cqw;--r:${r}deg" aria-label="부록 싱글 ${s.t}, ${s.a}. 눌러서 꺼내 재생">
+      <span class="sleeve"><span class="sn">7" · 45</span><span class="hole" style="--c:${s.c}"></span><span class="st">${s.t}</span></span><span class="bag"></span>
+      ${TAPES[i % 5].map(([tx, ty, tr, w, k]) => `<span class="ct ${k || ''}" style="left:${tx}%;top:${ty}%;width:${w}%;transform:rotate(${tr}deg)"></span>`).join('')}
+      <span class="cap">'${s.t}' · ${s.pg}쪽</span></button>`;
+  }).join('');
+}
+
+/* 소리 */
+let ac;
+function noise(dur, freq, type, gain) {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) * (Math.random() < .3 ? 1 : .45);
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = b; f.type = type; f.frequency.value = freq; g.gain.value = gain;
+    s.connect(f).connect(g).connect(ac.destination); s.start();
+  } catch (e) {}
+}
+const sfx = { tape: () => noise(.6, 1800, 'bandpass', .5), tear: () => noise(.4, 2500, 'highpass', .4), page: () => noise(.22, 700, 'lowpass', .35), peel: () => noise(.3, 3000, 'bandpass', .35) };
+
+const hint = $('#hint'), alt = $('#alt'), toastEl = $('#toast');
+let toastT;
+function toast(m) { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 2800); }
+function setHint(t, a) { hint.textContent = t; alt.hidden = !a; if (a) alt.textContent = a; }
+
+let I = null, state = 'mail', torn = false, k = 0, spread = false, leaves = [];
+const readSet = new Set();
+
+function measure() {
+  const vw = innerWidth - 32, vh = innerHeight - 140;
+  spread = innerWidth >= 820;
+  let w = spread ? Math.min(380, vw / 2) : Math.min(420, vw);
+  w = Math.min(w, vh * .75);
+  const r = document.documentElement.style;
+  r.setProperty('--pw', w + 'px'); r.setProperty('--ph', w * 4 / 3 + 'px');
+  r.setProperty('--bkw', (spread ? 2 * w : w) + 'px'); r.setProperty('--lx', (spread ? w : 0) + 'px');
+  r.setProperty('--bw', Math.min(420, vw, vh * .85) + 'px');
+}
+
+/* 우편함 */
+function renderMail() {
+  $('#parcels').innerHTML = ISSUES.map(x => `<button class="parcel ${readSet.has(x.id) ? 'read' : ''}" type="button" data-id="${x.id}" style="--r:${x.r}deg" aria-label="${x.name} 상자 열기">
+    <span class="lb"><b>${x.label[0]}</b>${x.label[1]}<br>${x.label[3]}</span>
+    <span class="dot" style="background:${x.color}">${x.name}</span>
+    <span class="new">${readSet.has(x.id) ? '읽음' : '새 우편'}</span></button>`).join('');
+}
+$('#parcels').addEventListener('click', e => { const b = e.target.closest('.parcel'); if (b) openIssue(b.dataset.id); });
+
+function openIssue(id) {
+  I = ISSUES.find(x => x.id === id); state = 'box'; torn = false; k = 0;
+  $('#mail').classList.add('off');
+  const box = $('#box'); box.classList.remove('off', 'open'); $('#slit').style.width = 0;
+  $('.inner .mag').style.setProperty('--magc', I.mag);
+  $('#lbl').innerHTML = `<b>${I.label[0]}</b>보내는 곳: ${I.label[0].split(' →')[0]}<br>받는 곳: Sabathia 우편함<br>${I.label[1]}<br>${I.label[2]}<br>${I.label[3]}<div class="bc"></div>`;
+  $('#bookWrap').classList.remove('on');
+  $('#book').className = I.theme;
+  $('#home').hidden = false; $('#again').hidden = false;
+  build();
+  setHint('테이프를 따라 가로로 그어서 상자를 여세요', '칼로 자르기');
+  box.focus({ preventScroll: true });
+}
+function goHome() {
+  state = 'mail'; I = null;
+  $('#box').classList.add('off'); $('#bookWrap').classList.remove('on');
+  $('#mail').classList.remove('off'); $('#home').hidden = true; $('#again').hidden = true;
+  renderMail(); setHint('');
+}
+$('#home').addEventListener('click', goHome);
+$('#again').addEventListener('click', () => I && openIssue(I.id));
+
+function build() {
+  if (!I) return;
+  const P = I.pages, book = $('#book');
+  const groups = spread ? [[0, 1], [2, 3], [4, 5], [6, 7]] : P.map((_, i) => [i, -1]);
+  book.innerHTML = groups.map(([f, b], i) => `<div class="leaf"><div class="face front">${P[f]}${i === 0 && !torn ? wrapHTML() : ''}</div><div class="face back ${b < 0 ? 'blank' : ''}">${b < 0 ? '' : P[b]}</div></div>`).join('') + `<div class="base">${singlesPage(I)}</div>`;
+  leaves = [...book.querySelectorAll('.leaf')];
+  if (!torn) bindWrap();
+  apply();
+}
+const wrapHTML = () => `<div class="wrap" aria-label="비닐 포장. 가로로 그어서 뜯기"><div class="wsticker">부록 싱글<br>${I.singles.length}장 수록</div><div class="wbar">${I.label[1].replace('내용물: ', '')}</div></div><div id="tear"></div>`;
+
+function apply(moving = -1) {
+  const n = leaves.length;
+  leaves.forEach((L, i) => { L.classList.toggle('flipped', i < k); L.style.zIndex = i === moving ? 200 : (i < k ? i + 1 : n - i + 10); });
+  if (moving >= 0) setTimeout(() => apply(), 860);
+  $('#book').style.transform = spread && k === 0 ? 'translateX(calc(var(--pw) * -.5))' : '';
+  if (state === 'read') setHint(k >= n ? '싱글을 누르면 테이프를 떼고 꺼냅니다' : '오른쪽을 누르거나 밀어서 넘기기');
+}
+function turn(d) {
+  if (state !== 'read') return;
+  const n = leaves.length;
+  if (d > 0 && k < n) { k++; sfx.page(); apply(k - 1); if (k === n) { readSet.add(I.id); } }
+  else if (d < 0 && k > 0) { k--; sfx.page(); apply(k); }
+}
+
+/* 상자 */
+const box = $('#box'), slit = $('#slit');
+let bx = null;
+box.addEventListener('pointerdown', e => { if (state !== 'box') return; bx = { x: e.clientX, max: 0, r: box.getBoundingClientRect() }; box.setPointerCapture(e.pointerId); });
+box.addEventListener('pointermove', e => {
+  if (!bx) return;
+  const p = Math.min(1, Math.abs(e.clientX - bx.x) / bx.r.width);
+  if (p > bx.max) { bx.max = p; slit.style.width = p * 100 + '%'; slit.style.left = Math.max(0, (Math.min(e.clientX, bx.x) - bx.r.left) / bx.r.width * 100) + '%'; if (Math.random() < .3) noise(.05, 1800, 'bandpass', .25); }
+  if (p > .7) { bx = null; openBox(); }
+});
+box.addEventListener('pointerup', () => { if (bx && bx.max < .7) slit.style.width = 0; bx = null; });
+box.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && state === 'box') { e.preventDefault(); openBox(); } });
+function openBox() {
+  state = 'opening'; slit.style.left = 0; slit.style.width = '100%'; sfx.tape(); setHint('상자를 여는 중…');
+  setTimeout(() => box.classList.add('open'), 250);
+  setTimeout(() => { box.classList.add('off'); $('#bookWrap').classList.add('on'); state = 'wrap'; setHint('비닐을 가로로 그어 뜯으세요', '비닐 뜯기'); }, 2000);
+}
+
+/* 비닐 */
+function bindWrap() {
+  const w = $('.wrap'), line = $('#tear');
+  if (!w) return;
+  let t = null;
+  w.addEventListener('pointerdown', e => { if (state !== 'wrap') return; const r = w.getBoundingClientRect(); t = { x: e.clientX, y: e.clientY - r.top, r, max: 0 }; w.setPointerCapture(e.pointerId); line.style.top = t.y + 'px'; line.style.left = (e.clientX - r.left) + 'px'; });
+  w.addEventListener('pointermove', e => {
+    if (!t) return;
+    const dx = e.clientX - t.x, p = Math.min(1, Math.abs(dx) / t.r.width);
+    if (p > t.max) { t.max = p; line.style.width = Math.abs(dx) + 'px'; line.style.left = (Math.min(e.clientX, t.x) - t.r.left) + 'px'; if (Math.random() < .25) noise(.04, 2600, 'highpass', .2); }
+    if (p > .7) { const y = t.y / t.r.height; t = null; tearWrap(y); }
+  });
+  w.addEventListener('pointerup', () => { if (t) line.style.width = 0; t = null; });
+}
+function tearWrap(y = .5) {
+  if (torn) return;
+  torn = true; sfx.tear();
+  const w = $('.wrap'), line = $('#tear');
+  if (w) {
+    const yy = Math.max(15, Math.min(85, y * 100)), zig = [];
+    for (let i = 0; i <= 20; i++) zig.push(`${i * 5}% ${yy + (i % 2 ? 1.5 : -1.5)}%`);
+    const bg = getComputedStyle(w).background, top = w.cloneNode(true), bot = w.cloneNode(true);
+    [top, bot].forEach(s => { s.classList.remove('wrap'); s.classList.add('shard'); s.style.background = bg; w.parentNode.appendChild(s); });
+    top.style.clipPath = `polygon(0 0,100% 0,${zig.slice().reverse().join(',')})`;
+    bot.style.clipPath = `polygon(${zig.join(',')},100% 100%,0 100%)`;
+    w.remove(); line && line.remove();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      top.style.transform = 'translate(-30%,-70%) rotate(-14deg)'; top.style.opacity = 0;
+      bot.style.transform = 'translate(25%,70%) rotate(10deg)'; bot.style.opacity = 0;
+    }));
+    setTimeout(() => { top.remove(); bot.remove(); }, 950);
+  }
+  state = 'read'; apply();
+}
+alt.addEventListener('click', () => { if (state === 'box') openBox(); else if (state === 'wrap') tearWrap(.5); });
+
+/* 넘기기 · 싱글 */
+const bookEl = $('#book');
+let sw = null;
+bookEl.addEventListener('pointerdown', e => { if (state !== 'read') return; sw = { x: e.clientX, y: e.clientY }; });
+bookEl.addEventListener('pointerup', e => {
+  if (!sw || state !== 'read') return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  if (e.target.closest('a')) return;
+  const one = e.target.closest('.single');
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { turn(dx < 0 ? 1 : -1); return; }
+  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
+  if (one && k >= leaves.length) { takeSingle(one); return; }
+  const r = bookEl.getBoundingClientRect();
+  const mid = spread ? r.left + r.width / 2 : r.left + r.width * .35;
+  turn(e.clientX > mid ? 1 : -1);
+});
+bookEl.addEventListener('keydown', e => { const s = e.target.closest('.single'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); takeSingle(s); } });
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); if (e.key === 'Escape' && state !== 'mail') goHome(); });
+function takeSingle(el) {
+  const s = I.singles[+el.dataset.i];
+  if (!el.classList.contains('taken')) { el.classList.add('taken'); sfx.peel(); }
+  toast(`▶ '${s.t}' — ${s.a}  (앱에서는 Spotify로 재생되고 ${I.label[0].split(' →')[0]} 크레이트에 꽂힙니다)`);
+}
+
+addEventListener('resize', () => { const before = spread; measure(); if (before !== spread && I) { k = spread ? Math.ceil(k / 2) : k * 2; build(); } });
+measure(); renderMail(); setHint('');
+})();
+</script>

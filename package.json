@@ -1,0 +1,15 @@
+{
+  "name": "tll",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo no build step",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/music.mjs && node test/music-api.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.149.0"
+  }
+}

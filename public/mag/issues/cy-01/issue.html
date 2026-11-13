@@ -1,0 +1,274 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo+Black&family=Jost:wght@700;900&family=Archivo:wght@500;700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+/* 시안 시트: 어두운 책상 위에 펼침면을 위에서 아래로. 펼침 = 지면 두 장(3:4). 지면 안 단위는 cqw(지면 폭 1%) */
+:root{
+  --desk:#1d1a17; --label:#bdb4a6;
+  --paper:#fbfaf6; --ink:#121212; --mute:#6b665e; --rule:rgba(18,18,18,.16);
+  --pink:#f59ad6; --blue:#2a2fb0; --orange:#f08a16; --navy:#16185a;
+  --dl:'Archivo Black',sans-serif; --dk:'Black Han Sans',sans-serif; --it:'Instrument Serif',Georgia,serif;
+  --body:'Noto Serif KR',Georgia,serif; --ui:'Noto Sans KR',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--label);font-family:var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 80px}
+.sheet{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.intro{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.intro h1{margin:0;font-family:var(--it);font-style:italic;font-weight:400;font-size:clamp(34px,5vw,56px);color:#f3eee6;line-height:1}
+.intro p{margin:0;font-size:14px;line-height:1.6}
+figure.sp{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{display:flex;gap:12px;align-items:baseline;font-size:13px}
+figcaption b{font-family:var(--mono);color:#f3eee6;font-weight:600}
+.spread{position:relative;color:var(--ink);display:grid;grid-template-columns:1fr 1fr;aspect-ratio:3/2;width:100%;container-type:inline-size;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.spread.single{grid-template-columns:1fr;aspect-ratio:3/4;width:min(100%,560px)}
+.spread::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:6cqw;margin-left:-3cqw;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(0,0,0,.13) 45%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.13) 55%,transparent);z-index:30}
+.spread.single::after{display:none}
+.pg{position:relative;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size}
+.folio{position:absolute;bottom:3.4cqw;font-family:var(--mono);font-size:1.9cqw;letter-spacing:.06em;color:var(--mute)}
+.L .folio{left:6cqw}.R .folio{right:6cqw}
+.photo{position:absolute;background-size:cover;background-position:center}
+.credit{position:absolute;font-family:var(--mono);font-size:1.5cqw;color:rgba(255,255,255,.75);letter-spacing:.03em}
+.lbl{font-family:var(--mono);font-size:2cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:600}
+.k{font-family:var(--dk);font-weight:400;line-height:1.02;letter-spacing:-.02em}
+.body{font-family:var(--body);font-size:2.55cqw;line-height:1.78;word-break:keep-all;color:#1d1c1a}
+.body p{margin:0 0 2.2cqw}
+.drop::first-letter{font-family:var(--dl);float:left;font-size:9.6cqw;line-height:.82;padding:1cqw 1.6cqw 0 0;color:var(--blue)}
+.cols{column-count:2;column-gap:4cqw}
+.cap{font-family:var(--ui);font-size:1.9cqw;line-height:1.5;color:var(--mute)}
+.cap b{color:var(--ink)}
+.rule{border-top:.25cqw solid var(--ink)}
+.stamp{position:absolute;border:.7cqw solid #d23a26;color:#d23a26;font-family:var(--dk);text-align:center;line-height:1;padding:1.5cqw 3cqw;transform:rotate(-12deg);mix-blend-mode:multiply}
+.bar{display:block;height:100%;background:repeating-linear-gradient(90deg,#121212 0 .5cqw,transparent .5cqw .8cqw,#121212 .8cqw 1.3cqw,transparent 1.3cqw 2cqw)}
+/* 부록 싱글 */
+.single7{position:absolute;width:30cqw;aspect-ratio:1;transform:rotate(var(--r))}
+.single7 .sl{position:absolute;inset:0;background:#d4bf9e;box-shadow:inset 0 0 2cqw rgba(90,60,20,.25),0 .6cqw 1.4cqw rgba(0,0,0,.18)}
+.single7 .sl::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0 1px,transparent 1px 5px)}
+.single7 .ho{position:absolute;left:50%;top:50%;width:13cqw;height:13cqw;margin:-6.5cqw 0 0 -6.5cqw;border-radius:50%;background:radial-gradient(circle,#d4bf9e 0 .6cqw,var(--c) .6cqw 4cqw,#141414 4cqw 4.4cqw,#2a2a2a 4.4cqw 4.8cqw,#141414 4.8cqw 6.5cqw)}
+.single7 .bg{position:absolute;inset:-4% -4% -7%;border:1px solid rgba(160,160,160,.55);background:linear-gradient(125deg,transparent 20%,rgba(255,255,255,.75) 27%,transparent 34%),rgba(225,230,235,.28)}
+.single7 .tp{position:absolute;height:5cqw;background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.single7 .t{position:absolute;left:2.6cqw;bottom:2.2cqw;font-family:var(--mono);font-size:1.9cqw;color:#4a3720}
+.single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 2.6cqw);text-align:center;font-family:var(--ui);font-size:1.9cqw;color:var(--mute)}
+.pg::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:25;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.rh{position:absolute;top:3.4cqw;left:6cqw;right:6cqw;display:flex;justify-content:space-between;font-family:var(--mono);font-size:1.6cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);border-bottom:.12cqw solid var(--rule);padding-bottom:1cqw}
+.body2{font-family:var(--body);font-size:2.42cqw;line-height:1.8;word-break:keep-all;color:#1d1c1a}
+.body2 p{margin:0 0 2cqw;text-indent:2.4cqw}
+.body2 p.ni,.body2 p.drop{text-indent:0}
+.q{font-family:var(--ui);font-weight:900;color:var(--blue);margin-right:1cqw}
+.qa{font-family:var(--ui);font-weight:900;color:#c03d8f;margin-right:1cqw}
+.big7{--w:44cqw}
+.single7{width:var(--w,30cqw)}
+.single7 .ho{width:calc(var(--w,30cqw)*.44);height:calc(var(--w,30cqw)*.44);margin:calc(var(--w,30cqw)*-.22) 0 0 calc(var(--w,30cqw)*-.22);background:radial-gradient(circle,#d4bf9e 0 2%,var(--c) 2% 30%,#141414 30% 33%,#2a2a2a 33% 36%,#141414 36% 50%,transparent 50%)}
+.single7 .tp{height:calc(var(--w,30cqw)*.16)}
+.single7 .t{font-size:calc(var(--w,30cqw)*.065)}
+.single7 .no{position:absolute;left:6%;top:5%;font-family:var(--mono);font-size:calc(var(--w,30cqw)*.055);color:#4a3720}
+.single7 .c2{font-size:2.1cqw;color:var(--ink)}
+.single7 .c2 small{display:block;color:var(--mute);font-size:1.8cqw}
+.single7.bigs .ho{width:calc(var(--w)*.34);height:calc(var(--w)*.34);margin:calc(var(--w)*-.24) 0 0 calc(var(--w)*-.17)}
+.single7 .tl{position:absolute;left:7%;right:7%;bottom:6%;font-family:var(--mono);font-size:calc(var(--w)*.03);line-height:1.55;color:#4a3720;white-space:nowrap;overflow:hidden}
+.single7 .tl b{font-weight:600;color:#2d2014}
+.single7 .ttl{position:absolute;left:7%;right:7%;top:12%;font-family:var(--mono);font-size:calc(var(--w)*.04);color:#2d2014;letter-spacing:.06em}
+@media (max-width:700px){.sheet{gap:40px}}
+
+:root{--paper:#efebe3;--pink:#b0201e;--blue:#b0201e;--navy:#141414;--orange:#ff5a4a;--dl:'Archivo Black',sans-serif}
+.sbh{display:inline-block;background:#b0201e;color:#fff;font-family:var(--ui);font-weight:900;font-size:2.4cqw;padding:.3cqw 1.6cqw;margin:0 0 1.4cqw}.ht{background-color:#d9d4ca;background-image:radial-gradient(rgba(20,20,20,.42) .32cqw,transparent .6cqw);background-size:1.4cqw 1.4cqw}</style>
+<template class="sp"><div class="spread single"><div class="pg" style="background:#141414">
+    <div class="photo" style="inset:0;background-image:url(/mag/issues/cy-01/c6844d617f.jpg)"></div>
+    <div style="position:absolute;left:5cqw;top:4cqw;background:#b0201e;padding:.5cqw 3.5cqw 1.6cqw;z-index:3"><span style="font-family:'Archivo Black';font-size:14cqw;color:#fff;letter-spacing:-.03em">Cypher</span></div>
+    <div style="position:absolute;right:5cqw;top:5cqw;text-align:right;font-family:var(--mono);font-size:2.2cqw;line-height:1.5;color:#fff">WED 2026.11.18<br>사이퍼 미디어</div>
+    <div style="position:absolute;right:3cqw;top:20cqw;font-family:'Archivo Black';font-size:44cqw;line-height:1;color:#b0201e">“</div>
+    <div style="position:absolute;left:5cqw;top:62cqw;font-family:'Archivo Black';font-size:11.5cqw;line-height:.88;color:#fff;letter-spacing:-.03em">TROUBLE<br>MOUNTAIN</div>
+    <div style="position:absolute;left:5cqw;top:85cqw;font-family:var(--ui);font-weight:900;font-size:3.2cqw;color:#fff">Aesop Rock &amp; Blockhead <span style="color:#ff5a4a;letter-spacing:.3cqw">★★★½</span></div>
+    <div style="position:absolute;right:0;bottom:17cqw;background:#b0201e;color:#fff;padding:1.4cqw 5cqw 1.4cqw 4cqw;font-family:'Archivo',sans-serif;font-style:italic;font-weight:800;font-size:3.2cqw">VOL.01 &nbsp; <span style="font-size:6cqw">11.18</span></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:15cqw;background:#b0201e;display:flex;align-items:center;gap:3cqw;padding:0 4cqw;color:#fff">
+      <div style="flex:0 0 15cqw;height:8cqw;background:#fff;padding:1cqw"><i class="bar"></i></div>
+      <span style="font-family:'Archivo','Noto Sans KR';font-style:italic;font-weight:700;font-size:2.2cqw;line-height:1.5">앨범 리뷰 [Trouble Mountain] — 포코노 휴양지 광고 속으로 · 피처링 지도 · 씬 리포트 황지상 [#800080] · 다음 호 예고 듀스 [4th Deux] · 부록 LP 1장</span>
+    </div>
+    <div class="credit" style="left:5cqw;top:24cqw">PHOTO delarge / CC BY-NC 2.0</div>
+  </div></div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:conic-gradient(from -8deg at 50% 62%,#1f2a8a 0 14deg,#f4efe6 14deg 22deg,#d62718 22deg 52deg,#1f2a8a 52deg 70deg,#f4efe6 70deg 78deg,#d62718 78deg 120deg,#1f2a8a 120deg 140deg,#f4efe6 140deg 148deg,#d62718 148deg 200deg,#1f2a8a 200deg 222deg,#f4efe6 222deg 230deg,#d62718 230deg 290deg,#1f2a8a 290deg 312deg,#f4efe6 312deg 320deg,#d62718 320deg 360deg)">
+      <div style="position:absolute;left:0;right:0;top:2cqw;text-align:center;font-family:'Jost';font-weight:900;font-size:34cqw;line-height:1;color:#f4efe6;text-shadow:1cqw 1cqw 0 #141414">33⅓</div>
+      <div style="position:absolute;left:4cqw;top:94cqw;transform:rotate(-12deg);transform-origin:left;font-family:var(--body);font-weight:900;font-size:5.6cqw;color:#fff;text-shadow:.5cqw .6cqw 0 #141414;white-space:nowrap">기록 0일치에서 시작한다</div>
+      <div style="position:absolute;left:6cqw;bottom:8cqw;font-family:var(--mono);font-size:2cqw;color:#fff;text-shadow:.2cqw .2cqw 0 #141414">33⅓ · 매달 1일 · T/L/L 출판</div>
+      <div class="folio" style="color:#fff">AD</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;left:7cqw;top:6cqw;background:#141414;color:#fff;padding:.4cqw 2.4cqw 1.2cqw"><span style="font-family:'Archivo Black';font-size:10cqw;letter-spacing:-.02em">CONTENTS</span></div>
+      <div class="lbl" style="position:absolute;left:7.5cqw;top:22cqw;color:#b0201e">Cypher · Vol.01 · 2026.11.18</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:28cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3.2cqw 5cqw"><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">2</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">편집장의 글</div><div class="cap">원 안에서는 지금 뱉는 한 마디로</div></div><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">4</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">단신 · 이번 주의 얼굴</div><div class="cap">HEELMATIC · 황지상 · 듀스</div></div><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">6</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">앨범 리뷰</div><div class="cap">[Trouble Mountain] · 박지후 · ★★★½</div></div><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">12</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">피처링 지도</div><div class="cap">두 사람과 다섯 명</div></div><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">14</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">씬 리포트 · 다섯 개의 영토</div><div class="cap">판정 보류 2 · 다음 호 예고</div></div><div style="border-top:.3cqw solid #141414;padding-top:2cqw"><div style="font-family:'Archivo Black';font-size:6cqw;line-height:.9;color:#b0201e">16</div><div style="font-family:var(--ui);font-weight:900;font-size:2.5cqw;line-height:1.35;margin-top:1cqw">출처와 판권 · 부록</div><div class="cap">부록 LP 1장 · 5곡</div></div></div>
+      <div class="folio">1</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Editor's letter</span><span>Cypher · Vol.01</span></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:11cqw;font-family:'Archivo Black';font-size:7cqw;line-height:1;letter-spacing:-.02em">IN THE CIRCLE</div>
+      <div class="k" style="position:absolute;left:7cqw;right:7cqw;top:20cqw;font-family:var(--body);font-weight:900;font-size:4.4cqw;line-height:1.3">원 안에서는 지금 뱉는<br>한 마디로 평가받는다</div>
+      <div class="body2 cols" style="position:absolute;left:7cqw;right:7cqw;top:35cqw;bottom:12cqw;column-fill:auto;column-gap:3.6cqw">
+        <p class="drop" style="--blue:#b0201e">사이퍼는 래퍼들이 둥글게 서서 차례로 랩을 주고받는 자리다. 원 안에서는 이름값이 아니라 지금 뱉는 한 마디로 평가받는다. 이 잡지는 그 원을 지면으로 옮긴다.</p>
+        <p>몇 가지를 약속한다. 화제와 실력을 섞지 않는다. 비프가 앨범을 좋게 만들지 않고, 조회 수가 랩을 잘하게 만들지 않는다. 국내와 해외를 같은 자로 잰다. 가사는 인용하지 않는다. 무엇을 말했는지, 어떻게 말했는지를 분석한다.</p>
+        <p>그리고 이 지면의 편집부는 판을 직접 듣지 못한다. 그래서 소리에 대한 문장은 들은 사람들의 말을 옮기고, 자료가 모자란 항목은 점수를 기본값으로 둔다. 첫 호의 랩 항목이 그렇다. 숨기지 않고 적는다.</p>
+        <p>첫 호의 앨범은 이솝 록과 블록헤드의 [Trouble Mountain]이다. 어린 시절의 TV 광고 한 편을 앨범 한 장의 세계로 바꾼 판이다.</p>
+        <p class="ni" style="font-family:var(--it);font-style:italic;font-size:3.6cqw;text-align:right;margin-top:3cqw">— 박지후</p>
+      </div>
+      <div class="folio">2</div>
+    </div>
+    <div class="pg R" style="background:#b0201e;color:#fff">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#141414">This week in numbers</div>
+      <div class="k" style="position:absolute;left:7cqw;top:11cqw;font-family:var(--body);font-weight:900;font-size:6cqw">숫자로 본 이번 주</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:26cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 4cqw">
+        <div><div style="font-family:'Archivo Black';font-size:26cqw;line-height:.85;color:#141414">2</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">이솝 록과 블록헤드의 두 번째 공동 앨범</div></div>
+        <div><div style="font-family:'Archivo Black';font-size:26cqw;line-height:.85;color:#fff">13</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">이솝 록 개인으로는 열세 번째 정규 앨범</div></div>
+        <div><div style="font-family:'Archivo Black';font-size:26cqw;line-height:.85;color:#fff">5</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">[Garbology] 이후 공동 작업까지 걸린 해</div></div>
+        <div><div style="font-family:'Archivo Black';font-size:26cqw;line-height:.85;color:#141414">16</div><div style="font-family:var(--ui);font-weight:700;font-size:2.4cqw;line-height:1.45;margin-top:1.5cqw">같은 날 나온 웨스트사이드 건 [HEELMATIC]의 곡 수</div></div>
+      </div>
+      <div class="folio" style="color:#141414">3</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Briefs</span><span>단신</span></div>
+      <div class="k" style="position:absolute;left:6cqw;top:10cqw;font-family:var(--body);font-weight:900;font-size:6cqw">이번 주 단신</div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:20cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw 3.6cqw"><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">11.13 같은 날</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">Westside Gunn [HEELMATIC]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">16곡, Griselda와 Mass Appeal. Mass Appeal에서 내는 첫 음반. 14쪽.</p></div></div><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">국내 · 판정 보류</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">황지상, 첫 정규 [#800080]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">11월 11일. 제목은 보라를 뜻하는 색상 코드다. 14쪽.</p></div></div><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">다음 호 예고</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">듀스 [4th Deux], 31년 만의 정규</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">11월 21일 예정, 9곡. AI로 재현한 고 김성재의 목소리가 담긴다고 보도됐다.</p></div></div><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">11.13 같은 날</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">Offset [GMFU] · Wiz Khalifa [Cool]</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">같은 금요일에 나온 것으로 소개된 앨범들. 평이 나오면 다룬다.</p></div></div><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">금요일 Drop</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">U2, 9년 만의 새 노래</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">자매지 Drop이 6.5를 줬다. 힙합 신보는 이 지면이 맡는다.</p></div></div><div style="border-top:.3cqw solid #141414;padding-top:1.8cqw"><div class="lbl" style="color:#b0201e;font-size:1.7cqw">11.13 같은 날</div><div style="font-family:var(--ui);font-weight:900;font-size:2.8cqw;line-height:1.3;margin:.8cqw 0">Aesop Rock & Blockhead</div><div class="body2" style="font-size:2.1cqw;line-height:1.7"><p class="ni" style="margin:0">[Trouble Mountain]. 이번 호 앨범 리뷰. 6쪽.</p></div></div></div>
+      <div class="folio">4</div>
+    </div>
+    <div class="pg R ht">
+      <div class="photo" style="inset:0;background-image:url(/mag/issues/cy-01/84c7998db7.jpg);mix-blend-mode:multiply"></div>
+      <div style="position:absolute;left:6cqw;bottom:9cqw;background:#b0201e;color:#fff;padding:2cqw 3cqw">
+        <div class="lbl" style="color:#fff">Face of the week</div>
+        <div style="font-family:'Archivo Black';font-size:6.6cqw;line-height:1;margin-top:1cqw">AESOP ROCK</div>
+        <div style="font-family:var(--ui);font-size:2cqw;margin-top:1cqw">무대 위의 이솝 록. 사진 delarge / CC BY-NC 2.0</div>
+      </div>
+      <div class="folio">5</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread" style="background:#141414">
+    <div class="photo" style="inset:0;background-image:url(/mag/issues/cy-01/4bf4daaad9.jpg);z-index:1"></div>
+    <div style="position:absolute;z-index:3;left:3cqw;top:3cqw;font-family:var(--mono);font-size:1.1cqw;letter-spacing:.14em;color:#fff">ALBUM REVIEW · 앨범 리뷰 · 6–11쪽</div>
+    <div style="position:absolute;z-index:3;left:2.6cqw;top:6cqw;font-family:'Archivo Black';font-size:12.5cqw;line-height:.84;color:#fff;letter-spacing:-.04em">TROUBLE<br>MOUNTAIN</div>
+    <div style="position:absolute;z-index:3;left:3cqw;top:31cqw;font-family:'Archivo Black';font-size:28cqw;line-height:1;color:#b0201e">“</div>
+    <div style="position:absolute;z-index:3;left:3cqw;bottom:6cqw;width:36cqw;color:#fff">
+      <div style="font-family:var(--body);font-weight:900;font-size:3.6cqw;line-height:1.3">광고 속 리조트로 떠난 두 사람</div>
+      <div style="font-family:var(--body);font-size:1.35cqw;line-height:1.75;margin-top:1.4cqw;color:#efe6e4">이솝 록과 블록헤드는 어린 시절 뉴욕 TV의 포코노 휴양지 광고를 앨범 한 장의 세계로 만들었다. 더 나은 삶을 찾아 떠난 곳은 떠나온 곳만큼 이상했다. — 글 박지후</div>
+      <div style="font-family:var(--ui);font-weight:900;font-size:2.2cqw;margin-top:1.4cqw;color:#ff5a4a;letter-spacing:.3cqw">★★★½ <span style="font-size:1.3cqw;color:#fff;letter-spacing:0">3.5 / 5</span></div>
+    </div>
+    <div class="credit" style="z-index:3;right:2cqw;bottom:2cqw;font-size:.8cqw">PHOTO delarge / CC BY-NC 2.0</div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Album review</span><span>[Trouble Mountain] · ★★★½</span></div>
+      <table style="position:absolute;left:6cqw;right:6cqw;top:10cqw;width:88cqw;border-collapse:collapse;font-family:var(--ui);font-size:2cqw;color:#141414">
+        <tr><td style="border-top:.25cqw solid #141414;padding:1cqw 0;color:#6b665e;width:20%">발매</td><td style="border-top:.25cqw solid #141414;padding:1cqw 0">2026.11.13 · Rhymesayers</td></tr>
+        <tr><td style="border-top:.12cqw solid rgba(18,18,18,.2);padding:1cqw 0;color:#6b665e">위치</td><td style="border-top:.12cqw solid rgba(18,18,18,.2);padding:1cqw 0">두 사람의 두 번째 공동 앨범 · 이솝 록 열세 번째 정규</td></tr>
+        <tr><td style="border-top:.12cqw solid rgba(18,18,18,.2);border-bottom:.12cqw solid rgba(18,18,18,.2);padding:1cqw 0;color:#6b665e">참여</td><td style="border-top:.12cqw solid rgba(18,18,18,.2);border-bottom:.12cqw solid rgba(18,18,18,.2);padding:1cqw 0">Open Mike Eagle, Cavalier, 4-IZE, Hanni El Khatib, Baby Dayliner</td></tr>
+      </table>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:30cqw;bottom:11cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.6cqw">
+        <div style="break-inside:avoid"><span class="sbh">소개</span>
+        <p class="ni">2021년 [Garbology] 이후 5년 만의 공동 작업이다. 11월 13일 라임세이어스를 통해 나왔고, 이솝 록 개인으로는 열세 번째 정규 앨범이다. 출발점은 두 사람이 어린 시절 뉴욕 TV에서 보던 포코노 산맥 휴양지 광고. 앨범은 그 광고 속 스키 리조트를 가상의 목적지로 세운다.</p></div>
+        <div style="break-inside:avoid"><span class="sbh">가사와 주제</span>
+        <p class="ni">더 나은 삶을 찾아 떠난 곳이 떠나온 곳만큼 이상하고 복잡하다는 이야기다. Riff는 이 앨범이 예술가로 사는 일, 고립, 동물, 노동, 생존이라는 이솝 록의 익숙한 영토를 다시 걷는다고 짚었다. 주제는 분명하다. 다만 같은 리뷰는 리조트라는 콘셉트가 끝까지 앨범을 붙들지는 못한다고 평했다. 이 지면도 그 지적에 동의한다. 콘셉트는 앨범의 문이지 벽이 아니다.</p></div>
+      </div>
+      <div class="folio">8</div>
+    </div>
+    <div class="pg R">
+      <div class="rh"><span>Album review</span><span>[Trouble Mountain] · ★★★½</span></div>
+      <div class="body2 cols" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;bottom:50cqw;column-fill:balance;column-gap:3.6cqw;font-size:2.6cqw">
+        <div style="break-inside:avoid"><span class="sbh">랩</span>
+        <p class="ni">이번 호는 랩의 결을 곡 단위로 판정할 자료를 충분히 모으지 못했다. 확인된 것은 구성이다. 선공개곡 'Trouble Trouble'이 앨범의 얼굴이고, 'Eat And Grow'에서는 Cavalier와 4-IZE가 마이크를 나눠 잡는다. 이 항목의 점수는 기본값 5로 두었다.</p></div>
+        <div style="break-inside:avoid"><span class="sbh">프로덕션</span>
+        <p class="ni">비트는 블록헤드다. 두 사람은 2000년대 초부터 함께 작업해 온 사이다. 앨범 중간에는 'TM Tours'라는 가짜 광고가 끼어 있고, 가수 Baby Dayliner가 광고 목소리를 맡았다. 광고 한 편을 통째로 만들어 넣는 방식은 프로덕션이 이야기를 떠받치는 장치가 된다는 점에서 이 앨범의 가장 영리한 선택이다.</p></div>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;bottom:11cqw;padding-left:10cqw">
+        <div style="position:absolute;left:-1cqw;top:-7cqw;font-family:'Archivo Black';font-size:24cqw;line-height:1;color:#b0201e">“</div>
+        <div style="font-family:var(--body);font-weight:900;font-size:5.4cqw;line-height:1.3;letter-spacing:-.02em;word-break:keep-all">어린 시절의 광고 한 편을 앨범 한 장의 세계로 바꾸는 상상력.</div>
+      </div>
+      <div class="folio">9</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Album review</span><span>총평</span></div>
+      <div class="body2" style="position:absolute;left:6cqw;right:6cqw;top:10cqw;font-size:2.7cqw">
+        <span class="sbh">총평</span>
+        <p class="ni">[Garbology]만큼 단단한 작품은 아닐지 모른다. 그러나 이 듀오가 여전히 앨범 단위로 생각한다는 증거로는 충분하다. 피처링은 다섯 명이지만, 지도의 한가운데는 끝까지 두 사람이다.</p>
+        <p class="ni">별 셋 반. 이 지면의 기준표에서 셋은 '잘 만든 앨범'이다. 반 개는 광고 한 편을 앨범의 장치로 만든 프로덕션에 준다. 랩 항목이 채워지면 별점이 바뀔 수 있다. 바뀌면 다음 호에서 그 이유를 적겠다.</p>
+      </div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:74cqw;background:#141414;color:#fff;padding:3cqw">
+        <div class="lbl" style="color:#ff5a4a">다음 호 예고</div>
+        <div style="font-family:var(--body);font-weight:900;font-size:3.6cqw;line-height:1.35;margin-top:1.2cqw">듀스 [4th Deux] — AI로 되살린 목소리를 어떻게 들어야 하는가</div>
+      </div>
+      <div class="folio">10</div>
+    </div>
+    <div class="pg R" style="background:#141414;color:#fff">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#ff5a4a">Anatomy of a rating</div>
+      <div style="position:absolute;left:6cqw;top:11cqw;font-size:21cqw;line-height:1;color:#b0201e;letter-spacing:1cqw">★★★<span style="color:#5a1410">★</span></div>
+      <div style="position:absolute;left:6cqw;top:11cqw;font-size:21cqw;line-height:1;color:#ff5a4a;letter-spacing:1cqw;width:calc(3.5 * 22cqw);overflow:hidden;white-space:nowrap">★★★★</div>
+      <div style="position:absolute;left:7cqw;top:38cqw;font-family:'Archivo Black';font-size:10cqw;line-height:1">3.5 <span style="font-size:4cqw;color:#9a9286">/ 5</span></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:56cqw"><div style="display:grid;grid-template-columns:22cqw 1fr 15cqw;gap:2cqw;align-items:center;margin-bottom:2.4cqw;font-family:var(--ui);font-size:2.3cqw"><span>가사와 주제</span><span style="height:2.6cqw;background:#2a2a2a;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:70%;background:#ff5a4a"></i></span><span style="font-family:var(--mono);text-align:right">7 · 30%</span></div><div style="display:grid;grid-template-columns:22cqw 1fr 15cqw;gap:2cqw;align-items:center;margin-bottom:2.4cqw;font-family:var(--ui);font-size:2.3cqw"><span>랩</span><span style="height:2.6cqw;background:#2a2a2a;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:50%;background:#5a5a5a"></i></span><span style="font-family:var(--mono);text-align:right">5 · 25%</span></div><div style="display:grid;grid-template-columns:22cqw 1fr 15cqw;gap:2cqw;align-items:center;margin-bottom:2.4cqw;font-family:var(--ui);font-size:2.3cqw"><span>프로덕션</span><span style="height:2.6cqw;background:#2a2a2a;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:75.0%;background:#ff5a4a"></i></span><span style="font-family:var(--mono);text-align:right">7.5 · 25%</span></div><div style="display:grid;grid-template-columns:22cqw 1fr 15cqw;gap:2cqw;align-items:center;margin-bottom:2.4cqw;font-family:var(--ui);font-size:2.3cqw"><span>앨범 완성도</span><span style="height:2.6cqw;background:#2a2a2a;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:65.0%;background:#ff5a4a"></i></span><span style="font-family:var(--mono);text-align:right">6.5 · 20%</span></div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:11cqw;color:#9a9286;font-size:1.9cqw">랩 항목은 자료가 모자라 기본값 5로 두었다.</div>
+      <div class="folio" style="color:#8d857a">11</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread" style="background:#efebe3">
+    <div style="position:absolute;inset:0" class="ht"></div>
+    <div style="position:absolute;left:3cqw;top:3cqw;background:#141414;color:#fff;padding:.4cqw 1.6cqw 1cqw"><span style="font-family:'Archivo Black';font-size:5cqw">FEATURE MAP</span></div>
+    <div style="position:absolute;left:3cqw;top:10.6cqw;font-family:var(--body);font-weight:900;font-size:2.6cqw;background:#fff;padding:.4cqw 1.2cqw;color:#141414">피처링 지도 — 두 사람과 다섯 명</div>
+    <svg viewBox="0 0 120 66.6" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><g stroke="#141414" stroke-width=".35" fill="none">
+      <line x1="60" y1="35" x2="22" y2="22"/><line x1="60" y1="35" x2="76" y2="14"/><line x1="60" y1="35" x2="26" y2="54"/><line x1="60" y1="35" x2="96" y2="52"/><line x1="60" y1="35" x2="62" y2="60" stroke-dasharray="1 1"/><line x1="26" y1="54" x2="44" y2="58"/>
+    </g></svg>
+    <div style="position:absolute;left:50.00%;top:52.55%;width:22cqw;height:22cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:#b0201e;color:#fff;font-size:1.7cqw;box-shadow:.5cqw .5cqw 0 #141414">Aesop Rock<br>&amp;<br>Blockhead</div><div style="position:absolute;left:18.33%;top:33.03%;width:12cqw;height:12cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:#fff;color:#141414;font-size:1.3cqw;border:.3cqw solid #141414">Hanni El Khatib</div><div style="position:absolute;left:63.33%;top:21.02%;width:13cqw;height:13cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:#fff;color:#141414;font-size:1.3cqw;border:.3cqw solid #141414">Baby<br>Dayliner</div><div style="position:absolute;left:21.67%;top:81.08%;width:11cqw;height:11cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:#fff;color:#141414;font-size:1.3cqw;border:.3cqw solid #141414">Cavalier</div><div style="position:absolute;left:80.00%;top:78.08%;width:12cqw;height:12cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:url(/mag/issues/cy-01/9b2778f95c.jpg) center/cover;color:#fff;font-size:1.3cqw;border:.3cqw dashed #141414;text-shadow:0 0 .6cqw #000">Open Mike Eagle</div><div style="position:absolute;left:36.67%;top:87.09%;width:9cqw;height:9cqw;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--ui);font-weight:900;line-height:1.15;background:#fff;color:#141414;font-size:1.3cqw;border:.3cqw solid #141414">4-IZE</div>
+    <div style="position:absolute;right:3cqw;top:3cqw;width:30cqw;background:#fff;padding:1.6cqw 2cqw;font-family:var(--body);font-size:1.25cqw;line-height:1.75;box-shadow:.4cqw .4cqw 0 #141414;color:#141414">
+      Hanni El Khatib은 'Coyote Summer', Cavalier와 4-IZE는 함께 'Eat And Grow', Baby Dayliner는 가짜 광고 'TM Tours'. 4-IZE는 한때 Ludacris 쪽 사람으로 소개된 래퍼다. Open Mike Eagle은 참여가 확인됐지만 어느 곡인지는 이번 호에서 확인하지 못해 점선으로 그렸다.
+    </div>
+    <div class="credit" style="left:3cqw;bottom:2cqw;font-size:.8cqw;color:#141414">Open Mike Eagle 원 안 사진: 공연 포스터, PHOTO dreamsjung / CC BY-SA 2.0</div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Scene report</span><span>씬 리포트</span></div>
+      <div style="position:absolute;left:6cqw;top:9cqw;background:#b0201e;color:#fff;padding:.4cqw 2cqw 1cqw"><span style="font-family:'Archivo Black';font-size:6cqw">SCENE</span></div>
+      <div style="position:absolute;left:6cqw;right:6cqw;top:22cqw">
+        <div class="rule" style="padding-top:2cqw"><div style="font-family:var(--ui);font-weight:900;font-size:3.2cqw">황지상 — [#800080] <span style="display:inline-block;border:.2cqw solid #6b665e;color:#6b665e;font-size:1.8cqw;padding:0 1cqw;vertical-align:middle">판정 보류</span></div><div class="body2" style="font-size:2.35cqw;margin-top:1cqw"><p class="ni">11월 11일, 첫 정규 앨범. 제목은 보라를 뜻하는 색상 코드로, 빨강과 파랑을 같은 비율로 섞은 색이다. 음악을 이어 오며 겪은 불안과 고민, 정체성에 대한 질문을 담았다고 알려졌다. 확인한 출처가 한 곳뿐이라 이번 호에서는 소개만 한다.</p></div></div>
+        <div class="rule" style="padding-top:2cqw;margin-top:2cqw"><div style="font-family:var(--ui);font-weight:900;font-size:3.2cqw">Westside Gunn — [HEELMATIC] <span style="display:inline-block;border:.2cqw solid #6b665e;color:#6b665e;font-size:1.8cqw;padding:0 1cqw;vertical-align:middle">판정 보류</span></div><div class="body2" style="font-size:2.35cqw;margin-top:1cqw"><p class="ni">11월 13일, 16곡, Griselda와 Mass Appeal. 마지막 솔로작으로 예고했던 [Awesome God 3] 대신 새 테이프를 냈다. 선공개곡 'Zilla'의 비트는 Denny La Flare. 평이 나오면 다음 호에서 다룬다.</p></div></div>
+        <div class="rule" style="padding-top:2cqw;margin-top:2cqw"><div style="font-family:var(--ui);font-weight:900;font-size:3.2cqw">다음 호 — 듀스 [4th Deux]</div><div class="body2" style="font-size:2.35cqw;margin-top:1cqw"><p class="ni">11월 21일 예정. 31년 만의 정규, 9곡. AI로 재현한 고 김성재의 목소리가 담긴다고 보도됐다.</p></div></div>
+      </div>
+      <div class="folio">14</div>
+    </div>
+    <div class="pg R" style="background:#141414;color:#fff">
+      <div class="lbl" style="position:absolute;left:7cqw;top:7cqw;color:#ff5a4a">Five territories</div>
+      <div style="position:absolute;left:7cqw;top:11cqw;font-family:var(--body);font-weight:900;font-size:4.6cqw;line-height:1.3">Riff가 짚은<br>다섯 개의 영토</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:30cqw;font-family:var(--body);font-weight:900;line-height:1.08">
+        <div style="font-size:14cqw;color:#fff">예술가</div><div style="font-size:14cqw;color:#ff5a4a">고립</div><div style="font-size:14cqw;color:#fff">동물</div><div style="font-size:14cqw;color:#b0201e">노동</div><div style="font-size:14cqw;color:#fff">생존</div>
+      </div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw;color:#9a9286;font-size:1.9cqw">가사를 인용하지 않고 주제만 적는다. 이 다섯 낱말은 Riff 리뷰가 꼽은 것이다.</div>
+      <div class="folio" style="color:#8d857a">15</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L">
+      <div class="rh"><span>Sources &amp; credits</span><span>판권</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:var(--body);font-weight:900;font-size:6cqw">출처와 편집 노트</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:22cqw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw">
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>기사 출처</b><br>Treble, Stereogum, mxdwn, Riff, Music Direct, iMBC(황지상), Ratings Game Music(HEELMATIC), 더팩트(듀스), Hot New Hip Hop</div>
+        <div class="cap" style="font-size:1.8cqw;line-height:1.7"><b>사진</b><br>표지 — delarge / CC BY-NC 2.0, Flickr (Openverse 경유)<br>5쪽 — delarge / CC BY-NC 2.0, Flickr (Openverse 경유)<br>6–7쪽 펼침 — delarge / CC BY-NC 2.0, Flickr (Openverse 경유)<br>12쪽 — dreamsjung / CC BY-SA 2.0, Flickr (Openverse 경유)</div>
+      </div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:74cqw;background:#b0201e;padding:3cqw;color:#fff"><div class="lbl" style="color:#fff">편집 노트</div><div style="font-family:var(--ui);font-weight:700;font-size:2.3cqw;line-height:1.6;margin-top:1cqw">출처 9곳 · 판정 보류 2장 · 국내 1장(소개)<br>랩 항목은 자료가 모자라 기본값 5로 두었다. 소리에 대한 문장은 다른 매체의 말을 옮긴 것이다.</div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw;font-size:1.8cqw">Cypher · 매주 수요일 · 사이퍼 미디어 · 편집장 박지후(가상 인물)</div>
+      <div class="folio">16</div>
+    </div>
+    <div class="pg R">
+      <div style="position:absolute;left:7cqw;top:7cqw;background:#141414;color:#fff;padding:.4cqw 2cqw 1cqw"><span style="font-family:'Archivo Black';font-size:8cqw">SUPPLEMENT</span></div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:21cqw;color:#b0201e">부록 · 이 호의 노래 다섯 장</div>
+      <div class="body2" style="position:absolute;left:7cqw;right:7cqw;top:26cqw;font-size:2.3cqw"><p class="ni">이 호에서 이름이 나온 노래를 LP 한 장에 담아 투명 비닐째 붙였다. 테이프를 떼면 처음부터 재생되고, 사이퍼 미디어 크레이트에 꽂힌다.</p></div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:52cqw;font-family:'Archivo Black';font-size:12cqw;line-height:.9;color:#b0201e">5 TRACKS<br>1 SINGLE</div>
+      <div class="folio">17</div>
+    </div>
+  </div></template>
+<template class="sp"><div class="spread">
+    <div class="pg L" style="background:#efebe3"><div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:12cqw;top:22cqw;--r:-3deg;--w:74cqw"><span class="sl"><span class="ttl">Cypher Vol.01 — 부록 LP</span><span class="ho" style="--c:#b0201e"></span><span class="tl"><b>A1</b> Trouble Trouble — Aesop Rock & Blockhead<br><b>A2</b> Eat And Grow — Aesop Rock & Blockhead<br><b>A3</b> TM Tours — Aesop Rock & Blockhead<br><b>B1</b> Coyote Summer — Aesop Rock & Blockhead<br><b>B2</b> Zilla — Westside Gunn<br></span></span><span class="bg"></span><span class="tp" style="left:-8%;top:5%;width:40%;transform:rotate(-12deg)"></span><span class="tp" style="left:64%;top:74%;width:30%;transform:rotate(22deg)"></span><span class="c2">이 호의 노래 5곡, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div><div class="folio">18</div></div>
+    <div class="pg R">
+      <div class="rh"><span>Liner notes</span><span>부록 수록곡</span></div>
+      <div style="position:absolute;left:7cqw;top:10cqw;font-family:var(--it);font-style:italic;font-size:9cqw;line-height:1">Liner notes</div>
+      <div class="lbl" style="position:absolute;left:7cqw;top:21cqw">A면 · B면 — 이 호에서 이름이 나온 노래</div>
+      <div style="position:absolute;left:7cqw;right:7cqw;top:27cqw"><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Trouble Trouble</b><span class="cap" style="display:block;margin-top:.6cqw">Aesop Rock & Blockhead</span></span><span class="cap" style="text-align:right">9쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Eat And Grow</b><span class="cap" style="display:block;margin-top:.6cqw">Aesop Rock & Blockhead</span></span><span class="cap" style="text-align:right">9쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">A3</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">TM Tours</b><span class="cap" style="display:block;margin-top:.6cqw">Aesop Rock & Blockhead</span></span><span class="cap" style="text-align:right">9쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B1</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Coyote Summer</b><span class="cap" style="display:block;margin-top:.6cqw">Aesop Rock & Blockhead</span></span><span class="cap" style="text-align:right">12쪽</span></div><div style="display:grid;grid-template-columns:9cqw 1fr 10cqw;gap:2cqw;align-items:baseline;border-top:.15cqw solid rgba(18,18,18,.18);padding:2cqw 0"><span style="font-family:var(--mono);font-size:2.6cqw;color:var(--pink)">B2</span><span><b style="font-family:var(--it);font-style:italic;font-weight:400;font-size:4cqw;line-height:1.05">Zilla</b><span class="cap" style="display:block;margin-top:.6cqw">Westside Gunn</span></span><span class="cap" style="text-align:right">14쪽</span></div></div>
+      <div class="cap" style="position:absolute;left:7cqw;right:7cqw;bottom:10cqw">테이프를 떼면 Spotify에 이 호의 플레이리스트가 만들어지고 처음부터 재생된다. 플레이리스트는 출판사 크레이트에 한 장으로 꽂힌다.</div>
+      <div class="folio">19</div></div>
+  </div></template>

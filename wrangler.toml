@@ -1,0 +1,13 @@
+name = "tll"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Sabathia와 같은 D1을 쓴다(크레이트·Client ID·잼이 그대로 이어진다)
+[[d1_databases]]
+binding = "DB"
+database_name = "jarvis-db"
+database_id = "985e94ca-450f-49d2-a67b-f60269f6861b"
