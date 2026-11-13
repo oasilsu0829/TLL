@@ -12,17 +12,18 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - 옮기기: Sabathia `/music/`이 처음 한 번 그 기기의 `music.*`·`mag.*`(로그인 토큰 제외)를 `#from=<base64url JSON>`에 담아 보낸다 → `public/shell.js`가 여기 없는 키만 채우고 주소에서 지운다. Sabathia `/deck/…`·`/music/<파일>`은 이쪽으로 301
 - 로고 T/L/L(2026-11-13): 앱 아이콘은 `scripts/tll-icon.html`의 4안(A 명판 · B 판 라벨 · C 계단 · D 각인) 중 D(각인, 2026-11-13 사용자 선택). 바꾸기 `node scripts/tll-icon.cjs <안>`. 화면 글자·3D 각인·명판·라벨·붐박스 상표·Spotify 기기 이름(DEV)도 T/L/L
 - 포인트 색(2026-11-13): 처음엔 바하마 블루 #026395로 통일했다가 같은 날 사용자 요청으로 '앨범 표지 색 따라가기'로 되돌림. 앨범이 바뀌면 applyAmb()가 배경(.amb)과 함께 accentOf(표지 대표색 중 채도 가장 높은 색)로 `--main`(L 34%, 흰 바탕 글자) · `--main-glow`(L 60%, 불빛)를 바꾸고 Deck3D.setAccent로 3D 카트리지·노브 표시·램프·후광도 바꾼다. 흑백 표지·색 못 뽑음·앨범 없음이면 바하마 블루. `--red`는 지우기·경고에만. 그대로 둔 빨강: 잼 REC, RCA 케이블, 클립보드 여백 줄, 잡지 자체 색
-- 테스트: `npm test` (test/music.mjs 합치기, test/music-api.mjs API — node:sqlite)
+- 테스트: `npm test` (test/music.mjs 합치기, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사)
 
 ## 구조
 ```
 public/index.html   앱 화면(예전 public/music/index.html). /deck/도 Worker가 이 파일을 내준다(window.FRIEND)
 public/shell.js     예전 기록 가져오기(#from=, 한 번), /sw.js 등록
 public/sw.js        캐시 먼저 + 뒤에서 갱신. 여러 파일을 고치면 VERSION을 올릴 것
+public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). 처음 전체화면 켤 때 import
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D · 잼 · 잡지 · 친구용 매니페스트·아이콘
 src/index.js        라우터(/deck/, 예전 /music/… → 새 경로 301, /api/music/*)
-src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q)
+src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q) · src/lyrics.js 가사(LRCLIB 프록시, /api/music/lyrics)
 ```
 
 ## 기능 메모 (Sabathia에서 옮겨 온 그대로, 경로만 새 구조로 고침. '/music/'은 이제 '/')
@@ -41,7 +42,7 @@ public/       음악 (MUS-09, 2026-11-11). Spotify 플레이어. Stitch 시안 "
                     - 3D 완성(2026-11-12): AI 모델(deck.glb)을 버리고 본체까지 전부 코드(deck3d.js). 작동 조작부: START/STOP·큐 레버 = 재생/정지(Deck3D.onButton), 33/45(판 회전만), 볼륨 슬라이더(onVolume ↔ setVolume), 안티스케이팅 다이얼(장식). 먼지 덮개(멈춘 채 25초면 닫힘, 만지면 열림), 바늘 조명(조명 모드), 톤암 클립, 무게추 눈금, 45 어댑터, 고무 발, RCA 케이블. 판 테두리·매트 동심원·크롬 축. 연출: (무지개 반사광은 끔), 먼지, 판 휨, (스트로브 착시는 끔: 재생 중 플래터가 멈춰 보여서), 카메라 숨쉬기(D._camLock으로 끔), 곡 바뀌면 무음 홈 빛남(flashGap)+타자기(#tw). 소리: click·cue·cover·motor·key (surface 판 잡음은 2026-11-12 사용자 요청으로 끔, 함수만 남음)
                     - 앞줄 조작부(2026-11-12): 모두 z 0.645 한 줄, 둥근 버튼 지름 0.042 + 크롬 테 0.028로 통일. 왼쪽 = 전원 노브(장식)·START/STOP·33·45·QUARTZ 등, 오른쪽 = 앰버 시간창(Deck3D.setTime)·RANGE 8/16(장식)·R(볼륨 50). 앨범 바꿀 때: 제목·트랙 목록을 먼저 바꾸고(pending), 크레이트 앞 판의 표지·트랙 목록을 미리 받아(tkCache) 꺼낼 때부터 무음 홈, 판이 내려앉으면 첫 곡 타자
                     - 3D 다듬기(2026-11-12 사용자 선택 2·3·4번): 윗판 단차+깎은 테, 플래터 윗면 선반 결, 버튼 크롬 테·전원 LED, 명판(SD-01), 톤암 받침 복잡하게(2단 받침·나사 6·높이 링·고정 레버·들림 받침대·짐벌 요크·베어링 캡). 반사 환경 = 직접 만든 스튜디오 소프트박스 3개, 역광, LED 후광(스프라이트). 카메라 48도·fov 30, 먼 쪽 흐림(.dof backdrop-filter)·비네팅(.stage::after)
-                    - 3D 추가(2026-11-11): 판에 곡 사이 무음 홈(곡 길이 비율), 바늘은 앨범 전체 진행(albumProgress, deck3d yawFor), 판 잡기 스크래치(Deck3D.onScratch: 잡으면 일시정지(이 브라우저면 SDK, 아니면 API), 놓으면 잡은 시점+돌린 만큼 seek 후 다시 재생, 한 바퀴 1.8초), 조명 버튼(기본 켬, 끄면 music.lamp=false · body.night · Deck3D.setNight), 슬리브 낡음(항목 p = 들은 횟수, 판 갈 때 +1, 20번이면 최대)
+                    - 3D 추가(2026-11-11): 판에 곡 사이 무음 홈(곡 길이 비율), 바늘은 앨범 전체 진행(albumProgress, deck3d yawFor), 판 잡기 스크래치(Deck3D.onScratch: 잡으면 일시정지(이 브라우저면 SDK, 아니면 API), 놓으면 잡은 시점+돌린 만큼 seek 후 다시 재생, 한 바퀴 1.8초), 조명(2026-11-13부터 늘 켬: 버튼 없앰, <body class="night"> · Deck3D.setNight(true)), 슬리브 낡음(항목 p = 들은 횟수, 판 갈 때 +1, 20번이면 최대)
                     - 디자인 A+E(2026-11-11 사용자 선택): 3D 본체·받침 헤어라인 알루미늄, 앞면 각인(SABATHIA · DIRECT DRIVE TURNTABLE · 33⅓ · 45 RPM), 실제 그림자(shadowMap + ShadowMaterial 바닥), 턴테이블 칸 바닥 리넨. 앨범 표지 대표색 3개(paletteOf, --a1~a3)로 화면 배경(.amb) 전체를 물들이고 앨범이 바뀌면 1.6초에 넘어감, 위·아래 바·칸은 반투명 유리, 밤 조명이 앨범 색을 머금음(Deck3D.setTint)
                     - 밀봉 신보(2026-11-11): 설정에 위클리·데이리스트 링크(music.special). 회차 키(위클리 = 그 주 월요일, 데이리스트 = 날짜+아침/오후/저녁/밤)가 music.opened와 다르면 크레이트 위에 비닐째 뜸 → 가로로 70% 넘게 그으면 찢어짐 → 슬리브 누르면 판 모션(sealed: 플레이리스트여도 슬리브). 표지를 못 읽으면 sealArt()로 그림
                     - 평가 후 손봄(2026-11-11): 3D는 조용할 때(멈춤·움직임 없음·2초 넘게 안 만짐) 초당 10번, 덮개가 닫히면 2번만 그림(deck3d calm, poke). 라벨·색·시간창은 값이 바뀔 때만 깨움
@@ -105,7 +106,11 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                       Device not found: api()가 /me/player 404면 recoverDevice(기기 목록 다시 → 고르기 pickDevice → transfer → 같은 요청 다시). PC 브라우저 플레이어는 다시 연결. 폰·패드도 SDK를 다시 띄움(2026-11-13 사용자: '원래 브라우저에서도 됐었음'). 다만 폰·패드에선 자동으로 고르지 않고 기기 목록에서 'Sabathia'를 직접 골라야 씀, 죽은 기기면 reconnectSdk
                       버벅임: 유리 바·칸 backdrop-filter와 .dof 끔, 3D는 해상도 1.5배까지 · 평소 재생 30fps · 그림자는 움직일 때만 · 잼/숨김/화면 밖이면 안 그림. 라디오(boombox)는 잼 끝나면 멈춤(전엔 뒤에서 계속 그림), 그림자 1024 · 2번에 한 번
                     - 아이폰 사파리 탭 닫힘 대응(2026-11-13, 친구 제보 '문제가 반복적으로 발생'): 메모리 초과. 책은 지금 장 ±2만 내용을 넣고 나머지 장은 비워 display:none(mag.js near(), faces). 잡지가 열려 있으면 body.magon으로 뒤 앱(header·main·.amb·footer)을 숨기고 Deck3D.suspend(true)로 3D를 멈춤(닫으면 되돌림)
-                    - LP 전체화면(2026-11-13): 턴테이블 줄 '전체화면' 버튼 또는 F 키. body.lpfull → 턴테이블 칸이 화면을 덮고 3초 손대지 않으면 위·아래 줄이 사라짐(lpidle), 왼쪽 아래 곡 이름 크게. Esc로 나감
+                    - LP 전체화면(2026-11-13): 턴테이블 칸 오른쪽 위 아이콘(#fullBtn .fsb) 또는 F 키. body.lpfull → 턴테이블 칸이 화면을 덮고 3초 손대지 않으면 아래 줄·단추가 사라짐(lpidle), 왼쪽 아래 곡 이름 크게. Esc로 나감
+                      가사(같은 날 사용자 요청, 애플 뮤직처럼·전체화면에서만): 3D를 왼쪽으로 밀고(.deck3d right = --lyrw 44%) 오른쪽에 가사(#lyr, public/lyrics.js). 세로 화면은 턴테이블 위·가사 아래(--lyrh 46%)
+                      가사 = /api/music/lyrics?t&a&al&d → src/lyrics.js가 LRCLIB(lrclib.net, 무료·키 없음) /get → /search(제목 그대로·feat./Remaster 뗀 제목·q) 순, 길이 5초 넘게 다르면 버림, Workers 캐시(찾음 7일·못 찾음 1일)
+                      지금 줄은 위 30%에 맞춰 부드럽게 올림(0.25초 먼저 켬), 지난 줄 더 흐리게, 빈 줄·긴 전주 = 점 세 개. 손으로 굴리면 3.5초 따라가지 않음. 줄 누르면 그 시각으로(MusicCore.seekMs). 시간 없는 가사는 그냥 글. 배경은 앨범 색(--a1·--a2)을 머금은 어둠
+                    - UI 정리(2026-11-13 사용자 요청: 버튼이 많음): 턴테이블 위 줄(셔플·반복·조명·전체화면·SPOTIFY CONNECT·기기 표시)을 없앰. 셔플·반복은 아랫줄 이전/다음 양옆 아이콘(.sq.ghost, 켜지면 포인트 색 + 점, 한 곡 반복은 1 표시), 전체화면은 턴테이블 칸 오른쪽 위 아이콘, 기기는 아랫줄 기기 단추만
 ## 잡지 개편 계획 (2026-11-13 논의, 아직 코딩하지 않음 — 사용자: '아직 코딩하지마')
 - 목표: '진짜 연재 수준'의 글과 실제 잡지 수준의 디자인. 지금 Vol.01도 만족하지만 그 이상을 원함
 - 글 방향(사용자 결정): 신곡은 Claude가 추천하고 그 아티스트를 깊게 해설하는 것만. 앨범 평가·점수는 하지 않음(Claude는 음악을 들을 수 없음 → 들은 척 금지)

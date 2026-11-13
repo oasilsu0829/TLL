@@ -2,11 +2,11 @@
 // - 앱 파일: 캐시를 먼저 보여 주고 뒤에서 새 파일을 받아 둔다(다음에 열 때 반영)
 // - 새로고침은 네트워크를 먼저 쓴다. 글꼴은 따로 캐시. /api/ 는 건드리지 않는다
 // 여러 파일을 함께 고쳤으면 VERSION을 올린다
-const VERSION = 'tll-v5';
+const VERSION = 'tll-v6';
 const FONTS = 'tll-fonts-1';
 const KEEP = [VERSION, FONTS];
 const SHELL = [
-  '/', '/deck/', '/shell.js', '/merge.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
+  '/', '/deck/', '/shell.js', '/merge.js', '/lyrics.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
   '/manifest.webmanifest', '/icon-192.png', '/deck/manifest.webmanifest', '/deck/icon-192.png',
 ];
 
