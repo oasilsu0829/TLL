@@ -41,4 +41,17 @@ assert.ok(!('k' in d.crates.a.albums[1]));
 d = clean({ crates: { a: { name: 'a', u: 1, albums: [{ ...A1, p: 7 }, { ...A2, p: 0 }] } } });
 assert.equal(d.crates.a.albums[0].p, 7);
 assert.ok(!('p' in d.crates.a.albums[1]));
+
+// 잡지: 뜯은 호는 합집합(이른 시각), 부록 플레이리스트는 먼저 있던 쪽(a)이 이긴다. 비어 있으면 mag 키가 없다
+assert.ok(!('mag' in clean({})));
+const P1 = { id: '37i9dQZF1DXcBWIGoYBM5M', name: 'Drop Vol.01 부록', n: 5 }, P2 = { id: '1A2GTWGtFfWp7KSQTwWOyo', name: 'Drop Vol.01 부록', n: 5 };
+const ma = clean({ crates: {}, mag: { opened: { 'drop-01': 300, 'fb-01': 100 }, pl: { 'drop-01': P1 } } });
+const mb = clean({ crates: {}, mag: { opened: { 'drop-01': 200, 'cy-01': 50, '../x': 1 }, pl: { 'drop-01': P2, 'fb-01': { id: 'bad' } } } });
+m = merge(ma, mb);
+assert.deepEqual(m.mag.opened, { 'drop-01': 200, 'fb-01': 100, 'cy-01': 50 });
+assert.equal(m.mag.pl['drop-01'].id, P1.id);
+assert.ok(!('fb-01' in m.mag.pl));
+// 같은 잡지 부록 LP가 id만 다르게 여러 장 꽂혀 있으면 앞 것 하나만 남는다(다른 잡지·다른 호는 그대로)
+d = clean({ crates: { 'c-pub-drop': { name: 'x', u: 1, albums: [{ k: 'pl', m: 'drop', ...P1 }, { k: 'pl', m: 'drop', ...P2 }, { k: 'pl', m: 'drop', id: '5bbwyAB9vmqN3uQ7FjRGTz', name: 'Drop Vol.02 부록' }, A1] } } });
+assert.deepEqual(d.crates['c-pub-drop'].albums.map((x) => x.id), [P1.id, '5bbwyAB9vmqN3uQ7FjRGTz', A1.id]);
 console.log('music merge ok');

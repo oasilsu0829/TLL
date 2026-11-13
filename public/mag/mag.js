@@ -396,6 +396,7 @@ function apply(moving = -1) {
   if (moving >= 0) setTimeout(() => apply(), 880);
   $('#book').style.transform = wide && k === 0 ? 'translateX(calc(var(--pw) * -.5))' : '';
   $('#pgno').textContent = state === 'read' ? `${k + 1} / ${n}` : '';
+  $('#prev').style.visibility = $('#next').style.visibility = state === 'wrap' ? 'hidden' : ''; // 비닐 양끝을 가리지 않게
   $('#rdBtn').hidden = !(state === 'read' && pageArt());
   if (state === 'read') { hint(lastPage() ? '부록 싱글을 누르면 테이프를 떼고 재생합니다' : ''); const pg = LS.get('mag.page') || {}; pg[cur.id] = k; LS.set('mag.page', pg); }
 }
@@ -436,7 +437,7 @@ function tearWrap(y = .5) {
     }));
     setTimeout(() => { top.remove(); bot.remove(); }, 950);
   }
-  const o = opened(); o[cur.id] = Date.now(); LS.set('mag.opened', o); updateDot();
+  const o = opened(); o[cur.id] = Date.now(); LS.set('mag.opened', o); updateDot(); pushMag();
   state = 'read'; apply();
 }
 function bindBook() {
@@ -470,7 +471,12 @@ async function takeSingle() {
   if (!tracks.length) return;
   try {
     const saved = LS.get('mag.pl') || {};
+    const name = `${cur.name} ${cur.vol} 부록`;
     let ent = saved[cur.id];
+    // 이 기기에 기록이 없어도 이미 만든 부록이 있으면 그대로 쓴다: 크레이트에 꽂힌 것 → 내 Spotify 플레이리스트 중 같은 이름
+    if (!ent && C.findMagLp) { const a = C.findMagLp(cur.mag, name); if (a) ent = { k: 'pl', id: a.id, name: a.name, artist: a.artist || cur.publisher, n: a.n }; }
+    if (!ent) ent = await findMine(C, name).catch(() => null);
+    if (ent && !saved[cur.id]) { saved[cur.id] = ent; LS.set('mag.pl', saved); pushMag(); }
     if (!ent) {
       toast('부록 싱글을 꺼내는 중…');
       const found = [];
@@ -481,17 +487,27 @@ async function takeSingle() {
         if (tr) found.push({ uri: tr.uri, img: tr.album && tr.album.images && tr.album.images[0] && tr.album.images[0].url });
       }
       if (!found.length) { toast('부록 곡을 Spotify에서 찾지 못했습니다'); return; }
-      const name = `${cur.name} ${cur.vol} 부록`;
       ent = await makePlaylist(C, name, `${cur.publisher} · ${cur.date} · T/L/L 잡지 부록 싱글`, found.map((f) => f.uri)).catch(() => null);
       if (!ent) { await playUris(C, found.map((f) => f.uri)); toast(`▶ 부록 ${found.length}곡 재생 (플레이리스트는 만들지 못했습니다)`); return; }
       ent.n = found.length;
-      saved[cur.id] = ent; LS.set('mag.pl', saved);
+      saved[cur.id] = ent; LS.set('mag.pl', saved); pushMag();
     }
     ent = { ...ent, m: cur.mag, img: sleeveOf(cur.mag) }; // 예전에 만든 것도 비닐 LP로
     C.addToCrate(cur.crate.id, cur.crate.name, cur.crate.o, ent);
     C.playAlbum(ent);
     toast(`▶ ${ent.name} — ${cur.crate.name} 크레이트에 꽂았습니다`);
   } catch (e) { toast(e.message || '재생하지 못했습니다'); }
+}
+// 내 플레이리스트(최대 200개)에서 같은 이름의 부록을 찾는다
+async function findMine(C, name) {
+  let url = '/me/playlists?limit=50';
+  for (let i = 0; url && i < 4; i++) {
+    const j = await C.api(url);
+    const hit = ((j && j.items) || []).find((p) => p && p.name === name);
+    if (hit) return { k: 'pl', id: hit.id, name, artist: cur.publisher, n: (hit.tracks && hit.tracks.total) || (hit.items && hit.items.total) || 0 };
+    url = j && j.next ? j.next.replace(/^https:\/\/api\.spotify\.com\/v1/, '') : '';
+  }
+  return null;
 }
 async function makePlaylist(C, name, description, uris) {
   if (!C.hasScope('playlist-modify-private')) throw new Error('scope');
@@ -552,12 +568,16 @@ async function openRead(it) {
   show('vBook'); k = 0; buildBook(); k = Math.min((LS.get('mag.page') || {})[it.id] || 0, leaves.length - 1); apply();
 }
 
+// 뜯은 기록·부록 플레이리스트를 계정 문서에 실어 다른 기기와 맞춘다(index.html MusicCore.magSaved)
+function pushMag() { const C = core(); if (C && C.magSaved) C.magSaved(); }
 function updateDot() { const d = document.getElementById('magDot'); if (d) d.hidden = !list.some((x) => !opened()[x.id]); }
 export async function open() {
   ensureRoot(); root.hidden = false; document.body.style.overflow = 'hidden';
   // 뒤의 앱(3D 턴테이블·유리 칸)은 잡지를 보는 동안 그리지 않는다
   document.body.classList.add('magon'); if (window.Deck3D && Deck3D.suspend) Deck3D.suspend(true);
-  try { await loadList(); } catch { list = []; }
+  // 다른 기기에서 뜯은 호도 반영(서버와 맞추기, 최대 3초)
+  const C = core();
+  try { await Promise.all([loadList(), C && C.magPull ? C.magPull().catch(() => {}) : null]); } catch { list = []; }
   tab = 'shelf';
   home();
 }
