@@ -86,6 +86,7 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                       그림 mag/sleeves/<mag>.webp(커버 800px) · <mag>-l.webp(판 라벨). 원본 scripts/mag-sleeves.html, 다시 뽑기 node scripts/mag-sleeves.cjs <출력 폴더>(Playwright, png → webp)
                       지면: mag.js lp12()가 .single7.bigs 안에 커버 그림을 끼움(테이프는 그대로). 크레이트 항목 = k 'pl' + m(잡지 키) + img(/music/mag/sleeves/…, merge.js가 이 경로만 허용)
                       m이 있으면 클립보드가 아니라 LP: 크레이트에 커버 그림, 판 갈기는 앨범 슬리브 모션(slam 아님), 3D 판 라벨은 잡지사 라벨 그림 그대로(deck3d lblSrc, 글자 안 얹음)
+                      부록 그림도 7인치 싱글로(같은 날 사용자 요청): mag-sleeves.html 기본이 7인치(label7: 큰 구멍을 피해 위·아래 띠에 글자, 45 RPM, '부록 싱글'), 예전 LP는 ?size=12. 화면 글자 '부록 LP' → '부록 싱글'
                       턴테이블 위에선 7인치 싱글(2026-11-13 사용자 요청: 실제 싱글 크기): deck3d kindOf(L.m) = SINGLE(반지름 0.35 = 12인치의 7/12, 그룹 scale, 라벨 크게, 가운데 큰 구멍 + 노란 45 어댑터 그림), 슬리브도 7¼인치. 내려앉으면 45 rpm 불 + 뒤 구석 어댑터 숨김(kindOn), 톤암·홈 빛·잡기 반지름은 지금 판 종류(recK). 지면 그림은 그대로 LP 비닐 커버
                       겹침 버그(같은 날): 판 갈기 도중 또 갈면(잡지가 열려 3D가 멈춘 동안 특히) 옛 판이 장면에 남아 새 판과 겹쳤음 → D.drop이 옛 판을 이어받아 사라지게, 내려앉을 때 장면에 남은 판을 치움
                     - 33⅓은 유저마다 다름(2026-11-13): index.json에 dynamic: true면 issue.html은 CSS만 쓰고 지면은 mag/m33.js build(MusicCore)가 만든다. 호 id = mo-YYYY-MM(달마다 새 호)
@@ -112,6 +113,8 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
                       가사(같은 날 사용자 요청, 애플 뮤직처럼·전체화면에서만): 3D를 왼쪽으로 밀고(.deck3d right = --lyrw 44%) 오른쪽에 가사(#lyr, public/lyrics.js). 세로 화면은 턴테이블 위·가사 아래(--lyrh 46%)
                       가사 = /api/music/lyrics?t&a&al&d → src/lyrics.js가 LRCLIB(lrclib.net, 무료·키 없음) /get → /search(제목 그대로·feat./Remaster 뗀 제목·q) 순, 길이 5초 넘게 다르면 버림, Workers 캐시(찾음 7일·못 찾음 1일)
                       지금 줄은 위 30%에 맞춰 부드럽게 올림(0.25초 먼저 켬), 지난 줄 더 흐리게, 빈 줄·긴 전주 = 점 세 개. 손으로 굴리면 3.5초 따라가지 않음. 줄 누르면 그 시각으로(MusicCore.seekMs). 시간 없는 가사는 그냥 글. 배경은 앨범 색(--a1·--a2)을 머금은 어둠
+                    - 싱글 7인치(2026-11-13 사용자 요청: '싱글로 분류돼 있으면 싱글로'): Spotify album_type 'single'(EP 포함) 앨범 + 잡지 부록 = isSingle(a). 종류는 LS music.atype {id: 's'|'a'}(찾기 결과 toAlbum · 지금 곡 render · 크레이트에서 모르는 것은 fillTypes가 /albums?ids= 20장씩, 막히면 한 장씩)
+                      보이는 곳: 3D 판(Deck3D drop/prebuild/setLabel에 single → deck3d kindOf), 크레이트 .lp.s7(작은 슬리브, 밑을 받쳐 올림), 지금 재생 .np.s7(0.6배 · 큰 라벨 · 큰 구멍), 정보 쪽지 '7" 싱글', '이 싱글 듣기'
                     - UI 정리(2026-11-13 사용자 요청: 버튼이 많음): 턴테이블 위 줄(셔플·반복·조명·전체화면·SPOTIFY CONNECT·기기 표시)을 없앰. 셔플·반복은 아랫줄 이전/다음 양옆 아이콘(.sq.ghost, 켜지면 포인트 색 + 점, 한 곡 반복은 1 표시), 전체화면은 턴테이블 칸 오른쪽 위 아이콘, 기기는 아랫줄 기기 단추만
 ## 잡지 개편 계획 (2026-11-13 논의. 같은 날 사용자 '첫 시험 호를 만들어줘' → feedback vol.02로 실행, 아래 '개편 첫 시험 호')
 - 목표: '진짜 연재 수준'의 글과 실제 잡지 수준의 디자인. 지금 Vol.01도 만족하지만 그 이상을 원함
