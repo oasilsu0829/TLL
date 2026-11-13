@@ -1,6 +1,9 @@
 name = "tll"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
+# 주소는 tll.oasilsu0829.workers.dev 하나. 커밋마다 붙는 미리보기 주소는 쓰지 않는다
+workers_dev = true
+preview_urls = false
 
 [assets]
 directory = "./public"
