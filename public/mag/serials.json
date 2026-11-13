@@ -5,7 +5,7 @@
    "mag": "fb",
    "name": "feedback",
    "title": "방",
-   "writer": "윤서해",
+   "writer": "노암 갤러거",
    "about": "밴드가 소리를 만든 방들을 하나씩 찾아간다. 녹음실, 지하실, 거실.",
    "episodes": [
     { "n": 1, "issue": "fb-02", "art": "rooms", "title": "빅 핑크, 이름만 남긴 방", "date": "2026.11.16" }
@@ -27,7 +27,7 @@
    "mag": "cy",
    "name": "Cypher",
    "title": "언더그라운드 연대기",
-   "writer": "박지후",
+   "writer": "돈까스",
    "about": "국내 힙합을 한 해씩, 공연·음반·크루의 기록으로 되짚는다.",
    "episodes": [],
    "next": { "n": 1, "title": "다음 Cypher 호에서 시작", "note": "첫 회는 기록이 충분히 남은 해부터" }

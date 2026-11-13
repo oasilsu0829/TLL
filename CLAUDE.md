@@ -137,7 +137,7 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
 - 예약 작업 3개(이 계정, 매주, 새 세션): Drop 금 18:47 · feedback 일 21:43 · Cypher 화 21:41 (한국 시각). 프롬프트는 'system.md대로 <잡지> 다음 호'. 첫 실제 발행 = Cypher 11/24 밤(11/25 자)
 - 발행 = 브랜치 mag/<id> → PR → 바로 병합(squash, 사용자 허락). 관문은 `node scripts/mag-check.mjs <id>`(구조·금지어·점수 표기·가사 의심 인용·출처 10곳·연재 회차·폰/태블릿 넘침·읽기 모드·스크립트 오류). 오류가 남으면 '[발행 보류]' PR만 두고 끝
 - 사진 `python3 -I scripts/mag-photo.py <원본> <id> <이름> --credit --src --look plain|duo|halftone|riso|xerox` → webp + docs/magazine/issues/<id>/credits.json. ND 라이선스는 거부
-- 연재 `public/mag/serials.json`: feedback '방'(윤서해, 1회 fb-02) · Drop '정전 해부'(고한석) · Cypher '언더그라운드 연대기'(박지후). 앱 책장 위 '연재' 탭(회차 누르면 그 글을 읽기 모드로, mag.js openArticle), 연재 글 끝에 지난 회·다음 회(예고)
+- 연재 `public/mag/serials.json`: feedback '방'(노암 갤러거, 1회 fb-02) · Drop '정전 해부'(고한석) · Cypher '언더그라운드 연대기'(돈까스). 앱 책장 위 '연재' 탭(회차 누르면 그 글을 읽기 모드로, mag.js openArticle), 연재 글 끝에 지난 회·다음 회(예고)
 - 편집부 기억 `docs/magazine/memory/<feedback|drop|cypher>.md`, 바이블마다 맨 위 '개편' 항목(점수 없음, 필진, 연재)
 - 기본 브랜치(claude/practical-mccarthy-1catzl)에 이 시스템이 병합돼 있어야 예약 세션이 돈다
 
