@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 새 호 뼈대 만들기. 잡지를 빨리 쓰기 위한 첫 단계(.claude/skills/mag-issue/SKILL.md).
-//   node scripts/mag-new.mjs <drop|fb|cy> [--date YYYY-MM-DD] [--dry]
+//   node scripts/mag-new.mjs <drop|fb|cy> [--date YYYY-MM-DD] [--dry] [--force]
 // 하는 일
 //   1. 발행일 계산: --date(없으면 오늘, 한국 시각) 당일이나 그 뒤 첫 발행 요일(Drop 금 · feedback 월 · Cypher 수)
 //   2. 차례 검사(system.md 1장): 기준 주 2026-11-09, n%3 → 0 Drop · 1 feedback · 2 Cypher. 차례가 아니면 이유를 말하고 끝(종료 코드 3)
@@ -15,6 +15,7 @@ const args = process.argv.slice(2);
 const mag = args.find((a) => !a.startsWith('--'));
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
 const DRY = args.includes('--dry');
+const FORCE = args.includes('--force'); // 사용자가 차례 밖 호를 따로 요청했을 때만: 차례·같은 날짜 검사를 건너뜀
 const ROOT = resolve('.');
 
 const MAGS = {
@@ -81,11 +82,11 @@ const n = Math.round((mon - D('2026-11-09')) / 864e5 / 7);
 const turn = ORDER[((n % 3) + 3) % 3];
 const dot = ymd(pub).replace(/-/g, '.');
 console.log(`발행일 ${ymd(pub)}(${M.dayKo}) · 그 주 월요일 ${ymd(mon)} · n=${n} → 이번 주 차례 ${MAGS[turn].name}`);
-if (turn !== mag) { console.log(`이번 주는 ${MAGS[turn].name} 차례. 아무것도 만들지 않음`); process.exit(3); }
+if (turn !== mag && !FORCE) { console.log(`이번 주는 ${MAGS[turn].name} 차례. 아무것도 만들지 않음`); process.exit(3); }
 
 /* ── 호 id ── */
 const index = JSON.parse(readFileSync(join(ROOT, 'public/mag/issues/index.json'), 'utf8'));
-if (index.issues.some((x) => x.mag === mag && x.date === dot)) { console.log(`${M.name} ${dot} 호가 이미 있음. 끝`); process.exit(4); }
+if (!FORCE && index.issues.some((x) => x.mag === mag && x.date === dot)) { console.log(`${M.name} ${dot} 호가 이미 있음. 끝`); process.exit(4); }
 const nums = index.issues.filter((x) => x.mag === mag).map((x) => +(x.id.match(/-(\d+)$/) || [0, 0])[1]);
 const NN = String(Math.max(0, ...nums) + 1).padStart(2, '0');
 const id = `${mag}-${NN}`, vol = `${M.vol}${NN}`;
