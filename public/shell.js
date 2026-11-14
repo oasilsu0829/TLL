@@ -23,6 +23,19 @@
   }
 
   if ('serviceWorker' in navigator) {
-    addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    addEventListener('load', () => navigator.serviceWorker.register('/sw.js').then((r) => {
+      // 앱이 오래 켜져 있어도(폰 PWA는 뒤에 계속 살아 있다) 돌아올 때마다 새 버전이 있는지 본다
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') r.update().catch(() => {}); });
+    }).catch(() => {}));
+    // 새 버전(sw.js VERSION)이 자리를 잡으면 적용한다(2026-11-13: 배포해도 예전 화면이 계속 떠 있었다)
+    // 연 지 20초 안이면 바로 새로고침, 아니면 보던 것을 끊지 않게 화면을 떠날 때(숨김) 새로고침 → 돌아오면 새 버전
+    const had = !!navigator.serviceWorker.controller, t0 = Date.now();
+    let done = false;
+    const reload = () => { if (!done) { done = true; location.reload(); } };
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!had) return; // 처음 설치될 때는 이미 새 파일이다
+      if (Date.now() - t0 < 20000 && !window.MusicJamOn) reload();
+      else document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') reload(); });
+    });
   }
 })();
