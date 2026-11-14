@@ -14,13 +14,15 @@ node scripts/mag-new.mjs <drop|fb|cy> [--date YYYY-MM-DD]
 - 차례 검사(종료 3), 같은 날짜 호가 있는지 검사(종료 4), 다음 id 결정, `docs/magazine/issues/<id>/`에 articles.md · notes.md · pages.html(약 20쪽, 잡지 색·글꼴·사진 칸 포함) · index-entry.json 생성
 - 뼈대의 `TODO:`가 남아 있으면 mag-check가 오류를 낸다 → 채우거나 지울 것
 - 출력된 '먼저 읽을 것'(바이블 맨 위 '개편', 기억 파일, 연재 예고)만 읽는다. editorial-logic.md는 막힐 때만
+- **뼈대는 id·차례·CSS 골격을 얻는 용도.** articles.md의 꼭지 순서·소제목과 pages.html의 쪽 배치는 컨셉(system.md 4-1)에 맞게 지우고 새로 짠다. 뼈대 그대로 채우면 매 호 같은 잡지가 된다(2026-11-14 사용자 '재미가 없어')
 
 ## 1. 편성·취재 (가장 오래 걸림)
 - 웹 검색은 한 번에 여러 개를 같이 보낸다(그 주 신보 목록 4~5곳 → 후보 3팀 → 후보마다 경력·인터뷰)
 - 커버 출처 8곳이 안 모이면 바로 다음 후보로. 30분 넘게 붙잡지 않는다
 - 사실은 바로 notes.md 표에 id로 적고, 원고에는 노트에 있는 것만 쓴다(데스크가 빨라진다)
+- 취재 중반에 **컨셉 세 개 → 하나 고르기**(system.md 4-1). 기억 파일 '쓴 컨셉'과 겹치지 않게
 
-## 2. 사진 (커넥터 없어도 됨)
+## 2. 사진 (Unsplash·Adobe 커넥터가 붙어 있으면 먼저 쓴다 — system.md 6장)
 ```bash
 python3 -I scripts/mag-photos.py search "<아티스트 영어 이름> live" --src commons,openverse
 python3 -I scripts/mag-photos.py get <번호> <id> photo-cover --crop 2:3 --look riso --accent "<잡지 색>"
@@ -32,9 +34,9 @@ python3 -I scripts/mag-photos.py get <번호> <id> photo-cover --crop 2:3 --look
 - 아티스트 사진이 없으면 장소·악기·사물 사진, 그것도 없으면 타이포·SVG 표지(fb-02)
 
 ## 3. 원고 → 지면
-- articles.md 문법은 파일 맨 위 주석. 커버는 s0~s8 뼈대 순서대로(장면 → 왜 지금 → 전개 → 반론 → 지키는 것 → 돌아오기)
+- articles.md 문법은 파일 맨 위 주석. 구성과 소제목은 컨셉대로. 정형 소제목('왜 지금'·'아쉬움에 대하여'·'지키는 것'·'다시, ○○') 금지, 재미 규칙은 system.md 4-2
 - 지면은 원고를 `{{p 기사 묶음.1-2}}`로 가져오기만 하면 된다. 넘치면 `.1-2`를 `.1`로 줄인다
-- 데이터 그래픽 쪽(뼈대에 칸 있음)은 SVG/CSS로 하나
+- 그래픽은 컨셉에 맞는 것으로 하나 이상(SVG/CSS)
 
 ## 4. 빌드·검사·발행
 ```bash

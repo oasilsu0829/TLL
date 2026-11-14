@@ -156,6 +156,7 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
 - 기본 브랜치(claude/practical-mccarthy-1catzl)에 이 시스템이 병합돼 있어야 예약 세션이 돈다
 - 특별판 세 권(2026-11-14 사용자 요청, 정기 순환 밖, mag-new.mjs --force 후 날짜를 11.14로): Drop Vol.02 스노 알레그라 [Legendary Love] · feedback vol.03 슬립워크 [View From The Outside] · Cypher Vol.02 황지상 [#800080]. 연재 정전 해부 1회([Voodoo]) · 방 2회(노란 집) · 연대기 1회(2004). index.json 항목에 special: true
   - 고친 도구: mag-issue.py가 지면의 상대 경로 그림을 /mag/issues/<id>/로 바꿈(전엔 Shadow DOM에서 앱 주소 기준으로 풀려 사진이 안 보였음, mag-check가 상대 경로를 오류로 잡음) · mag-check 점수 검사에서 URL 제외(2026/10 같은 주소가 '6/10'으로 걸렸음) · mag-photos.py Commons 원본 대신 썸네일(429·400 회피)
+- 컨셉 먼저(2026-11-14 사용자: '정해진 스킬대로보다 매주 새 컨셉에 맞게 알아서 쓰는 게 재밌을 듯, 지금은 글도 재미가 없어'): system.md 4장을 '컨셉 → 재미 규칙'으로 바꿈. 고정은 사실 약속·출처·편집 노트·부록·연재 한 회·판형 2 기술뿐. 정형 소제목 금지, 사진은 Unsplash·Adobe 커넥터 먼저(6장)
 - 빨리 만들기(2026-11-13): 스킬 `.claude/skills/mag-issue/SKILL.md`. `node scripts/mag-new.mjs <drop|fb|cy>` = 차례 검사 + 뼈대(TODO는 mag-check가 오류로 잡음), `python3 -I scripts/mag-photos.py search|get` = 커넥터 없이 Commons·Openverse·의회도서관·시카고 미술관에서 쓸 수 있는 라이선스 사진만 받아 mag-photo.py로(400KB 자동 축소). mag-check는 사진 파일·크레딧·8장 한도도 검사. 이 세션은 claude.ai 커넥터 전부가 502로 실패했다(Commons는 429가 잦지만 기다리면 됨, Openverse는 504)
 
 ## 사용자 선호
