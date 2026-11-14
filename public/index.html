@@ -270,7 +270,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .tk.on b { font-weight: 700; }
 .lp.pl { border-radius: 2px; }
 /* 7인치 싱글: 12인치 LP 상자 안에 작게(7¼ / 12⅜) 세워 둔다 */
-.lp.s7 { left: 32%; width: 36%; bottom: 26%; } /* 앞 판자에 가려지지 않게 밑을 받쳐 올림(밑은 판자 뒤) */
+.lp.s7 { left: 32%; width: 36%; bottom: 26%; transform-origin: 50% 150%; } /* 앞 판자에 가려지지 않게 밑을 받쳐 올림(밑은 판자 뒤). 넘길 때는 LP와 같은 바닥 축(크레이트 6%)에서 돈다: 판 높이의 50% 아래 */
 .lp.s7::after { inset: 4%; }
 /* 플레이리스트 = 곡 목록이 적힌 클립보드 */
 .cb { container-type: inline-size; border-radius: 5% !important; background: linear-gradient(180deg, rgba(255,240,220,.12), transparent 30%, rgba(30,15,5,.25)), var(--grain), linear-gradient(135deg, #a3723f, #8b5d31 55%, #77502a) !important; background-size: 100% 100%, 260px 70px, 100% 100% !important; box-shadow: 0 -3px 10px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.12) !important; }
@@ -1376,6 +1376,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   }
   function place(e, d) {
     const p = lpPose(d), near = Math.abs(d) < 0.5;
+    if (e.classList.contains('s7')) p.ty *= 62 / 36; // translateY %는 판 자기 높이 기준이라, 작은 싱글도 LP와 같은 거리만큼 움직이게
     e.classList.toggle('back', d < -0.5);
     e.classList.toggle('cur', near);
     e.style.opacity = d < -1.6 || d > 6.5 ? '0' : '1';
