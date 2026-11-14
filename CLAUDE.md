@@ -154,6 +154,7 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
 - 연재 `public/mag/serials.json`: feedback '방'(노암 갤러거, 1회 fb-02) · Drop '정전 해부'(고한석) · Cypher '언더그라운드 연대기'(돈까스). 앱 책장 위 '연재' 탭(회차 누르면 그 글을 읽기 모드로, mag.js openArticle), 연재 글 끝에 지난 회·다음 회(예고)
 - 편집부 기억 `docs/magazine/memory/<feedback|drop|cypher>.md`, 바이블마다 맨 위 '개편' 항목(점수 없음, 필진, 연재)
 - 기본 브랜치(claude/practical-mccarthy-1catzl)에 이 시스템이 병합돼 있어야 예약 세션이 돈다
+- 빨리 만들기(2026-11-13): 스킬 `.claude/skills/mag-issue/SKILL.md`. `node scripts/mag-new.mjs <drop|fb|cy>` = 차례 검사 + 뼈대(TODO는 mag-check가 오류로 잡음), `python3 -I scripts/mag-photos.py search|get` = 커넥터 없이 Commons·Openverse·의회도서관·시카고 미술관에서 쓸 수 있는 라이선스 사진만 받아 mag-photo.py로(400KB 자동 축소). mag-check는 사진 파일·크레딧·8장 한도도 검사. 이 세션은 claude.ai 커넥터 전부가 502로 실패했다(Commons는 429가 잦지만 기다리면 됨, Openverse는 504)
 
 ## 사용자 선호
 - 답변은 짧고 직접적으로. 이모지 쓰지 않기. 한국어
