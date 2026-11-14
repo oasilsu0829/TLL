@@ -39,6 +39,12 @@ def ok_license(lic):
     return bool(l) and 'nd' not in re.split(r'[ \-]', l.lower()) and bool(OK_LIC.match(l))
 
 
+def commons_thumb(u, w=1280):
+    """Commons 원본 주소 → 썸네일 주소(원본 직접 받기는 429로 막힘)."""
+    m = re.match(r'^https://upload\.wikimedia\.org/wikipedia/commons/(\w)/(\w\w)/([^/]+)$', u or '')
+    return f'https://thumb.wikimedia.org/wikipedia/commons/thumb/{m[1]}/{m[2]}/{m[3]}/{w}px-{m[3]}' if m else u
+
+
 def get(url, tries=4, binary=False):
     wait = 3
     for i in range(tries):
@@ -70,7 +76,7 @@ def strip(s):
 def commons(q, n):
     u = 'https://commons.wikimedia.org/w/api.php?' + urllib.parse.urlencode({
         'action': 'query', 'format': 'json', 'generator': 'search', 'gsrsearch': f'filetype:bitmap {q}', 'gsrnamespace': 6,
-        'gsrlimit': n * 2, 'prop': 'imageinfo', 'iiprop': 'url|extmetadata|size', 'iiurlwidth': 1600})
+        'gsrlimit': n * 2, 'prop': 'imageinfo', 'iiprop': 'url|extmetadata|size', 'iiurlwidth': 1280})
     d = get(u) or {}
     out = []
     for p in sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0)):
@@ -87,7 +93,7 @@ def openverse(q, n):
     d = get(u) or {}
     return [{'src': 'openverse', 'title': r.get('title') or '', 'author': r.get('creator') or '알 수 없음',
              'license': ('CC ' + r['license'].upper() + (' ' + r['license_version'] if r.get('license_version') else '')) if r.get('license') not in ('cc0', 'pdm') else r['license'].upper().replace('PDM', 'PD'),
-             'page': r.get('foreign_landing_url'), 'img': r.get('url'), 'w': r.get('width'), 'h': r.get('height')} for r in d.get('results', [])]
+             'page': r.get('foreign_landing_url'), 'img': commons_thumb(r.get('url')), 'w': r.get('width'), 'h': r.get('height')} for r in d.get('results', [])]
 
 
 def loc(q, n):

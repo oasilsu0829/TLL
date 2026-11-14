@@ -44,7 +44,8 @@ if (ih.includes('{{')) E('처리 못 한 {{ }}가 있다');
 const todo = [ih, JSON.stringify(it)].join('').match(/TODO:[^<\n"]{0,40}/g);
 if (todo) E(`뼈대(mag-new.mjs)의 TODO가 ${todo.length}곳 남음: ${todo.slice(0, 3).join(' / ')}`);
 /* 사진: 지면이 부르는 파일이 있고, 크레딧이 있고, 한 장 400KB · 한 호 8장 이하 */
-const imgs = [...new Set([...ih.matchAll(/<img[^>]+src="([^":]+\.(?:webp|jpg|png))"/g)].map((m) => m[1]))];
+const imgs = [...new Set([...ih.matchAll(/<img[^>]+src="([^":]+\.(?:webp|jpg|png))"/g)].map((m) => m[1].split('/').pop()))];
+for (const m of ih.matchAll(/<img[^>]+src="([^"/:][^":]*\.(?:webp|jpg|png))"/g)) E(`사진 ${m[1]} 상대 경로 — 지면에서 안 보임(mag-issue.py로 다시 빌드)`);
 const credPath = join(ROOT, 'docs/magazine/issues', it.dir, 'credits.json');
 const creds = existsSync(credPath) ? JSON.parse(readFileSync(credPath, 'utf8')) : [];
 for (const f of imgs) {
@@ -77,7 +78,8 @@ if (!md) E(`원고 docs/magazine/issues/${it.dir}/articles.md 없음`);
 const text = md || ih.replace(/<[^>]+>/g, ' ');
 for (const w of banned) if (text.includes(w)) E(`금지어 '${w}'`);
 const scoreRe = [/볼륨\s*\d+\s*\/\s*11/, /\d\.\d\s*점/, /★/, /\b\d{1,2}\s*\/\s*11\b/, /\d(\.\d)?\s*\/\s*10\b/];
-for (const r of scoreRe) { const m = text.match(r); if (m) E(`점수 표기 '${m[0]}' (개편 뒤 점수 없음)`); }
+const noUrl = text.replace(/https?:\/\/\S+/g, ' ');
+for (const r of scoreRe) { const m = noUrl.match(r); if (m) E(`점수 표기 '${m[0]}' (개편 뒤 점수 없음)`); }
 const quotes = [...text.matchAll(/["“]([^"”\n]{12,240})["”]/g)].map((m) => m[1]).filter((q) => /[A-Za-z]/.test(q) && q.trim().split(/\s+/).length >= 3);
 if (quotes.length > 2) E(`따옴표 속 영어 문장 ${quotes.length}개 — 가사나 긴 인용인지 확인(직접 인용은 아티스트 한 문장씩만): ${quotes.slice(0, 3).join(' / ')}`);
 else for (const q of quotes) W(`직접 인용 확인: "${q}"`);

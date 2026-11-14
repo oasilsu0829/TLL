@@ -1,0 +1,446 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Jost:wght@700;900&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&display=swap">
+<style>
+:root{
+  --paper:#f4efe6; --ink:#141414; --mute:#6d675e; --rule:rgba(20,20,20,.18);
+  --cy:#e2372f; --cy2:#b0201e; --red:#d23a26; --kraft:#c49a63; --kraft2:#a97d47; --night:#0f1724; --pink:#ef9fb4;
+  --mono:'IBM Plex Mono',monospace; --serif:'Noto Serif KR',Georgia,serif; --sans:'Noto Sans KR',system-ui,sans-serif; --it:'Instrument Serif',Georgia,serif; --slab:'Archivo Black',serif;
+  --rd-bg:#f6f1e7; --rd-ink:#1b1a18; --rd-accent:#b0201e; --rd-rule:rgba(20,20,20,.14); --rd-on:#fff; --rd-hit:#e2372f38;
+}
+/* ── 지면 ── */
+.x2{position:absolute;inset:0;overflow:hidden;background:var(--paper);color:var(--ink);container-type:size;font-family:var(--serif);-webkit-font-smoothing:antialiased}
+.x2::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;opacity:.55;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.x2 *{box-sizing:border-box}
+.x2 :is(h1,h2,h3){color:inherit;text-align:left}
+.x2 .x-in{position:absolute;left:7cqw;right:7cqw;top:12cqw;bottom:12cqw;display:flex;flex-direction:column}
+.x2 .x-rh{position:absolute;left:7cqw;right:7cqw;top:4.6cqw;display:flex;justify-content:space-between;font:400 2.3cqw/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);border-bottom:.2cqw solid var(--rule);padding-bottom:1.6cqw}
+.x2 .x-rh b{color:var(--cy2);font-weight:600}
+.x2 .x-folio{position:absolute;left:7cqw;right:7cqw;bottom:4.6cqw;display:flex;justify-content:space-between;font:400 2.3cqw/1 var(--mono);letter-spacing:.08em;color:var(--mute)}
+.x2 .x-kick{font:600 2.6cqw/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cy2)}
+.x2 .x-h{font:900 8cqw/1.18 var(--serif);letter-spacing:-.03em;margin:2.4cqw 0 0;word-break:keep-all}
+.x2 .x-h2{font:900 5.6cqw/1.25 var(--serif);letter-spacing:-.02em;margin:0;word-break:keep-all}
+.x2 .x-en{font:italic 400 4.4cqw/1.1 var(--it);color:var(--mute)}
+.x2 .x-dek{font:500 3.3cqw/1.6 var(--sans);color:#3a3631;margin:2.6cqw 0 0;word-break:keep-all}
+.x2 .x-by{font:400 2.5cqw/1.4 var(--mono);color:var(--mute);margin-top:2cqw;letter-spacing:.04em}
+.x2 .x-txt{font-size:3.5cqw;line-height:1.72;word-break:keep-all;color:#1f1d1a}
+.x2 .x-txt p{margin:0 0 2.4cqw}
+.x2 .x-txt .alb,.x2r .alb{font-feature-settings:"palt"}
+.x2 .x-txt .note{font-family:var(--sans);font-size:3cqw;color:var(--mute)}
+.x2 .x-txt ul{margin:0;padding:0;list-style:none}
+.x2 .x-txt li{padding:2cqw 0;border-top:.2cqw solid var(--rule);font-family:var(--sans);font-size:3.1cqw;line-height:1.55}
+.x2 .x-drop>p:first-child::first-letter{float:left;font:900 12cqw/.86 var(--serif);padding:1.2cqw 1.8cqw 0 0;color:var(--cy2)}
+.x2 .x-more{margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:1.6cqw;border:.35cqw solid var(--cy2);border-radius:99cqw;background:none;color:var(--cy2);font:700 3.2cqw/1 var(--sans);padding:3.2cqw 4.6cqw;cursor:pointer;min-height:11cqw}
+.x2 .x-more i{font-style:normal;font-size:2.4cqw}
+.x2 .x-more:focus-visible{outline:.5cqw solid var(--red);outline-offset:.8cqw}
+.x2 .x-dark .x-more,.x2.x-dark .x-more{border-color:#9fe0f2;color:#9fe0f2}
+.x2 .x-pull{font:900 4.6cqw/1.45 var(--serif);letter-spacing:-.02em;word-break:keep-all;color:var(--ink);padding:3cqw 0;border-top:.6cqw solid var(--ink);border-bottom:.2cqw solid var(--ink)}
+.x2 .x-pull p{margin:0}
+.x2 .x-cap{font:400 2.5cqw/1.5 var(--sans);color:var(--mute);word-break:keep-all}
+.x2 .x-cap b{color:var(--ink);font-weight:700}
+.x2 .x-tag{display:inline-block;font:600 2.3cqw/1 var(--mono);letter-spacing:.1em;padding:1.2cqw 1.8cqw;border:.25cqw solid currentColor;border-radius:.6cqw}
+/* 리소 판 어긋남: 같은 글자를 하늘색으로 한 번 더 찍고 살짝 민다 */
+.x2 .x-riso{position:relative;display:inline-block}
+.x2 .x-riso::before{content:attr(data-t);position:absolute;left:.7cqw;top:.45cqw;color:var(--cy);mix-blend-mode:multiply;white-space:pre-line;z-index:-1}
+.x2 .x-dots{background-image:radial-gradient(circle,var(--ink) 34%,transparent 36%);background-size:1.8cqw 1.8cqw}
+
+/* 0 표지 — 신발 상자 끝면 라벨 */
+.x2.x-cover{background:linear-gradient(180deg,#cfa86f 0,#c49a63 46%,#b88c55 100%)}
+.x2.x-cover::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(92deg,rgba(80,50,20,.05) 0 .3cqw,transparent .3cqw 1.9cqw),repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 .2cqw,transparent .2cqw 3cqw)}
+.x2 .x-lid{position:absolute;left:0;right:0;top:36cqw;height:2.4cqw;background:linear-gradient(180deg,rgba(60,35,10,.38),rgba(60,35,10,0));border-top:.3cqw solid rgba(255,240,215,.45)}
+.x2 .x-mast{position:absolute;left:4.5cqw;top:1cqw;font:400 21.5cqw/1 var(--slab);letter-spacing:-.045em;color:var(--cy);text-shadow:.7cqw .7cqw 0 rgba(20,20,20,.9)}
+.x2 .x-issue{position:absolute;left:6cqw;right:6cqw;top:29.5cqw;display:flex;justify-content:space-between;font:600 2.3cqw/1 var(--mono);letter-spacing:.1em;color:#2b1d0d}
+.x2 .x-stamp{position:absolute;right:6cqw;top:44cqw;width:19cqw;height:19cqw;border-radius:50%;border:.7cqw solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;text-align:center;font:900 3.6cqw/1.15 var(--sans);transform:rotate(12deg);mix-blend-mode:multiply;z-index:3}
+.x2 .x-label{position:absolute;left:7cqw;right:13cqw;top:42cqw;background:#fbf8f1;color:#1a1612;padding:3cqw 3.6cqw 2.6cqw;transform:rotate(-1.4deg);box-shadow:0 .5cqw 1.4cqw rgba(60,35,10,.35)}
+.x2 .x-label .r{display:flex;gap:2.4cqw;align-items:baseline;border-bottom:.25cqw solid #1a1612;padding:1cqw 0}
+.x2 .x-label .r span{font:400 2.1cqw/1 var(--mono);letter-spacing:.12em;color:#6b6157;width:12cqw;flex:0 0 auto}
+.x2 .x-label .r b{font:400 5.6cqw/1 var(--slab);letter-spacing:-.01em}
+.x2 .x-label .g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4cqw;margin-top:1.8cqw}
+.x2 .x-label .g div{font:400 1.9cqw/1.35 var(--mono);color:#6b6157;letter-spacing:.06em}
+.x2 .x-label .g b{display:block;font:600 2.6cqw/1.2 var(--mono);color:#1a1612;letter-spacing:0}
+.x2 .x-bar{height:6.4cqw;margin-top:2.2cqw;background:repeating-linear-gradient(90deg,#1a1612 0 .35cqw,transparent .35cqw .7cqw,#1a1612 .7cqw .9cqw,transparent .9cqw 1.5cqw,#1a1612 1.5cqw 2.2cqw,transparent 2.2cqw 2.6cqw,#1a1612 2.6cqw 2.8cqw,transparent 2.8cqw 3.6cqw)}
+.x2 .x-barn{display:flex;justify-content:space-between;font:400 1.9cqw/1 var(--mono);margin-top:1cqw;letter-spacing:.08em}
+.x2 .x-cvh{position:absolute;left:7cqw;right:7cqw;top:90cqw;margin:0;font:900 11.4cqw/1.12 var(--serif);letter-spacing:-.045em;color:#141414}
+.x2 .x-cvdek{position:absolute;left:7cqw;right:22cqw;top:117.5cqw;margin:0;font:700 3cqw/1.5 var(--sans);color:#2b1d0d;word-break:keep-all}
+.x2 .x-cvl{position:absolute;left:7cqw;right:7cqw;bottom:6cqw;display:grid;grid-template-columns:1fr 1fr;gap:1.6cqw 4cqw;border-top:.35cqw solid #2b1d0d;padding-top:2.4cqw}
+.x2 .x-cvl div{font:500 2.5cqw/1.35 var(--sans);color:#2b1d0d}
+.x2 .x-cvl b{display:block;font:600 2cqw/1.2 var(--mono);letter-spacing:.12em;color:#5b3d17}
+.x2 .x-lp{position:absolute;right:6cqw;top:116cqw;width:14cqw;height:14cqw;border-radius:50%;background:radial-gradient(circle,#f4efe6 0 8%,var(--cy) 8% 32%,#141414 32% 36%,#2a2a2a 36% 40%,#141414 40%);display:flex;align-items:center;justify-content:center;box-shadow:0 .6cqw 1.2cqw rgba(0,0,0,.35)}
+.x2 .x-lp span{position:absolute;bottom:-4.4cqw;left:-4cqw;right:-4cqw;text-align:center;font:600 2cqw/1 var(--mono);color:#2b1d0d;letter-spacing:.06em}
+
+/* 1 차례 */
+.x2 .x-toc{list-style:none;margin:3cqw 0 0;padding:0}
+.x2 .x-toc li{display:grid;grid-template-columns:10cqw 1fr;gap:2cqw;padding:1.25cqw 0;border-top:.2cqw solid var(--rule);align-items:baseline}
+.x2 .x-toc li b{font:400 5cqw/1 var(--slab);color:var(--cy2)}
+.x2 .x-toc li span{font:700 3.1cqw/1.3 var(--sans)}
+.x2 .x-toc li small{display:block;font:400 2.6cqw/1.4 var(--sans);color:var(--mute);margin-top:.6cqw}
+.x2 .x-how{margin-top:2.4cqw;background:#e6f4f8;border-left:1cqw solid var(--cy);padding:3cqw 3.4cqw;font:500 2.8cqw/1.55 var(--sans);color:#1f3a42}
+.x2 .x-how b{color:var(--cy2)}
+
+/* 2 편집장의 글 */
+.x2 .x-knob{width:30cqw;height:30cqw;margin:0 auto 1cqw;display:block}
+
+/* 4 커버 스토리 첫 쪽 */
+.x2 .x-room{position:absolute;left:7cqw;right:7cqw;top:12cqw;height:52cqw;border:1.2cqw solid var(--ink)}
+.x2 .x-room::before{content:"";position:absolute;inset:0;opacity:.13}
+.x2 .x-room .d{position:absolute;bottom:-1.2cqw;left:12%;width:16%;height:1.2cqw;background:var(--paper)}
+.x2 .x-room .p{position:absolute;width:5.6cqw;height:5.6cqw;border-radius:50%;background:var(--ink)}
+.x2 .x-room .p.g{background:none;border:.5cqw dashed var(--ink)}
+.x2 .x-room .t{position:absolute;right:2.4cqw;top:2cqw;font:600 2.2cqw/1.4 var(--mono);text-align:right;color:var(--mute)}
+
+/* 지도 · 평면도 · 집 */
+.x2 svg text{font-family:var(--sans)}
+.x2 .x-fig{display:block;width:100%;height:auto;flex:0 0 auto;margin:2cqw 0 1.6cqw;border:.25cqw solid var(--ink);background:#efe8da}
+
+/* 5 사실 상자 */
+.x2 .x-facts{display:grid;grid-template-columns:auto 1fr;gap:1.2cqw 3cqw;font:400 2.7cqw/1.45 var(--sans);border-top:.6cqw solid var(--ink);border-bottom:.2cqw solid var(--ink);padding:2.4cqw 0;margin:2.4cqw 0}
+.x2 .x-facts dt{font:600 2.3cqw/1.6 var(--mono);color:var(--mute);letter-spacing:.08em}
+.x2 .x-facts dd{margin:0;font-weight:500}
+.x2 .x-say{font:900 6.6cqw/1.3 var(--serif);letter-spacing:-.03em;margin:1cqw 0 3cqw;word-break:keep-all}
+.x2 .x-say em{font-style:normal;color:var(--cy2)}
+
+/* 8 연표 */
+.x2 .x-tl{list-style:none;margin:2.4cqw 0 0;padding:0;position:relative}
+.x2 .x-tl::before{content:"";position:absolute;left:19.2cqw;top:1cqw;bottom:1cqw;width:.5cqw;background:var(--ink)}
+.x2 .x-tl li{display:grid;grid-template-columns:17cqw 1fr;gap:5cqw;padding:1.15cqw 0;position:relative}
+.x2 .x-tl li::before{content:"";position:absolute;left:18cqw;top:2.2cqw;width:2.9cqw;height:2.9cqw;border-radius:50%;background:var(--paper);border:.5cqw solid var(--ink)}
+.x2 .x-tl li.rm::before{background:var(--cy);border-color:var(--ink)}
+.x2 .x-tl li.end::before{background:var(--red)}
+.x2 .x-tl b{font:600 2.5cqw/1.5 var(--mono);text-align:right;white-space:nowrap}
+.x2 .x-tl span{font:500 2.9cqw/1.45 var(--sans);word-break:keep-all}
+.x2 .x-tl small{display:block;font-size:2.4cqw;color:var(--mute);font-weight:400}
+.x2 .x-key{display:flex;gap:4cqw;font:400 2.3cqw/1 var(--sans);color:var(--mute);margin-top:2cqw}
+.x2 .x-key i{display:inline-block;width:2.4cqw;height:2.4cqw;border-radius:50%;border:.4cqw solid var(--ink);vertical-align:-.3cqw;margin-right:1cqw}
+
+/* 10 곡 목록 */
+.x2 .x-tracks{list-style:none;margin:2cqw 0;padding:0;counter-reset:t}
+.x2 .x-tracks li{display:grid;grid-template-columns:9cqw 1fr;align-items:baseline;padding:1.5cqw 0;border-bottom:.2cqw solid var(--rule)}
+.x2 .x-tracks li::before{counter-increment:t;content:"0" counter(t);font:400 3.8cqw/1 var(--slab);color:var(--cy2)}
+.x2 .x-tracks li b{font:italic 400 5.4cqw/1.1 var(--it)}
+.x2 .x-tracks li small{display:block;font:400 2.5cqw/1.4 var(--sans);color:var(--mute);margin-top:.6cqw}
+.x2 .x-tracks li.hl b{color:var(--red)}
+
+/* 11 끝 */
+.x2 .x-when{background:var(--ink);color:#f4efe6;padding:3.4cqw 3.8cqw;margin:2cqw 0;font:500 3.1cqw/1.55 var(--sans)}
+.x2 .x-when b{display:block;font:600 2.3cqw/1 var(--mono);letter-spacing:.14em;color:#9fe0f2;margin-bottom:1.6cqw}
+.x2 .x-wx{font:italic 400 4cqw/1.35 var(--it);color:var(--mute);border-left:.6cqw solid var(--cy);padding-left:3cqw}
+
+/* 12 밤 */
+.x2.x-dark{background:var(--night);color:#e8edf2}
+.x2.x-dark::after{opacity:.25;mix-blend-mode:screen}
+.x2.x-dark .x-rh,.x2.x-dark .x-folio{color:#8b97a8;border-color:rgba(232,237,242,.2)}
+.x2.x-dark .x-rh b{color:#9fe0f2}
+.x2 .x-clock{font:400 22cqw/1 var(--slab);letter-spacing:-.04em;color:#9fe0f2;margin:0}
+.x2 .x-meta{display:grid;grid-template-columns:auto 1fr;gap:1cqw 3cqw;font:400 2.8cqw/1.45 var(--sans);margin:2cqw 0 3cqw;color:#c9d2dd}
+.x2 .x-meta dt{font:600 2.3cqw/1.65 var(--mono);color:#8b97a8;letter-spacing:.1em}
+.x2 .x-meta dd{margin:0}
+.x2.x-dark .x-txt{color:#dfe5ec}
+.x2 .x-three{list-style:none;margin:0 0 2.4cqw;padding:0;border-top:.2cqw solid rgba(232,237,242,.25)}
+.x2 .x-three li{display:flex;gap:3cqw;align-items:baseline;padding:2cqw 0;border-bottom:.2cqw solid rgba(232,237,242,.25)}
+.x2 .x-three li b{font:400 3.4cqw/1 var(--slab);color:#9fe0f2}
+.x2 .x-three li span{font:italic 400 5.4cqw/1.1 var(--it)}
+.x2 .x-three li small{margin-left:auto;font:400 2.3cqw/1.3 var(--mono);color:#8b97a8;text-align:right}
+
+/* 13 연재 */
+.x2.x-pinkp{background:#f7e9ea}
+.x2 .x-ser{display:flex;align-items:flex-end;gap:3cqw}
+.x2 .x-ser b{font:400 17cqw/.85 var(--slab);color:var(--pink);-webkit-text-stroke:.35cqw var(--ink)}
+.x2 .x-ser span{font:600 2.5cqw/1.5 var(--mono);letter-spacing:.12em;color:var(--mute);padding-bottom:1cqw}
+
+/* 14 앞줄 */
+.x2 .x-front{display:inline-block;background:#ffe14d;color:var(--ink);font:900 5.2cqw/1 var(--sans);padding:1.6cqw 3cqw;transform:rotate(-3deg);box-shadow:.6cqw .6cqw 0 var(--ink);margin-bottom:2.4cqw}
+.x2 .x-band{border-top:.6cqw solid var(--ink);padding:2cqw 0 1.4cqw}
+.x2 .x-band h3{margin:0;font:900 4.6cqw/1.2 var(--serif);letter-spacing:-.02em}
+.x2 .x-band h3 small{font:500 2.7cqw/1 var(--sans);color:var(--mute);margin-left:1.4cqw;letter-spacing:0}
+.x2 .x-band p{margin:1cqw 0 0;font:400 2.9cqw/1.6 var(--sans);word-break:keep-all}
+.x2 .x-live{background:#ece5d6;padding:2.6cqw 3.4cqw 0;margin-top:1.6cqw}
+.x2 .x-live .x-kick{color:var(--red)}
+.x2 .x-live .x-txt li{font-size:2.6cqw;padding:1.4cqw 0}
+
+/* 15 편집 노트 */
+.x2 .x-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:3cqw 0;border-top:.6cqw solid var(--ink)}
+.x2 .x-nums div{padding:2.6cqw 1cqw 2.4cqw;border-bottom:.2cqw solid var(--rule);border-right:.2cqw solid var(--rule)}
+.x2 .x-nums div:nth-child(3n){border-right:0}
+.x2 .x-nums b{display:block;font:400 9cqw/1 var(--slab);color:var(--cy2)}
+.x2 .x-nums span{display:block;font:500 2.5cqw/1.4 var(--sans);margin-top:1.2cqw;word-break:keep-all}
+.x2 .x-colo{margin-top:auto;font:400 2.4cqw/1.7 var(--mono);color:var(--mute);border-top:.2cqw solid var(--rule);padding-top:2.4cqw}
+.x2 .x-colo b{color:var(--ink);font-weight:600}
+
+/* 16 부록 싱글 (single7 구조는 mag.js가 LP 그림으로 바꿔 끼운다) */
+.x2 .single7{position:absolute;width:var(--w);aspect-ratio:1;transform:rotate(var(--r));cursor:pointer}
+.x2 .single7 .sl{position:absolute;inset:0;background:#d4bf9e}
+.x2 .single7 .bg{position:absolute;inset:-4% -4% -7%}
+.x2 .single7 .tp{position:absolute;height:calc(var(--w)*.16);background:rgba(255,248,214,.55);border-left:1px dashed rgba(200,190,150,.6);border-right:1px dashed rgba(200,190,150,.6)}
+.x2 .single7 .c2{position:absolute;left:-4cqw;right:-4cqw;top:calc(100% + 3cqw);text-align:center;font:700 3cqw/1.4 var(--sans);color:var(--ink)}
+.x2 .single7 .c2 small{display:block;color:var(--mute);font-weight:400;font-size:2.5cqw}
+.x2 .x-lpl{list-style:none;margin:2cqw 0 0;padding:0;columns:2;column-gap:5cqw}
+.x2 .x-lpl li{break-inside:avoid;padding:1.2cqw 0;border-top:.2cqw solid var(--rule);font:400 2.5cqw/1.35 var(--sans)}
+.x2 .x-lpl li b{display:block;font:600 2.2cqw/1.3 var(--mono);color:var(--cy2)}
+.x2 .x-lpl li i{font:italic 400 3.6cqw/1.15 var(--it)}
+
+/* ── 읽기 모드 (mag.js 읽기 창 안) ── */
+.x2r{font-family:var(--serif);color:var(--rd-ink)}
+.x2r :is(h1,h2){text-align:left}
+.x2r .rhead{margin:0 0 1.8em;padding-bottom:1.2em;border-bottom:3px solid var(--rd-ink)}
+.x2r h1{font:900 1.65em/1.3 var(--serif);letter-spacing:-.03em;margin:0;word-break:keep-all}
+.x2r .by{margin:.7em 0 0;font:400 .75em/1.4 var(--mono);letter-spacing:.06em;color:#6d675e}
+.x2r h2{font:900 1.12em/1.4 var(--sans);margin:2.2em 0 .8em;color:var(--rd-accent);letter-spacing:-.01em}
+.x2r p{margin:0 0 1.15em}
+.x2r .pull{margin:1.6em 0;padding:.9em 0;border-top:3px solid var(--rd-ink);border-bottom:1px solid var(--rd-ink);font:900 1.2em/1.55 var(--serif);letter-spacing:-.02em}
+.x2r .note{font-family:var(--sans);font-size:.9em;color:#4c4740;background:#ece5d6;padding:.8em 1em;border-left:4px solid var(--rd-accent)}
+.x2r ul{margin:0 0 1.2em;padding:0;list-style:none}
+.x2r li{padding:.6em 0;border-top:1px solid var(--rd-rule);font-family:var(--sans);font-size:.88em;line-height:1.6;overflow-wrap:anywhere}
+.x2r a{color:var(--rd-accent)}
+.x2r .alb{white-space:nowrap}
+
+/* ── 이 잡지 색으로 (mag-new.mjs가 붙임) ── */
+.x2 .x-toc li{padding:.8cqw 0}
+.x2 .x-toc li small{margin-top:.3cqw}
+.x2 .x-how{background:color-mix(in srgb,var(--cy) 12%,#fff);color:var(--ink);padding:2.4cqw 3cqw}
+/* ── 사진 (mag-new.mjs가 붙임) ── */
+.x2 .x-ph{position:absolute;margin:0;overflow:hidden;background:#d9d2c4}
+.x2 .x-ph img{display:block;width:100%;height:100%;object-fit:cover}
+.x2 .x-ph figcaption,.x2 .x-cr{position:absolute;right:1.6cqw;bottom:1.2cqw;max-width:80%;font:400 1.9cqw/1.3 var(--mono);color:#fff;text-shadow:0 0 .6cqw rgba(0,0,0,.8);text-align:right}
+.x2 .x-ph.full{inset:0}
+.x2 .x-ph.top{left:0;right:0;top:0;height:64cqw}
+.x2 .x-cvmast{position:absolute;left:6cqw;right:6cqw;top:6cqw;font:400 20cqw/.86 var(--slab);letter-spacing:-.04em;color:#fff;mix-blend-mode:normal;z-index:2;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.25)}
+.x2 .x-cvbot{position:absolute;left:6cqw;right:6cqw;bottom:7cqw;z-index:2;color:#fff;text-shadow:0 0 1.4cqw rgba(0,0,0,.6)}
+.x2 .x-cvbot .x-h{font-size:9.6cqw}
+.x2 .x-cvbot .x-kick{color:#e2372f}
+.x2 .x-cvshade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 30%,transparent 55%,rgba(0,0,0,.65))}
+</style>
+
+<template class="pg"><div class="x2 x-cover" data-art="cover" data-at="s0" style="background:#111">
+  <div style="position:absolute;inset:0;background:#800080"></div>
+  <div style="position:absolute;left:7cqw;right:7cqw;top:30cqw;font:400 19cqw/.9 var(--slab);color:#fff;letter-spacing:-.04em">#800<br>080</div>
+  <div style="position:absolute;left:7cqw;top:72cqw;font:400 2.6cqw/1.4 var(--mono);color:rgba(255,255,255,.75)">R 128 · G 0 · B 128</div>
+  <div class="x-cvshade"></div>
+  <div class="x-cvmast" aria-label="Cypher">Cypher</div>
+  <div class="x-cvbot">
+    <div class="x-kick" style="color:#f4c6f4">특별판 · 토 2026.11.14 · VOL.02 · 사이퍼 미디어 · 부록 싱글 1장</div>
+    <h1 class="x-h">보라색의 기록</h1>
+    <p class="x-dek" style="color:#f2efe9">황지상 첫 정규 [#800080], 열여섯 곡의 크레딧을 읽다</p>
+  </div>
+</div></template>
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>contents</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <h2 class="x-h" style="font-size:8cqw;margin-top:0">차례 <span class="x-en">contents</span></h2>
+    <ol class="x-toc">
+      <li><b>2</b><span>편집장의 글<small>수요일 대신 토요일</small></span></li>
+      <li><b>3</b><span>이번 주 단신<small>웨스트사이드 건, 오프셋</small></span></li>
+      <li><b>4</b><span>커버<small>황지상, 보라색의 기록</small></span></li>
+      <li><b>10</b><span>피처링 지도<small>열여섯 곡의 손</small></span></li>
+      <li><b>15</b><span>연재 '언더그라운드 연대기' 1회<small>2004년, 두 장의 데뷔</small></span></li>
+      <li><b>16</b><span>씬 리포트<small>31년 만의 듀스</small></span></li>
+      <li><b>17</b><span>공연·발매 소식<small>듀스, 컨웨이</small></span></li>
+      <li><b>18</b><span>편집 노트<small>커버 출처 여섯 곳에 대하여</small></span></li>
+      <li><b>19</b><span>부록 싱글<small>이 호에서 이름이 나온 노래</small></span></li>
+    </ol>
+    <div class="x-how"><b>읽는 법</b> 지면은 넘겨 보고, 긴 글은 쪽 아래의 <b>▶ 계속 읽기</b>를 누르세요. 큰 글씨 본문이 위로 올라옵니다.</div>
+  </div>
+  <div class="x-folio"><span>1</span><span>2026.11.14</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="letter" data-at="a">
+  <div class="x-rh"><b>편집장의 글</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">편집장의 글</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">수요일 대신 토요일</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="a.1">친구들, 이번 호는 수요일이 아니라 토요일에 나왔어. 독자 한 명이 세 잡지를 한 번에 받아 보고 싶다고 했거든. 그런 부탁은 들어줘야지. 그래서 특별판이야. 정기 순번은 그대로 가니까 걱정하지 마.</p><p data-p="a.2">지난 호 커버는 해외 판이었어. 그래서 이번엔 국내로 왔어. 11월 11일 자기 생일에 첫 정규를 낸 스물두 살 래퍼, 황지상의 <span class="alb">[#800080]</span>이야. 솔직히 말할게. 이 판은 커버 기준인 출처 여덟 곳을 못 채웠어. 기사와 음원 사이트 정보까지 다 모아도 여섯 곳이야. 그래서 커버를 평소보다 짧게 썼어. 대신 우리가 잘하는 걸 했지. 크레딧을 끝까지 읽었어.</p></div>
+    <button type="button" class="x-more" data-read="letter" data-at="a.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>2</span><span>편집장의 글</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="briefs" data-at="b0">
+  <div class="x-rh"><b>이번 주 단신</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">이번 주 단신</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">웨스트사이드 건, 오프셋</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="b0.1">웨스트사이드 건 <span class="alb">[HEELMATIC]</span> (Griselda/Mass Appeal). 11월 13일, 16곡. 2025년 EP 한 장과 정규 두 장으로 묶은 <span class="alb">[Heels Have Eyes]</span> 3부작 다음 판이다. 선공개곡은 'Zilla'. 곡 제목에 프로레슬링과 패션 말장난이 가득한 건 여전하다.</p><p class="note" data-p="b0.2">이럴 때 들을 것: 금요일 밤 레슬링 중계를 틀어 놓고 볼륨은 0으로 해 둔 날.</p></div>
+    <button type="button" class="x-more" data-read="briefs" data-at="b0.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>3</span><span>이번 주 단신</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s0">
+  <div style="position:absolute;left:0;right:0;top:0;height:64cqw;display:grid;grid-template-columns:1fr 1fr 1.4fr;font:400 2.6cqw/1.3 var(--mono);color:#fff">
+    <div style="background:#800000;display:grid;place-items:end start;padding:3cqw">빨강<br>R 128</div>
+    <div style="background:#000080;display:grid;place-items:end start;padding:3cqw">파랑<br>B 128</div>
+    <div style="background:#800080;display:grid;place-items:end start;padding:3cqw">= #800080<br>같은 비율</div></div>
+  <div class="x-in" style="top:70cqw">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h" style="font-size:9cqw;margin-top:1.4cqw">보라색의 기록</h2>
+    <p class="x-dek">스스로를 '진짜 망한 래퍼'라 부른 스물두 살이 생일에 낸 첫 정규. 프로듀서, 녹음, 아트워크에 같은 이름이 있다.</p>
+    <p class="x-by">글 돈까스</p>
+    <button type="button" class="x-more" data-read="cover" data-at="s0.1"><i>▶</i> 처음부터 읽기</button>
+  </div>
+  <div class="x-folio"><span>4</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s1">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">왜 지금</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s1.1"><span class="alb">[#800080]</span>은 11월 11일 저녁 6시에 나왔어. 황지상의 생일이야. 첫 정규고, 열여섯 곡, 다 합치면 42분 35초야. 기획은 데이토나 엔터테인먼트, 유통은 지니뮤직과 스톤뮤직이야.</p><p data-p="s1.2">판 이름은 색상 코드야. #800080, 보라색. 빨강과 파랑이 같은 비율로 섞인 색이지. 그는 이 보라색을 자기 안의 불안과, 그걸 감추려고 쓰는 가면의 상징으로 정했다고 했어. 오래전부터 보라색을 좋아했고, 이제는 자기 음악의 정체성으로 여긴대.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s1.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>5</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s2">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">쇼미더머니 이후</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s2.1"><span class="alb">[쇼미더머니10]</span>은 그해 지원자가 역대 가장 많았던 시즌이야. 2만 7천 명쯤 몰렸어. 황지상은 그 시즌으로 이름이 알려졌고, 이듬해 1월 자기 이름을 딴 싱글 '황 지 상'으로 정식 데뷔했어. 2022년에는 미니앨범 <span class="alb">[무단결석]</span>과 <span class="alb">[무식한 앨범]</span>을 냈어. 멜론의 소개 글은 그 시절 그의 음악을 자유분방하다고 적었어.</p><p data-p="s2.2">그 시즌을 잠깐 떠올려 보자. 파이널에는 조광일, 신스, 비오, 쿤타가 올랐고 조광일이 우승했어. 신스는 여성 래퍼로는 처음 파이널에 올라 준우승을 했고, 비오가 3위, 쿤타가 4위였어. 그 넷이 아닌 수많은 이름 중 하나가 황지상이었지. 결승 무대에 서지 않은 사람에게 오디션 이후의 시간은 더 길어. 이번 판에 그 시즌 4위 쿤타가 피처링으로 들어온 건, 그래서 나한테는 작은 사건처럼 보여.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s2.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>6</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s3">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">'외부의 도움 없이'</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s3.1">보도 자료가 강조한 건 이 판을 외부 도움 없이 자기 힘으로 완성했다는 점이야. 크레딧을 보면 그 말이 어떤 뜻인지 보여. 앨범 프로듀서 황지상. 전곡 녹음 황지상, 장소는 황지상의 개인 스튜디오. 앨범 아트워크 디자인도 황지상이야. 믹스는 sioo, 마스터링은 Boost Knob의 박경선이 맡았어.</p><p data-p="s3.2">작곡과 편곡은 여러 사람과 나눴어. 그래도 열여섯 곡 중 여섯 곡의 작곡 크레딧에 황지상 이름이 직접 들어가 있어. 'Purple 비', 'Purple Who', 'Purple Evening', 'Purple, I'm fine', 'Purple See', 'Purple Drive'. 'Purple boy'는 편곡에 이름을 올렸어. 가사는 인트로와 인터루드를 뺀 열네 곡 모두에 그의 이름이 있고, 인터루드는 그가 대본을 쓰고 다른 사람이 읽었어.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s3.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>7</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s4">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">크레딧 읽기</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s4.1">프로듀서 쪽부터 보자. 가장 많이 나오는 이름은 Milanix와 Klein이야. 'Purple VLONE', 'Purple 왜', '11월 11일', 'Purple Forever'를 둘이 함께 만들었고, 'Purple Tattoo'는 Milanix 혼자 했어. 마지막 곡 'Purple Forever'에는 Nesdy가 더해졌어. HD BL4CK은 'Purple Trendy'와 'Purple Evening', AXIN은 'Purple 비'와 'Purple See', Chanky는 'MEVIUS Option Purple'과 'Purple Drive'를 맡았어. 두 번째 곡 'Purple boy'는 OUVAWHEM, 'Purple, I'm fine'은 vxsma, 'Purple Who'는 prodcalimavibe와 m1nr가 편곡했어.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s4.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>8</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s5">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">그가 직접 쓴 글</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s5.1">멜론 앨범 정보에는 황지상이 직접 쓴 긴 글이 붙어 있어. 그는 거기서 자기가 그저 재밌는 음악을 하는 사람으로 비치고 그 이미지에 멈춰 있지만, 열다섯 살부터 정신건강의학과를 다녔고 조울 증상과 불면을 겪었다고 밝혔어. 보라색에 대한 집착도 그 증상의 하나였다고 했어. 이 판은 그 시간과 열여덟 살 데뷔 이후 지금까지를, 완벽하지 않은 한 사람으로서 숨김없이 담은 기록이라고.</p><p data-p="s5.2">우리는 이 이야기를 더 파고들지 않을 거야. 그가 스스로 꺼낸 만큼만 옮겼어. 판 이름이 왜 색상 코드인지, 왜 거의 모든 곡 제목에 같은 색이 붙어 있는지, 그 이유를 그가 직접 말했으니까. 그걸로 충분해.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s5.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>9</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s5">
+  <div class="x-rh"><b>graphic</b><span>커버</span></div>
+  <div class="x-in">
+    <div class="x-kick">피처링 지도 · 열여섯 곡의 손</div>
+    <div style="margin-top:1.4cqw;font:400 2.3cqw/1.4 var(--sans);color:var(--mute)">곡마다 작곡·편곡 크레딧(채운 칸)과 피처링·내레이션(테두리 칸). 출처 멜론 앨범 크레딧. 황지상 본인(앨범 프로듀서·전곡 녹음)은 뺐다.</div><div style="margin-top:1.4cqw"><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">01</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Intro</span><span><i style='color:var(--mute)'>크레딧 없음</i></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">02</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple boy</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">OUVAWHEM</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">03</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple VLONE</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#e2372f;color:#fff;border-radius:.6cqw">Milanix</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#b0201e;color:#fff;border-radius:.6cqw">Klein</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">04</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple 왜</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#e2372f;color:#fff;border-radius:.6cqw">Milanix</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#b0201e;color:#fff;border-radius:.6cqw">Klein</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">05</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Trendy</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#800080;color:#fff;border-radius:.6cqw">HD BL4CK</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">크루셜스타</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">06</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple 비</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#5a2a82;color:#fff;border-radius:.6cqw">AXIN</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">07</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Interlude</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">바세린</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">울산큰고래</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">08</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Tattoo</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#e2372f;color:#fff;border-radius:.6cqw">Milanix</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">09</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">MEVIUS Option Purple</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#1d1d1d;color:#fff;border-radius:.6cqw">Chanky</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">10</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Who</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">prodcalimavibe</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">m1nr</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">Luggy</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">11</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">11월 11일</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#e2372f;color:#fff;border-radius:.6cqw">Milanix</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#b0201e;color:#fff;border-radius:.6cqw">Klein</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">쿤타</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">12</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Evening</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#800080;color:#fff;border-radius:.6cqw">HD BL4CK</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">13</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple, I'm fine</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">vxsma</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">Rredrain</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">14</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple See</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#5a2a82;color:#fff;border-radius:.6cqw">AXIN</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">GZE</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">LFO KID</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">Ahyun</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">스노</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">강오아</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">15</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Drive</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#1d1d1d;color:#fff;border-radius:.6cqw">Chanky</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;border:.25cqw solid #800080;color:#800080;border-radius:3cqw">상득</span></span></div><div style="display:grid;grid-template-columns:5cqw 25cqw 1fr;gap:1cqw;align-items:center;padding:.55cqw 0;border-top:.15cqw solid var(--rule);font:400 2.1cqw/1.2 var(--sans)"><b style="font-family:var(--mono);color:var(--mute)">16</b><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Purple Forever</span><span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#e2372f;color:#fff;border-radius:.6cqw">Milanix</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#b0201e;color:#fff;border-radius:.6cqw">Klein</span><span style="display:inline-block;padding:.2cqw 1cqw;margin:.2cqw;background:#8a8378;color:#fff;border-radius:.6cqw">Nesdy</span></span></div></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s5.1"><i>▶</i> 이어 읽기</button>
+  </div>
+  <div class="x-folio"><span>10</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s6">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">아쉬움에 대하여</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s6.1">아쉬운 점도 있어. 이 판은 열여섯 곡에 42분이야. 1분짜리 인트로와 1분 20초짜리 인터루드를 빼도 열네 곡이 1분 40초에서 4분 30초 사이를 오가. 곡이 많고 짧아. 작품으로서 판이 한 줄로 이어지는지는, 크레딧만 보는 우리가 판정할 수 없어. 다만 열다섯 곡이 같은 단어로 묶여 있다는 건, 그가 이걸 한 덩어리로 내놓았다는 기록이야.</p><p data-p="s6.2">그리고 정직하게. 이번 판을 두고 공개된 기사는 거의 다 발매 소식이었어. 판을 들은 사람의 글을 우리는 찾지 못했어. 다음에 비평이 나오면 꼭 같이 읽어 볼게.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s6.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>11</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s7">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">그가 지키는 것</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s7.1">그가 지키는 건 두 가지로 보여. 하나는 자기 손이야. 프로듀서, 녹음, 아트워크까지 자기 이름으로 채웠어. 다른 하나는 솔직함이야. '망한 래퍼'라는 말로 판을 알리는 건 쉬운 선택이 아니야. 오디션 출신이라는 이름표를 떼려고 애쓰는 대신, 그는 그 이름표를 판 한가운데 걸어 놨어.</p><p data-p="s7.2">사이퍼의 창간 선언에 이런 줄이 있어. 화제와 실력을 섞지 않는다. 황지상의 첫 정규는 화제였던 시절을 스스로 꺼내서 판 위에 올려놓은 판이야. 섞지 않으려고 덮어 두는 것보다, 꺼내서 마주 보는 게 더 어려워.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s7.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>12</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="cover" data-at="s8">
+  <div class="x-rh"><b>커버</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">커버</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">다시, 생일</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="s8.1">처음 장면으로 돌아가자. 이것도 내가 그려 본 장면이야. 열여덟 살에 무대 뒤에서 차례를 기다리던 애가, 스물두 번째 생일 저녁 6시에 자기가 녹음하고 자기가 디자인한 판을 세상에 내놓아. 표지 색은 #800080.</p><p data-p="s8.2">지상아, 생일 축하해. 첫 정규 고생 많았다. 다음 판도 기다릴게.</p></div>
+    <button type="button" class="x-more" data-read="cover" data-at="s8.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>13</span><span>커버</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="map" data-at="m0">
+  <div class="x-rh"><b>피처링 지도 · 샘플 추적</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">피처링 지도 · 샘플 추적</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">열여섯 곡의 손</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="m0.1">10쪽의 그림은 <span class="alb">[#800080]</span>의 크레딧을 곡마다 펼친 것이다. 줄은 곡, 칸은 사람이다. 작곡·편곡에 이름이 오른 프로듀서와 피처링(내레이션 포함)만 표시했다. 출처는 멜론 앨범 정보의 크레딧. 'Purple Intro'는 크레딧이 비어 있다. 열여섯 곡 중 열한 곡에 Milanix·Klein·HD BL4CK·AXIN·Chanky 다섯 이름 중 하나 이상이 있고, 일곱 곡에 피처링이 있다. 황지상 본인은 전곡 녹음과 앨범 프로듀서로 따로 적혀 있어 그림에서는 뺐다.</p></div>
+    <button type="button" class="x-more" data-read="map" data-at="m0.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>14</span><span>피처링 지도 · 샘플 추적</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="serial" data-at="r0">
+  <div class="x-rh"><b>연재 '언더그라운드 연대기'</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">연재 '언더그라운드 연대기'</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">언더그라운드 연대기 1회 — 2004년, 두 장의 데뷔</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="r0.1">연재를 시작할게. '언더그라운드 연대기'는 국내 힙합을 한 해씩, 공연과 음반과 크루의 기록으로 되짚는 꼭지야. 첫 회는 기록이 충분히 남은 해로 골랐어. 2004년. 우리 정전 목록의 국내 판 셋 중 둘이 이 해에 나왔어.</p><p data-p="r1.1">먼저 다이나믹 듀오. 최자와 개코는 중학교 때부터 친구였고, 고등학생 때 K.O.D라는 팀을 거쳐 CB Mass로 활동했어. CB Mass가 2003년에 흩어지고, 두 사람은 이듬해 첫 정규 <span class="alb">[Taxi Driver]</span>를 냈어. 발매일은 기록마다 조금 달라. 영어 위키백과는 5월 17일, 한 국내 잡지는 5월 19일로 적었어. 레이블은 갑 엔터테인먼트, CD와 카세트로 나왔어. 당시 음반 차트에서 7위까지 올랐고, 이 판을 두고 한국 힙합 역사상 가장 많이 팔린 앨범이라고 적은 기록도 있어. 2024년 한 영자 신문은 이 판이 당시의 거친 언더그라운드 스타일에서 갈라져 나왔다는 점을 짚었어. '이력서', '불면증' 같은 곡이 이 판에서 나왔어.</p></div>
+    <button type="button" class="x-more" data-read="serial" data-at="r2.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>15</span><span>연재 '언더그라운드 연대기'</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="scene" data-at="c0">
+  <div class="x-rh"><b>씬 리포트</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">씬 리포트</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">31년 만의 듀스</h2>
+    <div class="x-txt" style="margin-top:3cqw"><p data-p="c0.1">듀스(이현도, 고 김성재)의 네 번째 정규 <span class="alb">[4th Deux]</span>가 11월 21일 저녁 6시에 나온다. 1995년 세 번째 정규 <span class="alb">[Force Deux]</span> 이후 약 31년 만에 번호를 붙인 정규다. 더블 타이틀곡 'The Future'와 '너를 원해'를 포함해 아홉 곡. 선공개곡은 'Rise'와 '또 하루'다. 총괄 프로듀서는 이현도.</p><p data-p="c0.2">11월 7일에는 서울 이태원 볼레로에서 프리 리스닝 파티가 열렸다. DJ 소울스케이프가 문을 열고, 'The Future' 뮤직비디오 상영, 이현도의 프로덕션 설명, 다이나믹 듀오의 축하 공연이 이어졌다. 다이나믹 듀오는 '너를 원해'에 피처링으로 참여한다고 그 자리에서 발표됐다.</p></div>
+    <button type="button" class="x-more" data-read="scene" data-at="c0.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>16</span><span>씬 리포트</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="live" data-at="l0">
+  <div class="x-rh"><b>공연 소식</b><span>Cypher Vol.02</span></div>
+  <div class="x-in">
+    <div class="x-kick">공연 소식</div>
+    <h2 class="x-h2" style="margin-top:1.4cqw">듀스, 컨웨이</h2>
+    <div class="x-txt" style="margin-top:3cqw"><ul><li data-p="l0.1">11.14 듀스 'Rise' 리믹스(브락스+팔콘)</li><li data-p="l0.2">11.20 컨웨이 더 머신 <span class="alb">[OTIS]</span></li><li data-p="l0.3">11.20 듀스 리스닝 파티 실황 영상(유튜브 df)</li><li data-p="l0.4">11.21 듀스 <span class="alb">[4th Deux]</span></li></ul><p class="note" data-p="l0.5">날짜는 레이블·매체 발표 기준. 이번 주 확인된 국내 힙합 단독 공연은 싣지 않았다.</p></div>
+    <button type="button" class="x-more" data-read="live" data-at="l0.1"><i>▶</i> 계속 읽기</button>
+  </div>
+  <div class="x-folio"><span>17</span><span>공연 소식</span></div>
+</div></template>
+<template class="pg"><div class="x2" data-art="desk" data-at="d0">
+  <div class="x-rh"><b>desk notes</b><span>편집 노트</span></div>
+  <div class="x-in">
+    <h2 class="x-h2">이번 호를 만든 방법</h2>
+    <div class="x-nums">
+      <div><b>23</b><span>출처</span></div><div><b>3</b><span>지운 사실</span></div><div><b>0</b><span>가사 인용</span></div>
+      <div><b>0</b><span>사진</span></div><div><b>2</b><span>상상한 장면</span></div><div><b>0</b><span>점수</span></div>
+    </div>
+    <div class="x-txt" style="font-size:3cqw"><p data-p="d1.1">사진: 이번 호는 쓸 수 있는 라이선스의 아티스트 사진을 찾지 못해 사진 없이 냈다. 표지는 판 이름인 색상 코드 #800080을 그대로 깔았다.</p></div>
+    <button type="button" class="x-more" data-read="desk" data-at="d2"><i>▶</i> 출처 전체 보기</button>
+    <div class="x-colo"><b>Cypher</b> Vol.02 · 2026.11.14 발행 · 사이퍼 미디어<br>편집장 돈까스<br>모든 사실은 공개된 기사·인터뷰·레이블 자료에서 확인했다</div>
+  </div>
+  <div class="x-folio"><span>18</span><span>판권</span></div>
+</div></template>
+<template class="pg"><div class="x2" style="background:#efe9dd">
+  <div class="x-rh"><b>supplement</b><span>부록 싱글</span></div>
+  <div class="x-in">
+    <div style="font:400 10cqw/1 var(--slab);letter-spacing:-.03em">supplement</div>
+    <p class="x-cap" style="margin:2cqw 0 0">이 호에서 이름이 나온 노래를 LP 한 장에 담았다. 테이프를 떼면 처음부터 재생되고, 사이퍼 미디어 크레이트에 꽂힌다.</p>
+  </div>
+  <div class="single7 bigs" data-i="0" role="button" tabindex="0" aria-label="부록 싱글. 눌러서 테이프를 떼고 재생" style="left:13cqw;top:46cqw;--r:-3deg;--w:74cqw"><span class="sl"></span><span class="bg"></span><span class="tp" style="left:-8%;top:5%;width:40%;transform:rotate(-12deg)"></span><span class="tp" style="left:64%;top:74%;width:30%;transform:rotate(22deg)"></span><span class="c2">이 호의 노래, 한 장에<small>테이프를 떼면 처음부터 재생</small></span></div>
+  <div class="x-folio"><span>19</span><span>Cypher Vol.02</span></div>
+</div></template>
+<template class="pg"><div class="x2">
+  <div class="x-rh"><b>liner notes</b><span>부록 수록곡</span></div>
+  <div class="x-in">
+    <h2 class="x-h2">A면 · B면</h2>
+    <p class="x-cap" style="margin:1cqw 0 0">기사에 나온 순서대로. index.json tracks와 같은 순서.</p>
+    <ol class="x-lpl">
+      <li><b>A1 · 3쪽</b><i>Zilla</i><br>Westside Gunn [HEELMATIC]</li><li><b>A2 · 7쪽</b><i>Purple 비</i><br>황지상 [#800080]</li><li><b>A3 · 7쪽</b><i>Purple Who</i><br>황지상 [#800080]</li><li><b>A4 · 8쪽</b><i>Purple VLONE</i><br>황지상 [#800080]</li><li><b>A5 · 8쪽</b><i>Purple Trendy</i><br>황지상 feat. 크루셜스타 [#800080]</li><li><b>A6 · 8쪽</b><i>11월 11일</i><br>황지상 feat. Koonta [#800080]</li><li><b>B1 · 8쪽</b><i>Purple Forever</i><br>황지상 [#800080]</li><li><b>B2 · 15쪽</b><i>이력서</i><br>다이나믹 듀오 [Taxi Driver]</li><li><b>B3 · 15쪽</b><i>불면증</i><br>다이나믹 듀오 [Taxi Driver]</li><li><b>B4 · 16쪽</b><i>Rise</i><br>듀스 [4th Deux]</li><li><b>B5 · 16쪽</b><i>또 하루</i><br>듀스 [4th Deux]</li>
+    </ol>
+  </div>
+  <div class="x-folio"><span>20</span><span>사이퍼 미디어</span></div>
+</div></template>
+<template class="art" data-id="letter" data-title="수요일 대신 토요일"><div class="x2r"><header class="rhead"><h1>수요일 대신 토요일</h1><p class="by">글 돈까스</p></header><span data-p="a"></span><p data-p="a.1">친구들, 이번 호는 수요일이 아니라 토요일에 나왔어. 독자 한 명이 세 잡지를 한 번에 받아 보고 싶다고 했거든. 그런 부탁은 들어줘야지. 그래서 특별판이야. 정기 순번은 그대로 가니까 걱정하지 마.</p><p data-p="a.2">지난 호 커버는 해외 판이었어. 그래서 이번엔 국내로 왔어. 11월 11일 자기 생일에 첫 정규를 낸 스물두 살 래퍼, 황지상의 <span class="alb">[#800080]</span>이야. 솔직히 말할게. 이 판은 커버 기준인 출처 여덟 곳을 못 채웠어. 기사와 음원 사이트 정보까지 다 모아도 여섯 곳이야. 그래서 커버를 평소보다 짧게 썼어. 대신 우리가 잘하는 걸 했지. 크레딧을 끝까지 읽었어.</p><span data-p="b"></span><p data-p="b.1">연재 '언더그라운드 연대기'도 이번 호에서 시작해. 첫 회는 2004년이야. 우리 정전 목록에 있는 가리온 1집과 다이나믹 듀오 <span class="alb">[Taxi Driver]</span>가 같은 해에 나왔어. 그리고 씬 리포트는 31년 만에 정규를 내는 듀스 이야기야. 다이나믹 듀오가 그 판에 피처링으로 들어간대. 2004년과 2026년이 이번 호 안에서 한 번 만나는 셈이지.</p></div></template>
+<template class="art" data-id="briefs" data-title="이번 주 단신"><div class="x2r"><header class="rhead"><h1>이번 주 단신</h1><p class="by">글 편집부</p></header><span data-p="b0"></span><p data-p="b0.1">웨스트사이드 건 <span class="alb">[HEELMATIC]</span> (Griselda/Mass Appeal). 11월 13일, 16곡. 2025년 EP 한 장과 정규 두 장으로 묶은 <span class="alb">[Heels Have Eyes]</span> 3부작 다음 판이다. 선공개곡은 'Zilla'. 곡 제목에 프로레슬링과 패션 말장난이 가득한 건 여전하다.</p><p class="note" data-p="b0.2">이럴 때 들을 것: 금요일 밤 레슬링 중계를 틀어 놓고 볼륨은 0으로 해 둔 날.</p><span data-p="b1"></span><p data-p="b1.1">오프셋 <span class="alb">[GMFU]</span>. 원래 10월 23일 예정이었다가 11월 13일로 밀려서 나왔다. 같은 날 베니 더 부처의 <span class="alb">[A Friend of Ours 2]</span>도 나왔고, 그리셀다 쪽에서는 컨웨이 더 머신의 <span class="alb">[OTIS]</span>가 한 주 뒤인 11월 20일로 잡혀 있다.</p><p class="note" data-p="b1.2">이럴 때 들을 것: 오래 기다린 게 드디어 도착한 날.</p></div></template>
+<template class="art" data-id="cover" data-title="보라색의 기록 — 황지상"><div class="x2r"><header class="rhead"><h1>보라색의 기록 — 황지상</h1><p class="by">글 돈까스</p></header><span data-p="s0"></span><p data-p="s0.1">이건 내가 그려 본 장면이야. 열여덟 살 남자애가 방송국 무대 뒤에서 차례를 기다려. 손에는 마이크, 옷 어딘가에 보라색이 하나쯤 있었을 거야. 그날 이후로 사람들은 그 애 얼굴을 알게 돼. 그리고 몇 년 뒤, 그 애는 그날을 두고 스스로를 '진짜 망한 래퍼'라고 불러.</p><p data-p="s0.2">상상 말고 사실만 남기면 이래. 황지상은 2004년생이야. 2021년 Mnet <span class="alb">[쇼미더머니10]</span>에 나와서 얼굴을 알렸고, 첫 정규를 내기 전 공개한 티저 영상 제목이 '진짜 망한 래퍼'였어. 영상에서 그는 그 말로 이야기를 시작해.</p><h2 data-p="s1">왜 지금</h2><p data-p="s1.1"><span class="alb">[#800080]</span>은 11월 11일 저녁 6시에 나왔어. 황지상의 생일이야. 첫 정규고, 열여섯 곡, 다 합치면 42분 35초야. 기획은 데이토나 엔터테인먼트, 유통은 지니뮤직과 스톤뮤직이야.</p><p data-p="s1.2">판 이름은 색상 코드야. #800080, 보라색. 빨강과 파랑이 같은 비율로 섞인 색이지. 그는 이 보라색을 자기 안의 불안과, 그걸 감추려고 쓰는 가면의 상징으로 정했다고 했어. 오래전부터 보라색을 좋아했고, 이제는 자기 음악의 정체성으로 여긴대.</p><p data-p="s1.3">우리가 이 판을 커버로 올린 이유는 단순해. 국내 판이 들어갈 차례였고, 이번 주 국내 힙합 정규 중에 이렇게 크레딧을 꼼꼼히 공개한 판이 드물었어. 사이퍼는 크레딧부터 읽는 잡지야.</p><h2 data-p="s2">쇼미더머니 이후</h2><p data-p="s2.1"><span class="alb">[쇼미더머니10]</span>은 그해 지원자가 역대 가장 많았던 시즌이야. 2만 7천 명쯤 몰렸어. 황지상은 그 시즌으로 이름이 알려졌고, 이듬해 1월 자기 이름을 딴 싱글 '황 지 상'으로 정식 데뷔했어. 2022년에는 미니앨범 <span class="alb">[무단결석]</span>과 <span class="alb">[무식한 앨범]</span>을 냈어. 멜론의 소개 글은 그 시절 그의 음악을 자유분방하다고 적었어.</p><p data-p="s2.2">그 시즌을 잠깐 떠올려 보자. 파이널에는 조광일, 신스, 비오, 쿤타가 올랐고 조광일이 우승했어. 신스는 여성 래퍼로는 처음 파이널에 올라 준우승을 했고, 비오가 3위, 쿤타가 4위였어. 그 넷이 아닌 수많은 이름 중 하나가 황지상이었지. 결승 무대에 서지 않은 사람에게 오디션 이후의 시간은 더 길어. 이번 판에 그 시즌 4위 쿤타가 피처링으로 들어온 건, 그래서 나한테는 작은 사건처럼 보여.</p><p data-p="s2.3">그런데 그 화제가 오래 가진 않았어. 이번 티저에서 그는 방송 때 받은 관심과 그 뒤에 마주한 현실을 돌아보고, 다른 래퍼들과 자기를 비교하며 했던 고민을 털어놨어. 한때의 화제가 계속되는 성공으로 이어지지 않는다는 것. 힙합 오디션 이후의 시간을 이렇게 정면으로 다룬 첫 정규는 흔하지 않아.</p><h2 data-p="s3">'외부의 도움 없이'</h2><p data-p="s3.1">보도 자료가 강조한 건 이 판을 외부 도움 없이 자기 힘으로 완성했다는 점이야. 크레딧을 보면 그 말이 어떤 뜻인지 보여. 앨범 프로듀서 황지상. 전곡 녹음 황지상, 장소는 황지상의 개인 스튜디오. 앨범 아트워크 디자인도 황지상이야. 믹스는 sioo, 마스터링은 Boost Knob의 박경선이 맡았어.</p><p data-p="s3.2">작곡과 편곡은 여러 사람과 나눴어. 그래도 열여섯 곡 중 여섯 곡의 작곡 크레딧에 황지상 이름이 직접 들어가 있어. 'Purple 비', 'Purple Who', 'Purple Evening', 'Purple, I'm fine', 'Purple See', 'Purple Drive'. 'Purple boy'는 편곡에 이름을 올렸어. 가사는 인트로와 인터루드를 뺀 열네 곡 모두에 그의 이름이 있고, 인터루드는 그가 대본을 쓰고 다른 사람이 읽었어.</p><blockquote class="pull" data-p="s3.3">프로듀서, 녹음, 아트워크. 크레딧 세 줄에 같은 이름이 있다.</blockquote><h2 data-p="s4">크레딧 읽기</h2><p data-p="s4.1">프로듀서 쪽부터 보자. 가장 많이 나오는 이름은 Milanix와 Klein이야. 'Purple VLONE', 'Purple 왜', '11월 11일', 'Purple Forever'를 둘이 함께 만들었고, 'Purple Tattoo'는 Milanix 혼자 했어. 마지막 곡 'Purple Forever'에는 Nesdy가 더해졌어. HD BL4CK은 'Purple Trendy'와 'Purple Evening', AXIN은 'Purple 비'와 'Purple See', Chanky는 'MEVIUS Option Purple'과 'Purple Drive'를 맡았어. 두 번째 곡 'Purple boy'는 OUVAWHEM, 'Purple, I'm fine'은 vxsma, 'Purple Who'는 prodcalimavibe와 m1nr가 편곡했어.</p><p data-p="s4.2">피처링은 일곱 곡에 들어갔어. 크루셜스타('Purple Trendy'), 바세린과 울산큰고래(인터루드 내레이션), Luggy('Purple Who'), 쿤타('11월 11일'), Rredrain('Purple, I'm fine'), Ahyun·스노·강오아('Purple See'), 상득('Purple Drive'). 이 중 쿤타는 <span class="alb">[쇼미더머니10]</span>에서 4위를 한 래퍼야. 같은 시즌을 지나온 사람이 생일 곡에 들어간 거지. 그 곡 크레딧에는 부제처럼 'My Birthday 2'라고 적혀 있어.</p><p data-p="s4.3">곡 제목도 하나 짚자. 열여섯 곡 중 열다섯 곡 제목에 'Purple'이 들어가. 빠진 한 곡이 '11월 11일'이야. 판에서 가장 긴 곡이기도 해. 4분 30초. 보라색이 아니라 날짜로 부르는 곡이 판 한가운데쯤, 열한 번째 자리에 있어.</p><h2 data-p="s5">그가 직접 쓴 글</h2><p data-p="s5.1">멜론 앨범 정보에는 황지상이 직접 쓴 긴 글이 붙어 있어. 그는 거기서 자기가 그저 재밌는 음악을 하는 사람으로 비치고 그 이미지에 멈춰 있지만, 열다섯 살부터 정신건강의학과를 다녔고 조울 증상과 불면을 겪었다고 밝혔어. 보라색에 대한 집착도 그 증상의 하나였다고 했어. 이 판은 그 시간과 열여덟 살 데뷔 이후 지금까지를, 완벽하지 않은 한 사람으로서 숨김없이 담은 기록이라고.</p><p data-p="s5.2">우리는 이 이야기를 더 파고들지 않을 거야. 그가 스스로 꺼낸 만큼만 옮겼어. 판 이름이 왜 색상 코드인지, 왜 거의 모든 곡 제목에 같은 색이 붙어 있는지, 그 이유를 그가 직접 말했으니까. 그걸로 충분해.</p><h2 data-p="s6">아쉬움에 대하여</h2><p data-p="s6.1">아쉬운 점도 있어. 이 판은 열여섯 곡에 42분이야. 1분짜리 인트로와 1분 20초짜리 인터루드를 빼도 열네 곡이 1분 40초에서 4분 30초 사이를 오가. 곡이 많고 짧아. 작품으로서 판이 한 줄로 이어지는지는, 크레딧만 보는 우리가 판정할 수 없어. 다만 열다섯 곡이 같은 단어로 묶여 있다는 건, 그가 이걸 한 덩어리로 내놓았다는 기록이야.</p><p data-p="s6.2">그리고 정직하게. 이번 판을 두고 공개된 기사는 거의 다 발매 소식이었어. 판을 들은 사람의 글을 우리는 찾지 못했어. 다음에 비평이 나오면 꼭 같이 읽어 볼게.</p><h2 data-p="s7">그가 지키는 것</h2><p data-p="s7.1">그가 지키는 건 두 가지로 보여. 하나는 자기 손이야. 프로듀서, 녹음, 아트워크까지 자기 이름으로 채웠어. 다른 하나는 솔직함이야. '망한 래퍼'라는 말로 판을 알리는 건 쉬운 선택이 아니야. 오디션 출신이라는 이름표를 떼려고 애쓰는 대신, 그는 그 이름표를 판 한가운데 걸어 놨어.</p><p data-p="s7.2">사이퍼의 창간 선언에 이런 줄이 있어. 화제와 실력을 섞지 않는다. 황지상의 첫 정규는 화제였던 시절을 스스로 꺼내서 판 위에 올려놓은 판이야. 섞지 않으려고 덮어 두는 것보다, 꺼내서 마주 보는 게 더 어려워.</p><h2 data-p="s8">다시, 생일</h2><p data-p="s8.1">처음 장면으로 돌아가자. 이것도 내가 그려 본 장면이야. 열여덟 살에 무대 뒤에서 차례를 기다리던 애가, 스물두 번째 생일 저녁 6시에 자기가 녹음하고 자기가 디자인한 판을 세상에 내놓아. 표지 색은 #800080.</p><p data-p="s8.2">지상아, 생일 축하해. 첫 정규 고생 많았다. 다음 판도 기다릴게.</p><p data-p="s8.3">끝.</p></div></template>
+<template class="art" data-id="map" data-title="피처링 지도 — 열여섯 곡의 손"><div class="x2r"><header class="rhead"><h1>피처링 지도 — 열여섯 곡의 손</h1><p class="by">글 편집부</p></header><span data-p="m0"></span><p data-p="m0.1">10쪽의 그림은 <span class="alb">[#800080]</span>의 크레딧을 곡마다 펼친 것이다. 줄은 곡, 칸은 사람이다. 작곡·편곡에 이름이 오른 프로듀서와 피처링(내레이션 포함)만 표시했다. 출처는 멜론 앨범 정보의 크레딧. 'Purple Intro'는 크레딧이 비어 있다. 열여섯 곡 중 열한 곡에 Milanix·Klein·HD BL4CK·AXIN·Chanky 다섯 이름 중 하나 이상이 있고, 일곱 곡에 피처링이 있다. 황지상 본인은 전곡 녹음과 앨범 프로듀서로 따로 적혀 있어 그림에서는 뺐다.</p></div></template>
+<template class="art" data-id="serial" data-title="연재 &#x27;언더그라운드 연대기&#x27; 1회 — 2004년, 두 장의 데뷔"><div class="x2r"><header class="rhead"><h1>연재 '언더그라운드 연대기' 1회 — 2004년, 두 장의 데뷔</h1><p class="by">글 돈까스</p></header><span data-p="r0"></span><p data-p="r0.1">연재를 시작할게. '언더그라운드 연대기'는 국내 힙합을 한 해씩, 공연과 음반과 크루의 기록으로 되짚는 꼭지야. 첫 회는 기록이 충분히 남은 해로 골랐어. 2004년. 우리 정전 목록의 국내 판 셋 중 둘이 이 해에 나왔어.</p><span data-p="r1"></span><p data-p="r1.1">먼저 다이나믹 듀오. 최자와 개코는 중학교 때부터 친구였고, 고등학생 때 K.O.D라는 팀을 거쳐 CB Mass로 활동했어. CB Mass가 2003년에 흩어지고, 두 사람은 이듬해 첫 정규 <span class="alb">[Taxi Driver]</span>를 냈어. 발매일은 기록마다 조금 달라. 영어 위키백과는 5월 17일, 한 국내 잡지는 5월 19일로 적었어. 레이블은 갑 엔터테인먼트, CD와 카세트로 나왔어. 당시 음반 차트에서 7위까지 올랐고, 이 판을 두고 한국 힙합 역사상 가장 많이 팔린 앨범이라고 적은 기록도 있어. 2024년 한 영자 신문은 이 판이 당시의 거친 언더그라운드 스타일에서 갈라져 나왔다는 점을 짚었어. '이력서', '불면증' 같은 곡이 이 판에서 나왔어.</p><span data-p="r2"></span><p data-p="r2.1">다음은 가리온. 가리온 1집도 2004년에 나왔어. 그런데 이 판은 시작이 훨씬 길어. MC 메타가 2020년 인터뷰에서 직접 말한 걸 옮기면 이래. 1997년 11월쯤 나찰에게 우리가 듣고 싶은 음악을 해 보자고 해서 팀이 생겼고, 1998년 1월 첫째 주 토요일에 공연을 시작했어. 1집 프로듀서이자 DJ인 JU가 들어온 게 2000년. 그때 시작한 앨범이 2004년에 나왔으니, 당시 리뷰를 쓰던 사람들이 연착에 연착이 거듭됐다고 할 정도였대.</p><p data-p="r2.2">같은 해 나온 두 데뷔 판인데 걸린 시간이 이렇게 달라. 하나는 팀이 흩어진 이듬해에 바로 나왔고, 하나는 공연을 시작하고 6년 만에 나왔어. 2004년은 그런 해였어. 빨리 나온 판과 오래 걸린 판이 나란히 정전이 된 해.</p><p class="note" data-p="r2.3">다음 회 예고: 2회는 2005년. 한 해씩 앞으로 간다. 그해 나온 음반과 공연 기록을 먼저 모은 뒤에 쓴다.</p></div></template>
+<template class="art" data-id="scene" data-title="씬 리포트 — 31년 만의 듀스"><div class="x2r"><header class="rhead"><h1>씬 리포트 — 31년 만의 듀스</h1><p class="by">글 씬 리포트 데스크</p></header><span data-p="c0"></span><p data-p="c0.1">듀스(이현도, 고 김성재)의 네 번째 정규 <span class="alb">[4th Deux]</span>가 11월 21일 저녁 6시에 나온다. 1995년 세 번째 정규 <span class="alb">[Force Deux]</span> 이후 약 31년 만에 번호를 붙인 정규다. 더블 타이틀곡 'The Future'와 '너를 원해'를 포함해 아홉 곡. 선공개곡은 'Rise'와 '또 하루'다. 총괄 프로듀서는 이현도.</p><p data-p="c0.2">11월 7일에는 서울 이태원 볼레로에서 프리 리스닝 파티가 열렸다. DJ 소울스케이프가 문을 열고, 'The Future' 뮤직비디오 상영, 이현도의 프로덕션 설명, 다이나믹 듀오의 축하 공연이 이어졌다. 다이나믹 듀오는 '너를 원해'에 피처링으로 참여한다고 그 자리에서 발표됐다.</p><span data-p="c1"></span><p data-p="c1.1">'The Future'에는 문화체육관광부와 한국콘텐츠진흥원의 지원으로 소리소리AI의 AI 보컬 필터 기술과 디 에이프 스쿼드의 3D 사전 시각화·모션 추적 기술이 쓰였다. 고 김성재의 음색과 퍼포먼스를 재현한 것이다. 이현도는 실연자 저작인접권 분배금 일부를 고인의 유족과 나누기로 했다. 그는 이 곡을 듀스가 한 단계 발전한 뉴잭스윙을 한다면 어떤 모습일지 담은 곡이라고 소개했다.</p><p data-p="c1.2">11월 14일에는 프랑스 일렉트로닉 뮤지션 브락스+팔콘이 다시 만든 'Rise' 리믹스가 나오고, 고인의 31주기인 20일 저녁에는 리스닝 파티 실황 영상이 유튜브 채널 df에 올라온다.</p></div></template>
+<template class="art" data-id="live" data-title="공연·발매 소식"><div class="x2r"><header class="rhead"><h1>공연·발매 소식</h1><p class="by">글 편집부</p></header><span data-p="l0"></span><ul><li data-p="l0.1">11.14 듀스 'Rise' 리믹스(브락스+팔콘)</li><li data-p="l0.2">11.20 컨웨이 더 머신 <span class="alb">[OTIS]</span></li><li data-p="l0.3">11.20 듀스 리스닝 파티 실황 영상(유튜브 df)</li><li data-p="l0.4">11.21 듀스 <span class="alb">[4th Deux]</span></li></ul><p class="note" data-p="l0.5">날짜는 레이블·매체 발표 기준. 이번 주 확인된 국내 힙합 단독 공연은 싣지 않았다.</p></div></template>
+<template class="art" data-id="desk" data-title="편집 노트"><div class="x2r"><header class="rhead"><h1>편집 노트</h1><p class="by">글 편집부</p></header><span data-p="d0"></span><p data-p="d0.1">이번 호는 정기 순번 밖에서 독자의 요청으로 만든 특별판이다. 출처 23곳에서 사실을 모았다. 커버 출처는 6곳으로 기준(8곳)에 못 미쳐, 커버를 평소보다 짧게 썼다. 초고에서 세 가지를 지웠다(커뮤니티 위키에만 나온 2004년의 다른 데뷔 음반 하나, 앨범 소개 글 속 아티스트 개인의 다른 고백 하나, 출처가 엇갈린 가리온 1집의 발매 월). 소리를 묘사한 문장은 없다. 상상한 장면은 둘(커버의 처음과 끝)이고 문장 안에 상상이라고 적었다. 가사 인용은 없고, 커버의 개인사는 아티스트가 공개 글에 스스로 쓴 범위만 옮겼다.</p><span data-p="d1"></span><p data-p="d1.1">사진: 이번 호는 쓸 수 있는 라이선스의 아티스트 사진을 찾지 못해 사진 없이 냈다. 표지는 판 이름인 색상 코드 #800080을 그대로 깔았다.</p><h2 data-p="d2">출처</h2><ul><li data-p="d2.1">iMBC연예 — 황지상 "난 진짜 망한 래퍼" <a href="https://enews.imbc.com/News/RetrieveNewsInfo/523452" target="_blank" rel="noopener">https://enews.imbc.com/News/RetrieveNewsInfo/523452</a></li><li data-p="d2.2">스타뉴스 — Hwang Ji-sang to release debut album #800080 (11.04) <a href="https://www.starnewskorea.com/en/music/2026/11/04/2026110417562120919" target="_blank" rel="noopener">https://www.starnewskorea.com/en/music/2026/11/04/2026110417562120919</a></li><li data-p="d2.3">스타뉴스 — Hwang Ji-sang #800080 (11.11) <a href="https://www.starnewskorea.com/en/music/2026/11/11/2026111109303413692" target="_blank" rel="noopener">https://www.starnewskorea.com/en/music/2026/11/11/2026111109303413692</a></li><li data-p="d2.4">멜론 — 황지상 <span class="alb">[#800080]</span> 앨범 정보·크레딧 <a href="https://www.melon.com/album/detail.htm?albumId=15144055" target="_blank" rel="noopener">https://www.melon.com/album/detail.htm?albumId=15144055</a></li><li data-p="d2.5">멜론 — 황지상 아티스트 정보 <a href="https://www.melon.com/artist/timeline.htm?artistId=3048942" target="_blank" rel="noopener">https://www.melon.com/artist/timeline.htm?artistId=3048942</a></li><li data-p="d2.6">뉴시스 — 쇼미더머니10 우승 조광일, 쿤타 4위 <a href="https://mobile.newsis.com/view/NISX20211204_0001675805" target="_blank" rel="noopener">https://mobile.newsis.com/view/NISX20211204_0001675805</a></li><li data-p="d2.7">Stereogum — Westside Gunn Announces Heelmatic <a href="https://stereogum.com/2515336/westside-gunn-announces-new-album-heelmatic-hear-zilla/music" target="_blank" rel="noopener">https://stereogum.com/2515336/westside-gunn-announces-new-album-heelmatic-hear-zilla/music</a></li><li data-p="d2.8">The Music Universe — Westside Gunn announces Heelmatic <a href="https://themusicuniverse.com/westside-gunn-announces-heelmatic/" target="_blank" rel="noopener">https://themusicuniverse.com/westside-gunn-announces-heelmatic/</a></li><li data-p="d2.9">Ratings Game Music — Westside Gunn HEELMATIC <a href="https://ratingsgamemusic.com/2026/10/22/westside-gunn-heelmatic-album-november-13-zilla/" target="_blank" rel="noopener">https://ratingsgamemusic.com/2026/10/22/westside-gunn-heelmatic-album-november-13-zilla/</a></li><li data-p="d2.10">Ratings Game Music — Offset GMFU November 13 <a href="https://ratingsgamemusic.com/2026/11/03/offset-gmfu-album-october-23/" target="_blank" rel="noopener">https://ratingsgamemusic.com/2026/11/03/offset-gmfu-album-october-23/</a></li><li data-p="d2.11">Ratings Game Music — Conway The Machine OTIS <a href="https://ratingsgamemusic.com/2026/10/29/conway-the-machine-announces-otis-for-november-20-with-wu-tang-legends-and-goo-goo-dolls/" target="_blank" rel="noopener">https://ratingsgamemusic.com/2026/10/29/conway-the-machine-announces-otis-for-november-20-with-wu-tang-legends-and-goo-goo-dolls/</a></li><li data-p="d2.12">HotNewHipHop — Hip-Hop Albums Dropping In November Of 2026 <a href="https://www.hotnewhiphop.com/1015363-hip-hop-albums-november-2026" target="_blank" rel="noopener">https://www.hotnewhiphop.com/1015363-hip-hop-albums-november-2026</a></li><li data-p="d2.13">Wikipedia — Dynamic Duo (South Korean duo) <a href="https://en.wikipedia.org/wiki/Dynamic_Duo_(South_Korean_duo)" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Dynamic_Duo_(South_Korean_duo)</a></li><li data-p="d2.14">마리끌레르 코리아 — 다이나믹 듀오 <a href="https://www.marieclairekorea.com/tag/%eb%8b%a4%ec%9d%b4%eb%82%98%eb%af%b9-%eb%93%80%ec%98%a4/" target="_blank" rel="noopener">https://www.marieclairekorea.com/tag/%eb%8b%a4%ec%9d%b4%eb%82%98%eb%af%b9-%eb%93%80%ec%98%a4/</a></li><li data-p="d2.15">Kennedy Center — Dynamic Duo <a href="https://www.kennedy-center.org/artists/d/do-dz/-dynamic-duo/" target="_blank" rel="noopener">https://www.kennedy-center.org/artists/d/do-dz/-dynamic-duo/</a></li><li data-p="d2.16">The Korea Times — Dynamic Duo celebrates 20 years <a href="https://www.pressreader.com/korea-republic/the-korea-times/20240329/281805698935432" target="_blank" rel="noopener">https://www.pressreader.com/korea-republic/the-korea-times/20240329/281805698935432</a></li><li data-p="d2.17">텐아시아 — 가리온 인터뷰(2020) <a href="https://www.tenasia.co.kr/article/2020012299004" target="_blank" rel="noopener">https://www.tenasia.co.kr/article/2020012299004</a></li><li data-p="d2.18">OSEN — 다이나믹 듀오 <a href="https://www.osen.co.kr/article/G1110032085" target="_blank" rel="noopener">https://www.osen.co.kr/article/G1110032085</a></li><li data-p="d2.19">더팩트 — 듀스, 31년 만에 새 정규앨범 <a href="https://news.tf.co.kr/read/ogmeta/2386784.htm" target="_blank" rel="noopener">https://news.tf.co.kr/read/ogmeta/2386784.htm</a></li><li data-p="d2.20">Wikipedia — 2004 in South Korean music <a href="https://wiki.riteme.site/wiki/2004_in_South_Korean_music" target="_blank" rel="noopener">https://wiki.riteme.site/wiki/2004_in_South_Korean_music</a></li><li data-p="d2.21">위키독스 — 2026년 11월 컴백 정리 <a href="https://wikidocs.net/blog/@mythos/35607/" target="_blank" rel="noopener">https://wikidocs.net/blog/@mythos/35607/</a></li><li data-p="d2.22">Rolling Stone Brasil — 11월 발매 목록 <a href="https://rollingstone.com.br/?p=326880" target="_blank" rel="noopener">https://rollingstone.com.br/?p=326880</a></li><li data-p="d2.23">W Korea — 쇼미더머니10 최종 <a href="https://www.wkorea.com/?p=187902" target="_blank" rel="noopener">https://www.wkorea.com/?p=187902</a></li></ul></div></template>

@@ -154,6 +154,8 @@ public/mag/   잡지 MAG (2026-11-13). 위 줄 MAG 버튼 → mag.js(처음 누�
 - 연재 `public/mag/serials.json`: feedback '방'(노암 갤러거, 1회 fb-02) · Drop '정전 해부'(고한석) · Cypher '언더그라운드 연대기'(돈까스). 앱 책장 위 '연재' 탭(회차 누르면 그 글을 읽기 모드로, mag.js openArticle), 연재 글 끝에 지난 회·다음 회(예고)
 - 편집부 기억 `docs/magazine/memory/<feedback|drop|cypher>.md`, 바이블마다 맨 위 '개편' 항목(점수 없음, 필진, 연재)
 - 기본 브랜치(claude/practical-mccarthy-1catzl)에 이 시스템이 병합돼 있어야 예약 세션이 돈다
+- 특별판 세 권(2026-11-14 사용자 요청, 정기 순환 밖, mag-new.mjs --force 후 날짜를 11.14로): Drop Vol.02 스노 알레그라 [Legendary Love] · feedback vol.03 슬립워크 [View From The Outside] · Cypher Vol.02 황지상 [#800080]. 연재 정전 해부 1회([Voodoo]) · 방 2회(노란 집) · 연대기 1회(2004). index.json 항목에 special: true
+  - 고친 도구: mag-issue.py가 지면의 상대 경로 그림을 /mag/issues/<id>/로 바꿈(전엔 Shadow DOM에서 앱 주소 기준으로 풀려 사진이 안 보였음, mag-check가 상대 경로를 오류로 잡음) · mag-check 점수 검사에서 URL 제외(2026/10 같은 주소가 '6/10'으로 걸렸음) · mag-photos.py Commons 원본 대신 썸네일(429·400 회피)
 - 빨리 만들기(2026-11-13): 스킬 `.claude/skills/mag-issue/SKILL.md`. `node scripts/mag-new.mjs <drop|fb|cy>` = 차례 검사 + 뼈대(TODO는 mag-check가 오류로 잡음), `python3 -I scripts/mag-photos.py search|get` = 커넥터 없이 Commons·Openverse·의회도서관·시카고 미술관에서 쓸 수 있는 라이선스 사진만 받아 mag-photo.py로(400KB 자동 축소). mag-check는 사진 파일·크레딧·8장 한도도 검사. 이 세션은 claude.ai 커넥터 전부가 502로 실패했다(Commons는 429가 잦지만 기다리면 됨, Openverse는 504)
 
 ## 사용자 선호

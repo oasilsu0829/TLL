@@ -152,6 +152,9 @@ def main():
     for aid in order:
         a = arts[aid]
         out.append(f'<template class="art" data-id="{aid}" data-title="{html.escape(a["title"])}"><div class="x2r">{article_html(a)}</div></template>')
+    # 지면은 앱 문서(Shadow DOM) 안에 들어가므로 상대 경로 그림은 앱 주소 기준으로 풀린다 → 호 폴더 절대 경로로
+    base = f'/mag/issues/{src.name}/'
+    out = [re.sub(r'((?:src|href)=")([^"/:#][^":]*\.(?:webp|jpg|jpeg|png|svg))"', lambda m: m[1] + base + m[2] + '"', x) for x in out]
     dst = Path('public/mag/issues') / src.name / 'issue.html'
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text('\n'.join(out) + '\n', encoding='utf-8')
