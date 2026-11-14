@@ -10,7 +10,7 @@ import { json } from './util.js';
 const LRCLIB = 'https://lrclib.net/api';
 const NE = 'https://music.163.com/api';
 const UA = 'TLL-turntable/1.0';
-const VER = 'v2';
+const VER = 'v3';
 
 // 'Song (feat. X) - 2011 Remaster' → 'Song'
 export function cleanTitle(s) {
@@ -107,13 +107,15 @@ export async function lrclib(q) {
 const neHead = { Referer: 'https://music.163.com/' };
 // 맨 앞·뒤의 크레딧 줄(作词 : … · 작곡 : …)과 '순음악' 표시는 가사가 아니다
 const CREDIT = /^\s*(作词|作曲|编曲|編曲|制作人|制作|監製|监制|混音|母带|录音|和声|吉他|贝斯|鼓|键盘|弦乐|配唱|出品|发行|企划|统筹|OP|SP|Lyrics?|Lyricist|Written|Composer|Composed|Music|Arrange[rd]?|Produc(?:er|ed)|작사|작곡|편곡|프로듀서)(?![A-Za-z])[^:：]{0,20}[:：]/i;
+// 'Piano by：Factist' · 'Mixed by : X' 같은 연주·녹음 크레딧
+const BY = /^[^:：]{1,40}\bby\s*[:：]/i;
 export function cleanNetease(text) {
   const out = [];
   let inst = false;
   for (const raw of String(text || '').split(/\r?\n/)) {
     const s = raw.replace(/\[[^\]]*\]/g, '').trim();
     if (/纯音乐.*欣赏/.test(s)) { inst = true; continue; }
-    if (s && CREDIT.test(s)) continue;
+    if (s && (CREDIT.test(s) || BY.test(s))) continue;
     out.push(raw);
   }
   const body = out.join('\n');

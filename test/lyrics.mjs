@@ -38,6 +38,7 @@ assert.ok(score({ title: '밤편지', artists: ['아이유'], dur: 253, synced: 
 // NetEase 크레딧 줄·순음악 표시는 뺀다
 assert.deepEqual(cleanNetease('[00:00.000] 作词 : IU\n[00:00.213] 작곡 : 이종훈\n[00:01.000]이 밤 그날의\n[00:08.760]반딧불을'), { synced: '[00:01.000]이 밤 그날의\n[00:08.760]반딧불을', plain: null, inst: false, src: 'NetEase' });
 assert.equal(cleanNetease('[00:00.00]纯音乐，请欣赏').inst, true);
+assert.equal(cleanNetease('[00:05.68]Piano by：Factist\n[00:07.10]Mixed by : Jo\n[00:10.00]Stand by me').synced, '[00:10.00]Stand by me');
 
 // find: LRCLIB(가짜) — 한국어 가수 이름으로 물어도 'IU (아이유)'로 올라 있는 가사를 찾는다. NetEase는 빈 결과
 const calls = [];
