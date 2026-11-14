@@ -104,13 +104,15 @@ def main():
     ap.add_argument('--ink', default='#141414'); ap.add_argument('--paper', default='#f4efe6'); ap.add_argument('--accent', default='#2bb3d9')
     ap.add_argument('--grain', type=float, default=None)
     ap.add_argument('--quality', type=int, default=80)
+    ap.add_argument('--alpha', action='store_true', help='투명 배경 유지(Adobe 배경 따기 결과로 콜라주할 때, --look plain만)')
     a = ap.parse_args()
     lic = (a.license or a.credit.split('/')[-1]).strip()
     if any(x in lic.upper() for x in ('ND', 'ALL RIGHTS', '©')):
         raise SystemExit(f'쓸 수 없는 라이선스: {lic}')
 
     im = Image.open(a.src)
-    im = ImageOps.exif_transpose(im).convert('RGB')
+    keep = a.alpha and a.look == 'plain'
+    im = ImageOps.exif_transpose(im).convert('RGBA' if keep else 'RGB')
     im = crop(im, a.crop, tuple(float(x) for x in a.focus.split(',')))
     if im.width > a.width:
         im = im.resize((a.width, round(im.height * a.width / im.width)), Image.LANCZOS)
@@ -123,7 +125,8 @@ def main():
         'riso': lambda: riso(g, ink, paper, accent),
         'xerox': lambda: xerox(g, ink, paper),
     }[a.look]()
-    out = grain(out, a.grain if a.grain is not None else (0 if a.look == 'plain' else .05), a.name)
+    if not keep:
+        out = grain(out, a.grain if a.grain is not None else (0 if a.look == 'plain' else .05), a.name)
 
     dst = ROOT / 'public/mag/issues' / a.issue / f'{a.name}.webp'
     dst.parent.mkdir(parents=True, exist_ok=True)

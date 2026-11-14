@@ -22,16 +22,20 @@ node scripts/mag-new.mjs <drop|fb|cy> [--date YYYY-MM-DD]
 - 사실은 바로 notes.md 표에 id로 적고, 원고에는 노트에 있는 것만 쓴다(데스크가 빨라진다)
 - 취재 중반에 **컨셉 세 개 → 하나 고르기**(system.md 4-1). 기억 파일 '쓴 컨셉'과 겹치지 않게
 
-## 2. 사진 (Unsplash·Adobe 커넥터가 붙어 있으면 먼저 쓴다 — system.md 6장)
-```bash
-python3 -I scripts/mag-photos.py search "<아티스트 영어 이름> live" --src commons,openverse
-python3 -I scripts/mag-photos.py get <번호> <id> photo-cover --crop 2:3 --look riso --accent "<잡지 색>"
+## 2. 사진·콜라주 (Unsplash·Adobe 필수 — system.md 6장)
+```text
+아티스트 실물  → python3 -I scripts/mag-photos.py search|get   (Commons·Openverse 라이선스 사진)
+분위기·사물    → Unsplash search_photos → download_asset(필수) → curl로 받기
+Adobe 다듬기   → adobe_mandatory_init → asset_initialize_file_upload → curl -L -X PUT <href> --data-binary @파일
+                 → asset_finalize_file_upload → presignedAssetUrl
+                 → image_remove_background(오려내기) / image_apply_effects(halftone·grain·monochromaticTint·glitch)
+                 → outputUrl을 curl -L로 받기
+저장소에 넣기  → python3 -I scripts/mag-photo.py <파일> <id> <이름> --credit "저작자 / 라이선스" --src <주소> [--alpha]
 ```
-- 쓸 수 있는 라이선스만 보여 주고, `get`이 크레딧·출처를 붙여 mag-photo.py로 넘긴다(webp, 400KB 넘으면 자동으로 줄임, credits.json)
-- 곳: commons(인물·공연, 429가 잦음 → 스크립트가 기다렸다 다시) · openverse(504가 잦음) · loc(옛 사진·사물) · artic(질감·미술, 맞는 작품이 적으면 관계없는 결과가 섞임)
-- 뼈대의 사진 칸: 표지 `photo-cover.webp`(2:3) · 커버 여는 쪽 `photo-open.webp`(3:2). 더 넣으려면 `<figure class="x-ph top">`. 한 호 8장 이하
-- 캡션(`figcaption`)에 저작자 · 라이선스를 그대로 적는다(mag-check가 확인)
-- 아티스트 사진이 없으면 장소·악기·사물 사진, 그것도 없으면 타이포·SVG 표지(fb-02)
+- Unsplash 주소를 Adobe에 바로 넣으면 거절됨 → 반드시 내려받아 올리기
+- 오려낸 조각은 `--alpha`(투명 유지, --look plain). 콜라주는 CSS로 겹침(absolute·회전·테이프·찢은 가장자리 clip-path·mix-blend-mode)
+- 한 호 8장 이하(조각 포함), 캡션에 저작자 · 라이선스, 분위기 사진은 무엇인지 적기
+- Commons 원본 주소는 429/400 → mag-photos.py가 썸네일로 받음
 
 ## 3. 원고 → 지면
 - articles.md 문법은 파일 맨 위 주석. 구성과 소제목은 컨셉대로. 정형 소제목('왜 지금'·'아쉬움에 대하여'·'지키는 것'·'다시, ○○') 금지, 재미 규칙은 system.md 4-2

@@ -75,13 +75,31 @@ n = (이번 주 월요일 - 2026-11-09) / 7 일,  n % 3 == 0 → Drop(금요일 
 - 그 주 커버와 이어지는 회를 고를 수 있으면 고른다(fb-02: 슈박스 ↔ 빅 핑크)
 - 발행할 때 `public/mag/serials.json`의 그 연재 `episodes`에 `{n, issue, art: "serial", title, date}`를 더하고 `next`를 다음 예고로 바꾼다. 회차는 1부터 빈틈없이
 
-## 6. 사진
-- 순서: ① 아티스트 실물은 라이선스 사진만(Wikimedia Commons · Openverse · Flickr CC — `scripts/mag-photos.py`) ② 분위기·장소·사물은 **Unsplash 커넥터**(붙어 있으면 반드시 먼저 찾아본다) ③ 질감·콜라주 재료는 Adobe Stock 무료 · Smithsonian · NYPL · 의회도서관 · The Met/레이크스 ④ 그래도 없으면 타이포·CSS/SVG
-- 받은 사진 다듬기: **Adobe 커넥터**(배경 따기·망점·그레인·색 처리·크롭)를 컨셉에 맞게 쓴다. 안 붙어 있으면 mag-photo.py `--look`
-- 쓸 수 있는 라이선스: CC0 · 퍼블릭 도메인 · CC BY · CC BY-SA · CC BY-NC(-SA) · Unsplash 라이선스 · Adobe Stock 무료. ND·저작권 있음·출처 불명은 안 씀. 핀터레스트·뉴스 사진·앨범 아트 원본 파일은 안 씀. Unsplash·Stock 사진을 아티스트 본인처럼 보이게 쓰지 않는다(캡션에 무엇인지 적음)
-- 최종 파일은 `python3 -I scripts/mag-photo.py <원본> <id> <이름> --credit "저작자 / 라이선스" --src <페이지 주소> [--crop …] [--look plain]` → webp + credits.json. 한 장 400KB 이하, 한 호 8장 이하(아이폰 메모리)
+## 6. 사진 · 콜라주 · 아트워크
+> 2026-11-14 사용자: "잡지처럼 콜라주, 아트워크 만들려면 어도비랑 언플래시가 필수적일 것 같은데" → 두 커넥터는 **필수**. 붙어 있는데 안 쓰면 발행하지 않는다(안 붙어 있으면 notes.md에 적고 mag-photos.py로 대신).
+
+### 재료
+- 아티스트 실물: 라이선스 사진만(Wikimedia Commons · Openverse · Flickr CC — `scripts/mag-photos.py`)
+- 분위기·장소·사물·질감: **Unsplash 커넥터**(`search_photos` · `search_illustrations` → 고른 사진은 반드시 `download_asset`으로 받는다 — 다운로드 기록이 Unsplash 약관). Unsplash+ 사진은 안 씀
+- 옛 인쇄물·종이·도장 같은 콜라주 조각: Smithsonian · NYPL · 의회도서관 · The Met/레이크스(퍼블릭 도메인), Adobe Stock 무료(`asset_search` StockAsset pricing free → `asset_license_and_download_stock`)
+
+### Adobe로 다듬기 (Photoshop 도구)
+1. `adobe_mandatory_init` 한 번
+2. 받은 파일을 Adobe에 올린다: `asset_initialize_file_upload`(path·크기·MIME) → 셸에서 `curl -L -X PUT <transfer href> --data-binary @파일` → `asset_finalize_file_upload`(전송 문서 그대로) → `presignedAssetUrl`. (Unsplash·Commons 주소를 Adobe 도구에 바로 넣으면 '도메인 허용 안 됨'으로 거절된다)
+3. 콜라주 조각: `image_remove_background`(투명 PNG 오려내기) · `image_select_by_prompt`로 일부만
+4. 인쇄 질감: `image_apply_effects`(halftone 망점 · grain · monochromaticTint 듀오톤 · glitch · colorOverlay) · `image_apply_preset` · `image_apply_adjustments`. 효과 하나에 한 번씩, 앞 결과 `outputUrl`을 다음에 넣어 겹친다
+5. 결과 `outputUrl`을 `curl -L`로 받아 세션 스크래치에 두고 → `mag-photo.py … --look plain`(오려낸 조각은 `--alpha`로 투명 유지)
+- 생성형(그림 만들기·생성형 채우기)은 이 환경에서 안 됨. 실존 인물처럼 보이는 합성 금지
+
+### 콜라주·아트워크 지면
+- 호마다 **콜라주·아트워크 쪽을 하나 이상**: 오려낸 조각(투명 webp)을 CSS로 겹쳐 붙인다(absolute 배치·회전·종이 질감·테이프·찢은 가장자리 clip-path·리소 판 어긋남 mix-blend-mode). 표지에 쓰면 더 좋다
+- Unsplash·Stock 사진은 분위기 재료일 뿐: 아티스트 본인처럼 보이게 쓰지 않고, 캡션에 무엇인지(예: '보라 조명 아래 마이크 — 분위기 사진') 적는다
+- 실존 아티스트 사진을 오려 콜라주에 넣어도 되지만(라이선스 사진만), 얼굴을 바꾸거나 다른 장면에 있는 것처럼 합성하지 않는다
+
+### 공통
+- 쓸 수 있는 라이선스: CC0 · 퍼블릭 도메인 · CC BY · CC BY-SA · CC BY-NC(-SA) · Unsplash 라이선스 · Adobe Stock(무료 라이선스 받은 것). ND·저작권 있음·출처 불명·핀터레스트·뉴스 사진·앨범 아트 원본 파일은 안 씀
+- 최종 파일은 `python3 -I scripts/mag-photo.py <원본> <id> <이름> --credit "저작자 / 라이선스" --src <페이지 주소> [--crop …] [--look plain] [--alpha]` → webp + credits.json. 한 장 400KB 이하, 한 호 8장 이하(아이폰 메모리 — 콜라주 조각도 한 장으로 셈)
 - 지면 사진마다 작은 글씨로 저작자 · 라이선스, 판권 쪽에 전체 목록
-- 커넥터를 안 썼으면 왜 안 썼는지 notes.md에 한 줄
 
 ## 7. 지면
 - `pages.html`의 CSS 골격(.x2 · x- 접두어 · 읽기 모드 .x2r · --rd-*)과 기술 구조만 살리고, 판짜기는 컨셉에 맞게 새로 짠다(mag-new.mjs 뼈대 쪽 배치는 참고용, 그대로 쓰지 않는다). 색은 index.json의 그 잡지 `color`, 제호 글꼴은 지난 호와 같게(Drop: 지난 호 issue.html의 제호 글꼴, feedback: Alfa Slab One, Cypher: 지난 호)
