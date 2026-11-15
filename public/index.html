@@ -302,7 +302,16 @@ body.night .deckp .go small { color: #8b8f98; }
 body.night .deckp .armtag { background: #141519; border-color: #2a2b31; color: #d4d4d8; }
 body.night .deckp input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(#e4e4e7, #e4e4e7) 0/var(--p, 0%) 100% no-repeat, #2a2b31; }
 /* 밀봉 신보: 위클리·데이리스트가 새로 나오면 크레이트 위에 비닐째 뜬다. 비닐을 손가락으로 그어 찢는다 */
-.seal { position: absolute; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: rgba(17,24,39,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); border-radius: 12px; }
+.seal { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: rgba(17,24,39,.72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.seal[hidden] { display: none; }
+/* 위클리·데이리스트 바로 열기 단추(지금 재생 · 크레이트 탭 줄) */
+.spx { display: flex; gap: 6px; margin-left: auto; }
+.spx button { font: 700 10px/1 var(--mono); letter-spacing: .1em; padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.7); color: var(--ink, #111); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.spx button .led { width: 6px; height: 6px; }
+.spx button.new .led { background: var(--main-glow); box-shadow: 0 0 6px var(--main-glow); }
+.strip.tabs .seg button { white-space: nowrap; }
+@media (max-width: 640px) { .spx { gap: 4px; } .spx button { padding: 6px 8px; font: 700 11px/1 var(--sans, sans-serif); letter-spacing: 0; gap: 4px; } .spx .lg, .spx .led { display: none; } .spx button.new { border-color: var(--main); color: var(--main); } }
+@media (min-width: 641px) { .spx .sm { display: none; } }
 .seal-h { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #fff; display: flex; align-items: center; gap: 8px; }
 .seal-h .led { background: var(--main-glow); box-shadow: 0 0 8px var(--main-glow); animation: blink 1.2s infinite; }
 @keyframes blink { 50% { opacity: .3; } }
@@ -760,6 +769,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
         <button type="button" role="tab" data-tab="now" aria-pressed="true"><span class="led"></span>지금 재생</button>
         <button type="button" role="tab" data-tab="crate" aria-pressed="false"><span class="led"></span>크레이트</button>
       </div>
+      <div class="spx" role="group" aria-label="밀봉 신보"><button type="button" id="spW" title="이번 주 위클리 열기"><span class="led"></span><span class="lg">WEEKLY</span><span class="sm">위클리</span></button><button type="button" id="spD" title="지금 데이리스트 열기"><span class="led"></span><span class="lg">DAYLIST</span><span class="sm">데일리</span></button></div>
       <span class="hint" id="npDev"></span>
     </div>
     <div class="np-glow" id="npGlow" aria-hidden="true"></div>
@@ -2773,9 +2783,15 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     for (const kind of ['weekly', 'daylist']) { const id = plId(sp[kind]); if (id && op[kind] !== SPECIAL[kind].key()) return { kind, id }; }
     return null;
   }
-  async function showSeal() {
-    if (sealCur || !loggedIn() || S.sealLater) return;
-    const pnd = pendingSeal(); if (!pnd) return;
+  async function showSeal(force) {
+    if (sealCur) return;
+    if (!loggedIn()) { if (force) connect(); return; }
+    if (!force && S.sealLater) return;
+    let pnd = force ? { kind: force, id: plId((LS.get('music.special') || {})[force]) } : pendingSeal();
+    if (!pnd) return;
+    if (!pnd.id) { openDlg(); setTimeout(() => { const i = $(force === 'weekly' ? 'lkWeekly' : 'lkDaylist'); i.scrollIntoView({ block: 'center' }); i.focus(); }, 80); toast('먼저 ' + SPECIAL[force].name + ' 링크를 넣어 주세요', 2500); return; }
+    const opened = (LS.get('music.opened') || {})[pnd.kind] === SPECIAL[pnd.kind].key();
+    sealCur = { kind: pnd.kind, loading: true }; // 표지를 받는 동안 또 열리지 않게
     const K = SPECIAL[pnd.kind], sub = K.sub();
     let title = K.name, img = '';
     try { const pl = await api('/playlists/' + pnd.id + '?fields=name,images'); if (pl) { title = pl.name || title; img = pickImg(pl.images, 300); } } catch {}
@@ -2783,6 +2799,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const entry = { k: 'pl', id: pnd.id, name: title, artist: K.name + ' · ' + sub, img, sealed: true };
     meta['spotify:playlist:' + pnd.id] = entry; // 판 라벨·트랙 머리에 이 이름·그림을 쓴다
     sealCur = { kind: pnd.kind, key: K.key(), entry, path: [], open: false, span: [1e9, -1e9] };
+    // 잡지 신간 팝업이 비닐을 가리지 않게 잠깐 내린다(다음에 열 때 다시 뜸)
+    const mp = $('magPop'); if (mp && !mp.hidden) { mp.classList.remove('on'); mp.hidden = true; }
     $('sealH').textContent = pnd.kind === 'weekly' ? 'NEW ARRIVAL · 이번 주 위클리' : 'NEW ARRIVAL · ' + sub + ' 데이리스트';
     $('sealT').textContent = title; $('sealS').textContent = '비닐을 손가락으로 죽 그어 뜯으세요';
     $('sealStk').innerHTML = pnd.kind === 'weekly' ? 'NEW<br>WEEK' : 'NEW<br>' + sub;
@@ -2791,6 +2809,18 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const film = $('sealFilm'); film.style.cssText = ''; film.hidden = false;
     $('seal').hidden = false;
     requestAnimationFrame(() => drawFilm(film, []));
+    if (opened) showOpened(); // 이번 회차는 이미 뜯음: 슬리브만(누르면 판)
+    spxPaint();
+  }
+  function showOpened() {
+    film().hidden = true; sealCur.open = true;
+    $('sealCard').classList.add('open'); $('sealPlay').hidden = false;
+    $('sealS').textContent = '슬리브를 누르면 판을 꺼내 올립니다'; $('sealStk').innerHTML = 'NEW';
+  }
+  const film = () => $('sealFilm');
+  function spxPaint() {
+    const sp = LS.get('music.special') || {}, op = LS.get('music.opened') || {};
+    for (const [id, kind] of [['spW', 'weekly'], ['spD', 'daylist']]) $(id).classList.toggle('new', !!plId(sp[kind]) && op[kind] !== SPECIAL[kind].key());
   }
   function peel() {
     const C = sealCur; if (!C || C.open) return;
@@ -2811,14 +2841,25 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('sealCard').classList.add('open'); $('sealPlay').hidden = false;
     $('sealS').textContent = '슬리브를 누르면 판을 꺼내 올립니다';
     $('sealStk').innerHTML = 'NEW';
+    spxPaint();
   }
   function closeSeal() { $('seal').hidden = true; sealCur = null; }
-  function playSeal() { const C = sealCur; if (!C) return; closeSeal(); playAlbum(C.entry); setTimeout(showSeal, 4000); }
+  function playSeal() {
+    const C = sealCur; if (!C || !C.entry) return; closeSeal();
+    const dk = document.querySelector('.deckp'), r = dk && dk.getBoundingClientRect();
+    if (r && (r.top < 0 || r.bottom > innerHeight)) dk.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    playAlbum(C.entry); setTimeout(showSeal, 4000);
+  }
   (function sealEvents() {
+    document.body.appendChild($('seal')); // 패널 안이면 폰에서 화면 밑에 깔림 → 화면 전체를 덮는 겹으로
+    $('spW').addEventListener('click', () => { S.sealLater = false; showSeal('weekly'); });
+    $('spD').addEventListener('click', () => { S.sealLater = false; showSeal('daylist'); });
+    spxPaint(); setInterval(spxPaint, 60000);
+    $('seal').addEventListener('click', (e) => { if (e.target === $('seal')) { S.sealLater = true; closeSeal(); } });
     const card = $('sealCard');
     let down = false, lastSnd = 0;
     card.addEventListener('pointerdown', (e) => {
-      if (!sealCur) return;
+      if (!sealCur || !sealCur.entry) return;
       if (sealCur.open) { playSeal(); return; }
       down = true; card.setPointerCapture(e.pointerId);
       const r = card.getBoundingClientRect(); sealCur.path = [[e.clientX - r.left, e.clientY - r.top]];
@@ -2842,7 +2883,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       inp.addEventListener('change', () => {
         const sp = LS.get('music.special') || {}; const v = inp.value.trim();
         if (v && !plId(v)) { toast('플레이리스트 링크가 아닙니다'); return; }
-        sp[kind] = v; LS.set('music.special', sp); toast(v ? '저장했습니다. 다음 회차부터(지금 회차도) 비닐로 뜹니다' : '지웠습니다', 2500);
+        sp[kind] = v; LS.set('music.special', sp); spxPaint(); toast(v ? '저장했습니다. 다음 회차부터(지금 회차도) 비닐로 뜹니다' : '지웠습니다', 2500);
         S.sealLater = false; setTimeout(showSeal, 300);
       });
     }
