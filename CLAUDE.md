@@ -18,7 +18,9 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 ```
 public/index.html   앱 화면(예전 public/music/index.html). /deck/도 Worker가 이 파일을 내준다(window.FRIEND)
 public/shell.js     예전 기록 가져오기(#from=, 한 번), /sw.js 등록
-public/sw.js        캐시 먼저 + 뒤에서 갱신. 여러 파일을 고치면 VERSION을 올릴 것
+public/version.js   버전 하나(v·date·notes). 배포할 때마다 v를 올리고 notes 맨 앞에 바뀐 것을 적는다. sw.js가 importScripts로 읽어 캐시 이름(tll-<v>)으로 쓰므로 이 파일이 바뀌면 서비스 워커가 새로 설치된다
+public/sw.js        캐시 먼저 + 뒤에서 갱신. /version.js?check 는 항상 네트워크
+                    업데이트 확인(shell.js, 2026-11-16): 열 때 3초 뒤·돌아올 때(10분 간격)·30분마다 /version.js?check 와 비교. 새 버전이면 위쪽 띠(notes 3줄, 나중에 = tll.skip에 그 버전 저장). '업데이트' = reg.update() → 새 워커 설치·활성화(controllerchange) → 다시 열기, 8초 넘으면 새로고침. 열린 모달이 있으면 그 안에 popover로 띄운다. 설정 창 '버전 … · 최신 / 새 버전 있음' + 업데이트 확인 버튼. Shell.version · Shell.checkUpdate · Shell.update
 public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). 처음 전체화면 켤 때 import
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D · 잼 · 잡지 · 친구용 매니페스트·아이콘
