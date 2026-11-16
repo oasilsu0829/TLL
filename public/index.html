@@ -481,6 +481,7 @@ dialog::backdrop { background: rgba(17,24,39,.35); }
 .np-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 6deg)) rotateY(var(--ry, -10deg)); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
 .np-disc { position: absolute; top: 3%; left: 3%; width: 94%; height: 94%; border-radius: 50%; transform: translateZ(-30px) translateX(0); transition: transform 1.1s cubic-bezier(.2,.8,.2,1); background: radial-gradient(circle, transparent 0 30%, rgba(255,255,255,.06) 30.5%, transparent 31.5%), repeating-radial-gradient(circle, #121214 0 1.2px, #1b1b1f 1.2px 2.4px); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 .np.on .np-disc { transform: translateZ(-30px) translateX(36%); }
+.np-disc.vc { background: radial-gradient(circle, transparent 0 30%, rgba(255,255,255,.12) 30.5%, transparent 31.5%), repeating-radial-gradient(circle, rgba(255,255,255,.14) 0 2px, transparent 2px 9%), repeating-radial-gradient(circle, rgba(0,0,0,.16) 0 1.2px, transparent 1.2px 2.4px), linear-gradient(135deg, var(--vc)); }
 .np-disc .spinr { position: absolute; inset: 0; border-radius: 50%; animation: spin 1.8s linear infinite; animation-play-state: paused; background: conic-gradient(from 0deg, transparent 0 10%, rgba(255,255,255,.12) 14%, transparent 20% 60%, rgba(255,255,255,.09) 64%, transparent 70%); }
 .np.on .np-disc .spinr { animation-play-state: running; }
 .np-disc .lbl { position: absolute; left: 34%; top: 34%; width: 32%; height: 32%; border-radius: 50%; background: #333 center/cover no-repeat; box-shadow: 0 0 0 2px #0b0b0c, inset 0 0 0 1px rgba(255,255,255,.15); }
@@ -1483,7 +1484,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (loggedIn()) A.slice(i0, i0 + 2).forEach((x) => fetchTracks(uriOf(x)).catch(() => {}));
     // 지금 고른 판은 3D 새 판·슬리브까지 미리 만들어 둔다(누르는 순간 바로 모션)
     if (a && window.Deck3D && Deck3D.prebuild) {
-      const k2 = uriOf(a), mk = () => Deck3D.prebuild({ ...a, single: isSingle(a), tracks: gapsOf(tkDone.get(k2)) }, isPl(a) && !a.sealed && !a.m);
+      const k2 = uriOf(a), mk = () => Deck3D.prebuild({ ...a, vc: vcFor(k2), single: isSingle(a), tracks: gapsOf(tkDone.get(k2)) }, isPl(a) && !a.sealed && !a.m);
       clearTimeout(S.preT); S.preT = setTimeout(() => { mk(); if (loggedIn() && !tkDone.has(k2)) fetchTracks(k2).then(mk).catch(() => {}); }, 150);
     }
     clearTimeout(S.atT); S.atT = setTimeout(fillTypes, 1500);
@@ -2125,7 +2126,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (use3d) {
       // 트랙 목록이 이미 있으면 새 판에 무음 홈을 그려서 꺼낸다(없으면 받아지는 대로 다시 그림)
       // 기다리지 않고 바로(트랙 목록을 이미 받아 뒀으면 무음 홈까지)
-      Deck3D.drop({ ...a, single: isSingle(a), tracks: gapsOf(tkDone.get(key)) }, slam);
+      Deck3D.drop({ ...a, vc: vcFor(key), single: isSingle(a), tracks: gapsOf(tkDone.get(key)) }, slam);
     }
     D.hidden = use3d; document.body.classList.add('changing');
     render();
@@ -2350,7 +2351,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('labA').textContent = L ? L.artist : (loggedIn() ? '크레이트에서 고르세요' : '눌러서 Spotify 연결');
     $('label').classList.toggle('art', !!(L && L.img));
     $('label').style.backgroundImage = bg(L && L.img);
-    if (window.Deck3D && Deck3D.ok) Deck3D.setLabel(L ? { name: L.name, artist: L.artist, img: L.img, m: L.m, single: isSingle(L), tracks: (pend ? pend.key : key) && S.tracksFor === (pend ? pend.key : key) ? trackGaps() : null } : null);
+    if (window.Deck3D && Deck3D.ok) Deck3D.setLabel(L ? { name: L.name, artist: L.artist, img: L.img, m: L.m, vc: vcFor(pend ? pend.key : key), single: isSingle(L), tracks: (pend ? pend.key : key) && S.tracksFor === (pend ? pend.key : key) ? trackGaps() : null } : null);
     applyAmb((L && L.img) || '');
     renderNow(it, L, pend, on, key);
     $('topLed').classList.toggle('on', on);
@@ -2394,6 +2395,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   function renderNow(it, L, pend, on, key) {
     const img = pend ? pend.img : it ? bigCover(it) : '';
     const playOn = !!(on && !pend), changed = img !== npImg;
+    const vc = vcFor(pend ? pend.key : key), disc = document.querySelector('#np .np-disc');
+    disc.classList.toggle('vc', !!vc); disc.style.setProperty('--vc', vc ? vc.join(', ') : '');
     if (changed) {
       npImg = img;
       $('npSleeve').style.backgroundImage = bg(img); $('npLbl').style.backgroundImage = bg(img); $('npGlow').style.backgroundImage = bg(img);
@@ -2742,6 +2745,14 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const h = d.getHours();
     return h < 6 ? { id: 'night', name: '밤', colors: ['#0b1026', '#312e81', '#7c3aed'] } : h < 12 ? { id: 'am', name: '아침', colors: ['#fde68a', '#fb923c', '#f43f5e'] }
       : h < 18 ? { id: 'pm', name: '오후', colors: ['#bae6fd', '#38bdf8', '#facc15'] } : { id: 'eve', name: '저녁', colors: ['#f472b6', '#7c3aed', '#1e1b4b'] };
+  }
+  // 위클리·데이리스트 판은 슬리브 그림과 같은 색의 컬러 바이닐(3D 판·지금 재생 판)
+  function vcFor(key) {
+    try {
+      const id = String(key || '').startsWith('spotify:playlist:') ? key.split(':')[2] : ''; if (!id) return null;
+      const sp = LS.get('music.special') || {};
+      return plId(sp.weekly) === id ? SPECIAL.weekly.colors : plId(sp.daylist) === id ? slotOf(new Date()).colors : null;
+    } catch { return null; }
   }
   const plId = (v) => { const m = String(v || '').match(/playlist[/:]([A-Za-z0-9]{22})/) || String(v || '').trim().match(/^([A-Za-z0-9]{22})$/); return m ? m[1] : ''; };
   // 슬리브 그림: 플레이리스트 표지를 못 읽으면(Spotify가 자동 플레이리스트를 막아 둔 경우) 이름·회차로 그린다

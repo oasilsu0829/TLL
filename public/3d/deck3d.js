@@ -139,13 +139,22 @@ function start() {
     const g = R.c.getContext('2d'), S = 1024, m = S / 2, K = R.K || LP, GO_PX = K.go, GI_PX = K.gi;
     g.clearRect(0, 0, S, S);
     g.fillStyle = '#0b0b0e'; g.beginPath(); g.arc(m, m, m, 0, 7); g.fill();
+    // 컬러 바이닐(위클리·데이리스트): 그 슬리브 그림과 같은 색 흐름 + 동심원 무늬
+    const vc = L && L.vc && L.vc.length > 1 ? L.vc : null;
+    if (vc) {
+      const gr = g.createLinearGradient(0, 0, S, S); vc.forEach((x, i) => gr.addColorStop(i / (vc.length - 1), x));
+      g.fillStyle = gr; g.beginPath(); g.arc(m, m, m, 0, 7); g.fill();
+      g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.arc(m, m, m, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = 3; for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(m, m, K.lr + 40 + i * ((GO_PX - K.lr - 40) / 8), 0, 7); g.stroke(); }
+    }
+    if (R.body) R.body.color.set(vc ? vc[Math.floor(vc.length / 2)] : 0x0b0b0e).multiplyScalar(vc ? 0.7 : 1);
     // 소리 홈(GO_PX ~ GI_PX). 곡 사이 무음 홈은 실제 곡 길이 비율 자리에 매끈한 띠로
     for (let r = GI_PX; r < GO_PX; r += 2.2) { g.strokeStyle = `rgba(255,255,255,${0.02 + (Math.sin(r * 0.37) + 1) * 0.013})`; g.lineWidth = 1; g.beginPath(); g.arc(m, m, r, 0, 7); g.stroke(); }
     const gaps = (L && L.tracks) || [];
     const gw = Math.max(1.5, Math.min(7, 280 / Math.max(1, gaps.length))); // 곡이 많으면(긴 플레이리스트) 띠를 가늘게
     for (const f of gaps) {
       const r = GO_PX - f * (GO_PX - GI_PX);
-      g.strokeStyle = '#050507'; g.lineWidth = gw; g.beginPath(); g.arc(m, m, r, 0, 7); g.stroke();
+      g.strokeStyle = vc ? 'rgba(0,0,0,.35)' : '#050507'; g.lineWidth = gw; g.beginPath(); g.arc(m, m, r, 0, 7); g.stroke();
       g.strokeStyle = 'rgba(255,255,255,.09)'; g.lineWidth = 2; g.beginPath(); g.arc(m, m, r + 1.5, 0, 7); g.stroke();
     }
     g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 8; g.beginPath(); g.arc(m, m, GO_PX + 7, 0, 7); g.stroke(); // 들어가는 홈
@@ -211,7 +220,7 @@ function start() {
     g.add(body, top, rim);
     g.rotation.x = 0.004; // 판 휨: 살짝 기운 채로 돌아 출렁여 보인다
     g.scale.set(K.s, 1, K.s); // 싱글은 지름만 줄인다(두께 그대로)
-    g.userData.R = R; g.userData.K = K; g.userData.mats = [black, top.material];
+    R.body = black; g.userData.R = R; g.userData.K = K; g.userData.mats = [black, top.material];
     return g;
   }
 
@@ -657,7 +666,7 @@ function start() {
       n.position.copy(record.position); n.rotation.copy(record.rotation); p.remove(record); p.add(n);
       record = target = n; labelKey = ''; kindOn();
     }
-    const L = label, key = L ? [L.name, L.artist, L.img, (L.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|') : '';
+    const L = label, key = L ? [L.name, L.artist, L.img, (L.vc || []).join(), (L.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|') : '';
     if (target === record && key === labelKey) return;
     poke = performance.now();
     if (target === record) labelKey = key;
@@ -1012,11 +1021,11 @@ function start() {
   // 판 갈기 준비 중(표지 그림을 기다리는 동안)에는 플래터 위 옛 판 라벨을 바꾸지 않는다
   let preparing = 0;
   // 판 갈기에 쓸 새 판·슬리브를 미리 만들어 둔다(크레이트에서 고른 판). 누르는 순간엔 그리기 없이 바로 시작
-  const preKey = (a, slam) => [a.id, a.img, slam ? 1 : 0, a.single ? 1 : 0, (a.tracks || []).map((f) => f.toFixed(3)).join(','), (a.p || 0) >> 2].join('|');
+  const preKey = (a, slam) => [a.id, a.img, (a.vc || []).join(), slam ? 1 : 0, a.single ? 1 : 0, (a.tracks || []).map((f) => f.toFixed(3)).join(','), (a.p || 0) >> 2].join('|');
   let pre = null; // { k, disc, sleeve, L }
   let lastDropV = -1;
   function build(a, slam, img) {
-    const L = { name: a.name, artist: a.artist, img: a.img, m: a.m, single: !!a.single, tracks: a.tracks || null };
+    const L = { name: a.name, artist: a.artist, img: a.img, m: a.m, vc: a.vc || null, single: !!a.single, tracks: a.tracks || null };
     const K = kindOf(L), disc = makeRecord(K);
     if (a.m) { drawRecord(disc.userData.R, L, null); loadImg(lblSrc(L)).then((im) => im && drawRecord(disc.userData.R, L, im)); }
     else { drawRecord(disc.userData.R, L, img); if (!img && a.img) loadImg(a.img).then((im) => im && drawRecord(disc.userData.R, L, im)); }
@@ -1050,7 +1059,7 @@ function start() {
     // 앨범은 판 갈기 모션 0~4 중 바로 전과 다른 하나(D._dropV로 고정 가능: 화면 확인용)
     let v = 0;
     if (!slam) { if (D._dropV != null) v = D._dropV; else { do { v = Math.floor(Math.random() * 5); } while (v === lastDropV); } lastDropV = v; }
-    drop = { v, t0: performance.now(), slam: !!slam, sleeve, disc, old, handed: false, key: [L.name, L.artist, L.img, (L.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|') };
+    drop = { v, t0: performance.now(), slam: !!slam, sleeve, disc, old, handed: false, key: [L.name, L.artist, L.img, (L.vc || []).join(), (L.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|') };
     preparing = 0;
   };
   D.setPlaying = (on, prog) => { playing = !!on; if (Number.isFinite(prog)) progress = prog; };
