@@ -631,9 +631,17 @@ body.lpfull .lyr { display: flex; flex-direction: column; position: absolute; z-
 .lyr-sc::-webkit-scrollbar { display: none; }
 .lyr-in { padding: 30vh 0 60vh; }
 .ll { margin: 0 0 0 -.35em; padding: .3em .35em; border-radius: 10px; font-size: clamp(22px, 2.5vw, 46px); font-weight: 700; line-height: 1.22; letter-spacing: -.015em; overflow-wrap: anywhere;
-  color: rgba(255,255,255,.3); transform-origin: 0 50%; transform: scale(.95); transition: color .5s, transform .6s cubic-bezier(.2,.8,.2,1), text-shadow .6s; cursor: pointer; }
+  color: rgba(255,255,255,.3); transform-origin: 0 50%; transform: translateY(var(--y, 0px)) scale(.95); cursor: pointer;
+  transition: color .5s, transform .75s cubic-bezier(.22,.9,.24,1) var(--dl, 0s), text-shadow .6s, filter .6s; }
+.ll.snap { transition: color .5s, text-shadow .6s, filter .6s; }
 .ll.past { color: rgba(255,255,255,.2); }
-.ll.on { color: #fff; transform: none; text-shadow: 0 0 28px color-mix(in srgb, var(--main-glow) 50%, transparent); }
+.ll.on { color: #fff; transform: translateY(var(--y, 0px)); text-shadow: 0 0 28px color-mix(in srgb, var(--main-glow) 50%, transparent); }
+/* 지금 줄에서 멀수록 흐리게(손으로 굴릴 땐 다 또렷하게) */
+.lyr[data-k="synced"]:not(.free) .ll[data-d="1"] { filter: blur(.7px); }
+.lyr[data-k="synced"]:not(.free) .ll[data-d="2"] { filter: blur(1.3px); }
+.lyr[data-k="synced"]:not(.free) .ll[data-d="3"] { filter: blur(1.9px); }
+.lyr[data-k="synced"]:not(.free) .ll[data-d="4"] { filter: blur(2.4px); }
+.lyr[data-k="synced"]:not(.free) .ll[data-d="5"] { filter: blur(2.8px); }
 .lyr.free .ll { color: rgba(255,255,255,.55); }
 .lyr.free .ll.on { color: #fff; }
 .ll:hover { background: rgba(255,255,255,.06); }
