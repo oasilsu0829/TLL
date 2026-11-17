@@ -52,7 +52,7 @@ function mount() {
     <form class="jg-q" id="jgForm"><input type="search" id="jgQ" placeholder="곡 이름 · 가수, 또는 Spotify 곡 링크" enterkeyhint="search" autocomplete="off" aria-label="넣을 곡"><button class="btn dark" type="submit">찾기</button></form>
     <ul class="jg-res" id="jgRes"></ul>
     <p class="note" id="jgNote"></p>
-    <div class="acts"><button class="btn" type="button" id="jgNew">내 잼 새로 시작</button></div>
+    <div class="acts"><button class="btn dark" type="button" id="jgLogin">Spotify로 로그인하고 같이 듣기</button></div>
   </div>`;
   document.body.appendChild(d);
   $('jgX').onclick = () => d.close();
@@ -65,10 +65,10 @@ function mount() {
   $('jgQ').addEventListener('input', () => { clearTimeout(t); if (C.loggedIn()) t = setTimeout(search, 450); });
   $('jgRes').addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (li) send(G.res[+li.dataset.i]); });
   $('jgRes').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('li[data-i]'); if (li) send(G.res[+li.dataset.i]); } });
-  $('jgNew').onclick = () => {
-    if (!confirm('친구의 잼 대신 내 잼을 새로 시작할까요? (친구 잼은 그대로 이어집니다)')) return;
-    d.close(); C.startJam();
-  };
+  // 예전 '내 잼 새로 시작'은 서버의 잼(하나뿐)을 덮어써 친구 잼이 끊겼다 → 로그인해서 같은 잼에 참가하게 한다
+  // (로그인하고 돌아오면 #jam이 남아 있어 바로 그 잼으로 들어간다)
+  $('jgLogin').hidden = C.loggedIn();
+  $('jgLogin').onclick = () => { history.replaceState(null, '', location.pathname + '#jam'); C.relogin(); };
   $('jgNote').textContent = C.loggedIn() ? '검색 결과에서 고르거나, 이름을 그대로 보내면 호스트 쪽에서 찾아 넣습니다.' : 'Spotify 로그인 없이도 됩니다. 곡 이름과 가수를 적어 보내면 호스트 쪽에서 찾아 넣습니다.';
 }
 

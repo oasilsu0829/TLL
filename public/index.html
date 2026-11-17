@@ -426,6 +426,7 @@ body.changing .arm { transition-duration: .4s; }
 .devs button b { font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .devs button span { font-family: var(--mono); font-size: 10px; color: var(--muted); }
 .devs p { margin: 6px 8px 8px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+@media (max-width: 760px) { .devs { left: auto; right: 0; transform: none; } }
 .volh { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink); }
 .volh input { width: 110px; }
 .volh output { min-width: 28px; text-align: right; }
@@ -994,8 +995,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
   // 다른 기기에서 저장한 Client ID를 서버에서 받아 온다(이 기기에 없을 때만)
-  async function fetchCid() {
-    if (clientId()) return clientId();
+  async function fetchCid(fresh) {
+    if (clientId() && !fresh) return clientId();
     try {
       const c = cfg(), h = {};
       if (c.token) h.Authorization = 'Bearer ' + c.token;
@@ -1042,12 +1043,12 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
   async function login() {
     const typed = !FRIEND && $('dlg').open && !$('setup').hidden ? $('cid').value.trim() : '';
-    const cid = typed || clientId() || (FRIEND ? await fetchCid() : '');
+    const cid = typed || (FRIEND ? await fetchCid(true) : clientId());
     if (FRIEND && !/^[0-9a-f]{32}$/i.test(cid)) { toast('아직 연결 준비가 안 됐습니다. 이 링크를 준 사람에게 알려 주세요', 6000); return; }
     if (!/^[0-9a-f]{32}$/i.test(cid)) { toast('Client ID는 32자리 영문·숫자입니다'); openDlg(true); $('cid').focus(); return; }
     LS.set('music.cid', cid);
     const v = rand(64), state = rand(16);
-    LS.set('music.pkce', { v, state });
+    LS.set('music.pkce', { v, state, h: location.hash === '#jam' ? '#jam' : '' }); // 잼 링크로 들어와 로그인하면 돌아와서 그 잼으로
     const ch = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)));
     location.href = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
       response_type: 'code', client_id: cid, scope: SCOPES, redirect_uri: REDIRECT,
@@ -1071,8 +1072,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   async function handleRedirect() {
     const q = new URLSearchParams(location.search);
     if (!q.has('code') && !q.has('error')) return;
-    history.replaceState(null, '', HOME + location.hash);
     const p = LS.get('music.pkce'); LS.del('music.pkce');
+    history.replaceState(null, '', HOME + (location.hash || (p && p.h) || ''));
     if (q.get('error')) { toast(q.get('error') === 'access_denied' ? '로그인을 취소했습니다' : 'Spotify 로그인 실패: ' + q.get('error')); return; }
     if (!p || p.state !== q.get('state')) { toast('로그인 확인값이 맞지 않습니다. 다시 로그인하세요'); return; }
     try {
@@ -1123,6 +1124,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     NO_ACTIVE_DEVICE: '재생할 기기가 없습니다. 폰이나 PC에서 Spotify 앱을 한 번 열어 주세요',
     PREMIUM_REQUIRED: 'Spotify Premium이 필요합니다',
     VOLUME_CONTROL_DISALLOW: '이 기기는 음량을 바꿀 수 없습니다',
+    UNREG: FRIEND ? '이 Spotify 계정은 아직 등록되지 않았습니다. 링크를 준 사람에게 Spotify 가입 이메일을 알려 주세요'
+      : '이 Spotify 계정은 이 앱에 등록되지 않았습니다(Spotify 대시보드 User Management에 이메일 추가)',
   };
   async function api(path, opt = {}, retry = 0) {
     const tk = await token();
@@ -1150,6 +1153,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     }
     // Spotify가 가끔 내는 일시 오류(502·503)는 잠깐 뒤 한 번 더
     if ((res.status === 502 || res.status === 503) && retry < 1) { await new Promise((r) => setTimeout(r, 700)); return api(path, opt, retry + 1); }
+    // 개발 모드 앱: User Management에 없는 계정은 모든 요청이 403(본문은 글자). 기기 없음 같은 엉뚱한 안내 대신 이유를 알려 준다
+    if (res.status === 403 && /not be registered|developer\.spotify\.com/i.test(txt)) {
+      if (!S.unreg) { S.unreg = true; renderAuth(); }
+      throw Object.assign(new Error(ERR.UNREG), { status: 403, reason: 'UNREG' });
+    }
     if (!res.ok) {
       const er = (j && j.error) || {};
       const nf = res.status === 404 && /device/i.test(er.message || '');
@@ -1268,7 +1276,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       renderCrates(); renderCrate();
     } catch (e) {
       note.classList.add('warn');
-      note.textContent = '크레이트 동기화 안 됨: ' + (e.status === 401 && /토큰/.test(e.message) ? '토큰이 맞지 않습니다(일정 앱 설정의 토큰)' : e.message || e) + ' (이 기기에는 저장됨)';
+      note.textContent = '크레이트 동기화 안 됨: ' + (e.status === 401 ? 'Spotify 로그인이 만료되었습니다. 다시 로그인해 주세요' : e.message || e) + ' (이 기기에는 저장됨)';
     }
     syncing = false; syncedOk();
     if (again) { again = false; syncSoon(); }
@@ -1789,7 +1797,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     return S.devices;
   }
   async function loadMe() {
-    try { S.me = await api('/me'); } catch { S.me = null; }
+    try { S.me = await api('/me'); S.unreg = false; } catch (e) { S.me = null; if (e.reason === 'UNREG') toast(e.message, 10000); }
     renderAuth();
     if (S.me && S.me.id) setUser(S.me.id);
   }
@@ -1800,6 +1808,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (S.sdkId && !MOBILE) return S.sdkId;
     const d = pickDevice(await refreshDevices(), '');
     if (d) return d.id;
+    if (S.unreg) throw Object.assign(new Error(ERR.UNREG), { status: 403 });
     throw Object.assign(new Error(ERR.NO_ACTIVE_DEVICE), { status: 404 });
   }
   // 목록에서 기기 고르기: 켜져 있는 것 → 이 브라우저(PC) → 폰 → 컴퓨터 → 나머지. 막힌 기기와 방금 실패한 기기는 뺀다
@@ -2578,8 +2587,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('logoutBtn').hidden = !on;
     $('who').textContent = on ? '연결됨' + (S.me ? ' · ' + (S.me.display_name || S.me.id) + (S.me.product ? ' · ' + S.me.product : '') : '') : '연결 안 됨';
     const n = $('sdkNote');
-    n.classList.toggle('warn', !!S.sdkErr || !!(S.me && S.me.product && S.me.product !== 'premium'));
+    n.classList.toggle('warn', !!S.unreg || !!S.sdkErr || !!(S.me && S.me.product && S.me.product !== 'premium'));
     n.textContent = !on ? ''
+      : S.unreg ? ERR.UNREG
       : S.me && S.me.product && S.me.product !== 'premium' ? '이 계정은 Premium이 아니라 재생 조작이 막혀 있습니다'
       : S.sdkErr ? S.sdkErr
       : S.sdkId ? (MOBILE ? '이 기기 브라우저는 바로 재생이 안 될 수 있습니다. 기기 목록에서 Spotify 앱을 고르세요' : '이 브라우저가 기기 목록에 "T/L/L"로 올라가 있습니다')
@@ -2707,6 +2717,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     wheelAt = Date.now(); flip(d > 0 ? 1 : -1);
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('devs').hidden) { $('devs').hidden = true; $('devBtn').setAttribute('aria-expanded', 'false'); return; }
     if (document.querySelector('dialog[open]') || e.target.matches('input, select')) return;
     if (e.key === ' ') { e.preventDefault(); toggle(); }
     else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); flip(1); }

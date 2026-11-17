@@ -24,7 +24,10 @@ async function spotifyUser(req) {
   const hit = who.get(tk);
   if (hit && hit.exp > Date.now()) return hit;
   const r = await fetch('https://api.spotify.com/v1/me', { headers: { Authorization: 'Bearer ' + tk } });
-  if (!r.ok) throw httpError(r.status === 401 ? 401 : 502, r.status === 401 ? 'Spotify 로그인이 만료되었습니다' : 'Spotify 확인 실패 ' + r.status);
+  if (r.status === 401) throw httpError(401, 'Spotify 로그인이 만료되었습니다');
+  // 개발 모드 앱의 User Management에 없는 계정
+  if (r.status === 403) throw httpError(403, '이 Spotify 계정은 아직 등록되지 않았습니다');
+  if (!r.ok) throw httpError(502, 'Spotify 확인 실패 ' + r.status);
   const j = await r.json();
   if (!j || !j.id) throw httpError(502, 'Spotify 계정을 읽지 못했습니다');
   const u = { id: String(j.id), name: String(j.display_name || j.id).slice(0, 40), exp: Date.now() + 600000 };
