@@ -6,7 +6,7 @@
    바깥(index.html)에서 쓰는 것: window.Deck3D = { ok, setPlaying(on, 진행), setLabel, drop(a, slam), shake, setNight, setTint, setVolume, flashGap,
      onScratch, onButton(kind: start·cue), onVolume(0~100), onSound(kind) }
    WebGL이 안 되면 ok = false 로 두고 예전 CSS 턴테이블을 그대로 쓴다 */
-import * as THREE from 'three';
+import * as THREE from '/3d/three.module.min.js';
 import { RoundedBoxGeometry } from './geometries/RoundedBoxGeometry.js';
 
 const host = document.getElementById('deck3d');

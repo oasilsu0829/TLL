@@ -970,6 +970,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const API = 'https://api.spotify.com/v1';
   const DEV = 'T/L/L'; // Spotify 기기 목록에 보이는 이 브라우저 이름
   const MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   const S = {
     st: null,          // /me/player 결과 + at(받은 시각)
@@ -1017,9 +1018,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // 붙여넣은 글에서 Client ID(32자리 16진수)만 골라낸다. 'Client ID: abc…' 같은 줄이나 공백이 섞여도 됨
   const pickCid = (t) => {
     t = String(t || '');
-    const exact = /(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])/i; // 앞뒤가 16진수가 아닌 딱 32자리
-    const m = t.match(exact) || t.replace(/[\s-]+/g, '').match(/^[0-9a-f]{32}$/i); // 줄바꿈·공백으로 쪼개진 것만 있는 경우
-    return m ? m[0].toLowerCase() : '';
+    // 앞뒤가 16진수가 아닌 딱 32자리. 뒤돌아보기((?<!…))는 iOS 16.4 전 사파리에서 스크립트 전체가 안 열려서 쓰지 않는다
+    const m = t.match(/(?:^|[^0-9a-f])([0-9a-f]{32})(?![0-9a-f])/i) || t.replace(/[\s-]+/g, '').match(/^()([0-9a-f]{32})$/i); // 줄바꿈·공백으로 쪼개진 것만 있는 경우
+    return m ? m[m.length - 1].toLowerCase() : '';
   };
   function checkCid(auto) {
     const i = $('cid'), n = $('cidNote'), raw = i.value, c = pickCid(raw);
@@ -1075,7 +1076,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const p = LS.get('music.pkce'); LS.del('music.pkce');
     history.replaceState(null, '', HOME + (location.hash || (p && p.h) || ''));
     if (q.get('error')) { toast(q.get('error') === 'access_denied' ? '로그인을 취소했습니다' : 'Spotify 로그인 실패: ' + q.get('error')); return; }
-    if (!p || p.state !== q.get('state')) { toast('로그인 확인값이 맞지 않습니다. 다시 로그인하세요'); return; }
+    if (!p || p.state !== q.get('state')) {
+      // 아이폰 홈 화면 앱은 Spotify 로그인 창에서 돌아올 때 저장소가 달라 확인값을 잃을 수 있다
+      toast(IOS && !p ? '로그인 확인값을 잃었습니다. 홈 화면 앱에서 계속 이러면 사파리에서 이 주소를 열어 로그인해 주세요' : '로그인 확인값이 맞지 않습니다. 다시 로그인하세요', 8000);
+      return;
+    }
     try {
       await tokenReq({ grant_type: 'authorization_code', code: q.get('code'), redirect_uri: REDIRECT, code_verifier: p.v });
       if (!FRIEND) pushCid(clientId());
@@ -1121,7 +1126,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
   // ---------- Web API ----------
   const ERR = {
-    NO_ACTIVE_DEVICE: '재생할 기기가 없습니다. 폰이나 PC에서 Spotify 앱을 한 번 열어 주세요',
+    // 아이폰은 Spotify 앱이 뒤로 가면 금방 기기 목록에서 사라진다(가장 흔한 '안 됨')
+    NO_ACTIVE_DEVICE: IOS ? '재생할 기기가 없습니다. Spotify 앱을 열어 아무 곡이나 잠깐 재생한 뒤 이 화면으로 돌아와 다시 눌러 주세요'
+      : '재생할 기기가 없습니다. 폰이나 PC에서 Spotify 앱을 한 번 열어 주세요',
     PREMIUM_REQUIRED: 'Spotify Premium이 필요합니다',
     VOLUME_CONTROL_DISALLOW: '이 기기는 음량을 바꿀 수 없습니다',
     UNREG: FRIEND ? '이 Spotify 계정은 아직 등록되지 않았습니다. 링크를 준 사람에게 Spotify 가입 이메일을 알려 주세요'
