@@ -2,6 +2,7 @@
 // - index.html lpFull이 처음 전체화면을 켤 때 import. 전체화면에서만 돈다(show(false)면 아무것도 안 함)
 // - 가사는 /api/music/lyrics(src/lyrics.js → LRCLIB · NetEase). 지금 줄을 위쪽 1/3에 맞춰 올리고, 손으로 굴리면 3.5초 동안 따라가지 않음
 // - 줄을 누르면 그 시각으로 감기(MusicCore.seekMs)
+// - 지금 줄에서 멀수록 흐리게(data-d), 줄이 바뀌면 줄마다 조금씩 늦게 따라 올라옴(물결, --y · --dl)
 
 // '[01:02.34]가사' → [{ t: ms, s: '가사' }]. 빈 줄 = 간주(점 세 개)
 export function parseLrc(text) {
@@ -27,6 +28,7 @@ export function indexAt(L, ms) {
 }
 
 const LEAD = 250; // 줄이 아주 조금 먼저 켜져야 맞아 보인다
+const WAVE_UP = 8, WAVE_DOWN = 16, WAVE_MS = 38; // 물결로 움직일 줄 범위, 줄마다 늦어지는 시간
 
 export function mount(host, core) {
   host.innerHTML = '<div class="lyr-sc"><div class="lyr-in"></div></div><p class="lyr-note"></p>';
@@ -63,10 +65,31 @@ export function mount(host, core) {
     for (const s of String(text).split(/\r?\n/)) { const p = document.createElement('p'); p.className = s.trim() ? 'll' : 'll gap'; p.textContent = s.trim(); box.append(p); }
     note.textContent = '가사 ' + src + ' · 시간 정보 없음';
   }
-  function follow(force) {
+  // 따라가기. 스크롤은 바로 옮기고, 줄마다 원래 자리에서 조금씩 늦게 따라 올라오게 한다(물결)
+  // instant = 화면 크기가 바뀌었을 때처럼 움직임 없이 맞출 때
+  function follow(force, instant) {
     if (!force && Date.now() < hold) return;
-    const el = els[Math.max(cur, 0)]; if (!el) return;
-    sc.scrollTo({ top: el.offsetTop - sc.clientHeight * 0.3, behavior: calm.matches ? 'auto' : 'smooth' });
+    const c = Math.max(cur, 0), el = els[c]; if (!el) return;
+    const before = sc.scrollTop;
+    sc.scrollTop = el.offsetTop - sc.clientHeight * 0.3;
+    const d = sc.scrollTop - before;
+    if (!d || instant || calm.matches || Math.abs(d) > sc.clientHeight * 1.2) return;
+    const from = Math.max(0, c - WAVE_UP), to = Math.min(els.length - 1, c + WAVE_DOWN);
+    for (let j = from; j <= to; j++) {
+      const x = els[j];
+      x.classList.add('snap'); x.style.setProperty('--y', d + 'px');
+      // 지금 줄 바로 위는 먼저, 아래로 갈수록 늦게
+      x.style.setProperty('--dl', Math.min(Math.max(j - c + 1, 0), 8) * WAVE_MS + 'ms');
+    }
+    void box.offsetHeight; // 옮긴 자리를 먼저 그리게 한 뒤 풀어 준다
+    for (let j = from; j <= to; j++) { els[j].classList.remove('snap'); els[j].style.setProperty('--y', '0px'); }
+  }
+  // 지금 줄에서 몇 줄 떨어졌는지(0~5) → 멀수록 흐림
+  function mark(i) {
+    els.forEach((el, j) => {
+      el.classList.toggle('on', j === i); el.classList.toggle('past', j < i);
+      el.dataset.d = String(Math.min(Math.abs(j - Math.max(i, 0)), 5));
+    });
   }
   async function load(it) {
     const my = ++req;
@@ -104,7 +127,7 @@ export function mount(host, core) {
     const i = indexAt(lines, posMs() + LEAD);
     if (i === cur) return;
     cur = i;
-    els.forEach((el, j) => { el.classList.toggle('on', j === i); el.classList.toggle('past', j < i); });
+    mark(i);
     follow();
   }
   // 손으로 굴리면 잠깐 따라가지 않는다(다른 줄도 밝게)
@@ -116,15 +139,15 @@ export function mount(host, core) {
     const el = e.target.closest('.ll'); const j = els.indexOf(el); if (j < 0) return;
     core.seekMs(lines[j].t);
     hold = 0; host.classList.remove('free');
-    cur = j; els.forEach((x, n) => { x.classList.toggle('on', n === j); x.classList.toggle('past', n < j); }); follow(true);
+    cur = j; mark(j); follow(true);
   });
-  new ResizeObserver(() => follow(true)).observe(sc);
+  new ResizeObserver(() => follow(true, true)).observe(sc);
 
   return {
     show(on) {
       clearInterval(timer); timer = 0;
       if (!on) return;
-      timer = setInterval(step, 200); step(); follow(true);
+      timer = setInterval(step, 200); step(); follow(true, true);
     },
   };
 }
