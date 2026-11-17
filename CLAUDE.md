@@ -62,6 +62,9 @@ public/       음악 (MUS-09, 2026-11-11). Spotify 플레이어. Stitch 시안 "
                       (2026-11-15 버그) 비닐이 크레이트 칸 안에 있어서 폰에선 화면 밑에 깔리고, 판 꺼내기를 누르면 화면 밖 턴테이블에서 모션이 돌아 '판이 안 나옴' → #seal을 body로 옮겨 화면 전체 겹(z 300)으로, playSeal이 턴테이블을 화면에 끌어옴, 비닐이 뜨면 잡지 신간 팝업을 내림. 지금 재생·크레이트 탭 줄에 WEEKLY·DAYLIST 단추(#spW·#spD, 폰은 위클리·데일리): 누르면 언제든 뜸(이번 회차를 이미 뜯었으면 슬리브만, 링크가 없으면 설정 창). 새 회차면 불 켜짐(spxPaint)
                       컬러 바이닐(2026-11-16 사용자 요청): 위클리·데이리스트 판은 슬리브 그림(sealArt)과 같은 색(위클리 파랑·청록·연두, 데이리스트는 시간대 색) 그라데이션 + 동심원. index.html vcFor(key)가 music.special 링크와 맞으면 색을 L.vc로 넘기고 deck3d drawRecord가 판 윗면·옆면을 칠함, 지금 재생 판은 .np-disc.vc
                       남은 것: Spotify가 개발 모드 앱의 자동 플레이리스트(위클리·데이리스트) 읽기를 막아 이름·표지·트랙 목록은 못 받음(재생은 됨)
+                      회차 기록(2026-11-17, v1.16.0, 사용자 요청 '커버 변동 없게 · 곡 목록 · 제목의 장르·느낌 반영'): LS music.spx {weekly|daylist: {key, id, title, tags, colors, img, tracks}}. ensureSpx가 회차마다 한 번 만들고 그 회차 동안 표지·판 색이 그대로(지금 재생 슬리브도 곡 표지 대신 회차 표지, entryFor·vcFor가 spxById로 읽음)
+                        곡 목록: 서버 GET /api/music/spx?id(src/spx.js, open.spotify.com/embed/playlist/<id>의 __NEXT_DATA__, 15분 캐시, 로그인 없음). 위클리(디스커버 위클리)는 여기서 30곡이 옴. 데이리스트는 계정 전용이라 임베드가 'daylist' 0곡을 줄 수 있음 → 그 판을 트는 동안 /me/player/queue로 20초마다 채움(spxCapture). 비닐 밑 #sealTk에 보임
+                        장르·느낌: tagsOf(제목)가 GENRES·MOODS 정규식(영어·한국어)으로 뽑음 → 색 = 첫 느낌, 무늬 = 첫 장르(dots·stripes·waves·grid·rings), 큰 글씨 = 요일·시간대 뺀 제목. 제목을 못 읽으면 비닐 창 '제목 넣기'(prompt)로 사용자가 넣음(그때만 표지 다시 그림). 실제 데이리스트로 임베드가 제목을 주는지는 미확인
                     - 평가 후 손봄(2026-11-11): 3D는 조용할 때(멈춤·움직임 없음·2초 넘게 안 만짐) 초당 10번, 덮개가 닫히면 2번만 그림(deck3d calm, poke). 라벨·색·시간창은 값이 바뀔 때만 깨움
                       트랙은 다음 페이지를 따라 500곡까지 받음(allItems). 곡이 많으면 무음 홈 띠를 가늘게. 토큰 갱신은 navigator.locks로 탭끼리 하나만(브라우저 탭+PWA 동시 갱신 때 로그아웃되던 문제)
                     - 지금 재생 탭(2026-11-12 사용자 요청): 오른쪽 칸 위 탭 '지금 재생 · 크레이트'(기본 지금 재생, music.tab에 기억). renderNow()/tickNow()

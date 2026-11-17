@@ -342,7 +342,16 @@ body.night .deckp input[type="range"]::-webkit-slider-runnable-track { backgroun
 .seal-t { color: #fff; text-align: center; display: flex; flex-direction: column; gap: 3px; }
 .seal-t b { font-size: 16px; }
 .seal-t span { font-family: var(--mono); font-size: 10px; color: #d4d4d8; letter-spacing: .06em; }
-.seal-acts { display: flex; gap: 8px; }
+.seal-t em { font-style: normal; font-size: 12px; color: #f4f4f5; }
+.seal-t em:empty { display: none; }
+.seal-tk { list-style: none; margin: 0; padding: 6px 10px; width: min(92%, 420px); max-height: min(30vh, 220px); overflow: auto; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; color: #e4e4e7; font-size: 12px; }
+.seal-tk li { display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(0, .8fr); gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.07); align-items: baseline; }
+.seal-tk li span { font-family: var(--mono); font-size: 10px; color: #a1a1aa; }
+.seal-tk li b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seal-tk li i { font-style: normal; color: #a1a1aa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seal-tk li.none { display: block; border: 0; color: #a1a1aa; font-size: 11px; text-align: center; }
+@media (max-height: 700px) { .seal { gap: 10px; } .seal-card { width: min(60%, 240px); } .seal-tk { max-height: 18vh; } }
+.seal-acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .seal-acts .btn { min-height: 40px; }
 /* 앨범 색 물들이기: 표지 대표색 3개로 화면 배경 전체를 칠하고, 앨범이 바뀌면 1.6초에 걸쳐 넘어간다 */
 .amb { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
@@ -827,8 +836,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
         <span class="seal-stk" id="sealStk">NEW</span>
         <canvas class="seal-film" id="sealFilm"></canvas>
       </div>
-      <div class="seal-t"><b id="sealT">-</b><span id="sealS">비닐을 손가락으로 죽 그어 뜯으세요</span></div>
-      <div class="seal-acts"><button class="btn dark" type="button" id="sealPlay" hidden><svg class="ico"><use href="#i-play"/></svg>판 꺼내기</button><button class="btn" type="button" id="sealLater">나중에</button></div>
+      <div class="seal-t"><b id="sealT">-</b><em id="sealG"></em><span id="sealS">비닐을 손가락으로 죽 그어 뜯으세요</span></div>
+      <ol class="seal-tk" id="sealTk"></ol>
+      <div class="seal-acts"><button class="btn dark" type="button" id="sealPlay" hidden><svg class="ico"><use href="#i-play"/></svg>판 꺼내기</button><button class="btn" type="button" id="sealTi" hidden>제목 넣기</button><button class="btn" type="button" id="sealLater">나중에</button></div>
     </div>
     <div class="cstore" id="cstore">
       <div class="cl-head"><b id="clT">크레이트 보관함</b><button class="btn dark" type="button" id="findBtn2"><svg class="ico"><use href="#i-search"/></svg><span>앨범 찾기</span></button></div>
@@ -1383,6 +1393,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const id = key.split(':')[2];
     if (key.startsWith('spotify:playlist:')) {
       if (meta[key]) return meta[key];
+      const R = spxById(id); // 위클리·데이리스트: 회차 기록의 고정 표지·제목
+      if (R) return (meta[key] = spxEntry(R.kind, R));
       meta[key] = { k: 'pl', id, name: '플레이리스트', artist: '', img: '' };
       api('/playlists/' + id + '?fields=id,name,images,owner(display_name,id),items(total),tracks(total)')
         .then((p) => { const e = p && toList({ ...p, id }); if (e) { meta[key] = e; render(); renderTracks(true); } }).catch(() => {});
@@ -1783,6 +1795,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       S.st = st ? { ...st, at: Date.now() } : null;
       logPlay(S.st);
       render();
+      if (S.st && S.st.is_playing) spxCapture(S.st).catch(() => {});
     } catch (e) { if (e.status === 0) return; }
     if (document.visibilityState === 'visible') pollT = setTimeout(poll, S.st && S.st.is_playing ? 3000 : 6000);
   }
@@ -1820,6 +1833,13 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const id = key.split(':')[2];
     let t = [];
     if (key.startsWith('spotify:playlist:')) {
+      // 위클리·데이리스트: Spotify가 목록을 막아 둠 → 회차 기록(임베드·대기열로 모은 곡)
+      const R = spxById(id), sp = LS.get('music.special') || {};
+      const kind = ['weekly', 'daylist'].find((k) => plId(sp[k]) === id);
+      if (kind) {
+        const r = (await ensureSpx(kind).catch(() => null)) || R;
+        if (r && r.tracks && r.tracks.length) return spxTracks(r);
+      }
       for (const path of ['/items', '/tracks']) {
         try {
           const items = await allItems('/playlists/' + id + path + '?limit=50');
@@ -1827,6 +1847,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
           break;
         } catch {}
       }
+      // 그사이 대기열로 곡이 모였으면 그것(동시에 도는 spxCapture보다 늦게 끝나도 빈 목록으로 덮지 않게)
+      if (!t.length && kind) { const r2 = spxById(id); if (r2 && r2.tracks && r2.tracks.length) t = spxTracks(r2); }
     } else {
       try { t = await allItems('/albums/' + id + '/tracks?limit=50'); } catch {}
     }
@@ -2453,7 +2475,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     clearTimeout(npT); npT = setTimeout(() => np.classList.remove('go'), 2400);
   }
   function renderNow(it, L, pend, on, key) {
-    const img = pend ? pend.img : it ? bigCover(it) : '';
+    const E0 = !pend && key ? entryFor(key, it) : null;
+    // 위클리·데이리스트는 곡마다 표지가 바뀌지 않게 회차 표지 그대로
+    const img = pend ? pend.img : E0 && E0.sealed && E0.img ? E0.img : it ? bigCover(it) : '';
     const playOn = !!(on && !pend), changed = img !== npImg;
     const vc = vcFor(pend ? pend.key : key), disc = document.querySelector('#np .np-disc');
     disc.classList.toggle('vc', !!vc); disc.style.setProperty('--vc', vc ? vc.join(', ') : '');
@@ -2811,28 +2835,153 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     return h < 6 ? { id: 'night', name: '밤', colors: ['#0b1026', '#312e81', '#7c3aed'] } : h < 12 ? { id: 'am', name: '아침', colors: ['#fde68a', '#fb923c', '#f43f5e'] }
       : h < 18 ? { id: 'pm', name: '오후', colors: ['#bae6fd', '#38bdf8', '#facc15'] } : { id: 'eve', name: '저녁', colors: ['#f472b6', '#7c3aed', '#1e1b4b'] };
   }
-  // 위클리·데이리스트 판은 슬리브 그림과 같은 색의 컬러 바이닐(3D 판·지금 재생 판)
+  // ---------- 회차 기록 (music.spx) ----------
+  // 회차마다 표지·색·제목·곡 목록을 한 번 정해 두고 그 회차 동안 그대로 쓴다(곡이 바뀌어도, 시간대가 넘어가도 표지가 안 바뀜)
+  // { weekly|daylist: { key, id, title, tags: { g, m }, colors, img, tracks: [{ id, uri, name, artist, ms }] } }
+  const spxAll = () => LS.get('music.spx') || {};
+  const spxSave = (kind, r) => { const a = spxAll(); a[kind] = r; try { LS.set('music.spx', a); } catch { r.img = ''; a[kind] = r; LS.set('music.spx', a); } };
+  // 그 플레이리스트의 마지막 회차 기록(다음 회차를 뜯기 전까지 표지를 유지)
+  function spxById(id) { const a = spxAll(); for (const k of ['weekly', 'daylist']) if (a[k] && a[k].id === id) return Object.assign({ kind: k }, a[k]); return null; }
+  function spxNow(kind) { const r = spxAll()[kind], id = plId((LS.get('music.special') || {})[kind]); return r && r.id === id && r.key === SPECIAL[kind].key() ? r : null; }
+  // 데이리스트 제목('daylist • dreamy indie pop tuesday evening' · '몽환적인 인디 팝 화요일 저녁')에서 장르·느낌을 뽑는다
+  const MOODS = [
+    [/chill|calm|relax|laid.?back|잔잔|편안|차분|여유/, '잔잔한', ['#cfe8ef', '#7fb7c9', '#3d6e86']],
+    [/dream|ethereal|hazy|몽환/, '몽환적인', ['#f5d0fe', '#a78bfa', '#4c1d95']],
+    [/energ|upbeat|hype|pump|party|신나|에너지|파티|텐션/, '신나는', ['#fde047', '#fb7185', '#e11d48']],
+    [/sad|melanchol|heartbreak|blue\b|cry|슬픈|우울|이별/, '쓸쓸한', ['#cbd5e1', '#64748b', '#1e293b']],
+    [/happy|sunny|bright|cheer|feel.?good|행복|밝은|상큼/, '밝은', ['#fef08a', '#fdba74', '#f97316']],
+    [/dark|moody|brood|gloom|어두운|다크|무드/, '어두운', ['#3f3f46', '#4c1d95', '#0a0a0a']],
+    [/roman|love|crush|sensual|사랑|로맨틱|설레/, '로맨틱한', ['#fecdd3', '#f472b6', '#9d174d']],
+    [/nostalg|retro|throwback|vintage|추억|레트로|복고|그리운/, '그리운', ['#fde68a', '#d6a35c', '#7c4a1e']],
+    [/focus|study|work|집중|공부/, '집중', ['#ccfbf1', '#2dd4bf', '#115e59']],
+    [/soft|mellow|gentle|cozy|warm|부드러|포근|따뜻/, '포근한', ['#ffe4d6', '#f9a8a0', '#b4636b']],
+    [/groov|funk|bounc|그루브|펑키/, '그루비한', ['#fdba74', '#e879f9', '#7e22ce']],
+    [/late.?night|midnight|새벽|심야/, '새벽', ['#1e3a8a', '#312e81', '#020617']],
+    [/angst|rage|aggress|loud|heavy|분노|강렬/, '강렬한', ['#fca5a5', '#dc2626', '#450a0a']],
+    [/sleep|lull|잠/, '졸린', ['#c7d2fe', '#6366f1', '#1e1b4b']],
+    [/sexy|smooth|silky|섹시|스무스/, '매끄러운', ['#fbcfe8', '#be185d', '#3b0764']],
+  ];
+  const GENRES = [
+    [/k-?pop|케이팝|케이 팝/, 'K-팝', 'dots'], [/j-?pop|제이팝/, 'J-팝', 'dots'], [/city ?pop|시티 ?팝/, '시티 팝', 'waves'],
+    [/bedroom ?pop/, '베드룸 팝', 'dots'], [/dream ?pop|드림 ?팝/, '드림 팝', 'waves'], [/hyperpop/, '하이퍼팝', 'grid'],
+    [/indie|인디/, '인디', 'rings'], [/r&b|rnb|알앤비/, 'R&B', 'waves'], [/neo.?soul|soul|소울/, '소울', 'waves'],
+    [/hip.?hop|rap|trap|힙합|랩|트랩/, '힙합', 'stripes'], [/rock|록|락/, '록', 'stripes'], [/punk|펑크/, '펑크', 'stripes'],
+    [/emo\b|이모/, '이모', 'stripes'], [/shoegaze|슈게이즈/, '슈게이즈', 'waves'], [/metal|메탈/, '메탈', 'stripes'],
+    [/jazz|재즈/, '재즈', 'waves'], [/lo.?fi|로파이/, '로파이', 'grid'], [/house|하우스/, '하우스', 'grid'], [/techno|테크노/, '테크노', 'grid'],
+    [/edm|electro|dance|일렉|댄스/, '일렉트로닉', 'grid'], [/acoustic|어쿠스틱/, '어쿠스틱', 'rings'], [/folk|포크/, '포크', 'rings'],
+    [/ballad|발라드/, '발라드', 'rings'], [/classical|클래식/, '클래식', 'rings'], [/ambient|앰비언트/, '앰비언트', 'waves'],
+    [/country|컨트리/, '컨트리', 'rings'], [/latin|reggaeton|라틴/, '라틴', 'dots'], [/disco|디스코/, '디스코', 'dots'],
+    [/funk|펑크/, '펑크', 'dots'], [/pop|팝/, '팝', 'dots'],
+  ];
+  const DAYW = /\b(mon|tues|wednes|thurs|fri|satur|sun)day\b|\b(early |late )?(morning|afternoon|evening|night)\b|[월화수목금토일]요일|아침|오후|저녁|밤|새벽녘|daylist|•|·/gi;
+  function tagsOf(title) {
+    const t = String(title || '').toLowerCase(), g = [], m = [];
+    let rest = t;
+    for (const [re, name, pat] of GENRES) { const at = rest.search(re); if (at >= 0) { if (!g.some((x) => x[0] === name)) g.push([name, pat, at]); rest = rest.replace(re, (w) => ' '.repeat(w.length)); } }
+    g.sort((x, y) => x[2] - y[2]); // 제목에 나온 순서대로
+    for (const [re, name, col] of MOODS) if (re.test(t)) m.push([name, col]);
+    const words = t.replace(DAYW, ' ').replace(/\s+/g, ' ').trim();
+    return { g: g.slice(0, 3), m: m.slice(0, 2), words };
+  }
+  const tagLine = (tg) => tg ? [tg.g.map((x) => x[0]).join(' '), tg.m.map((x) => x[0]).join(' · ')].filter(Boolean).join(' · ') : '';
+  // 판 색: 느낌이 있으면 느낌 색, 없으면 시간대 색(위클리는 고정)
+  const colorsOf = (kind, tg) => (tg && tg.m[0] ? tg.m[0][1] : kind === 'weekly' ? SPECIAL.weekly.colors : slotOf(new Date()).colors);
+  // 위클리·데이리스트 판은 슬리브 그림과 같은 색의 컬러 바이닐(3D 판·지금 재생 판). 색은 회차 기록에서(시간이 흘러도 그대로)
   function vcFor(key) {
     try {
       const id = String(key || '').startsWith('spotify:playlist:') ? key.split(':')[2] : ''; if (!id) return null;
+      const r = spxById(id); if (r && r.colors) return r.colors;
       const sp = LS.get('music.special') || {};
       return plId(sp.weekly) === id ? SPECIAL.weekly.colors : plId(sp.daylist) === id ? slotOf(new Date()).colors : null;
     } catch { return null; }
   }
   const plId = (v) => { const m = String(v || '').match(/playlist[/:]([A-Za-z0-9]{22})/) || String(v || '').trim().match(/^([A-Za-z0-9]{22})$/); return m ? m[1] : ''; };
-  // 슬리브 그림: 플레이리스트 표지를 못 읽으면(Spotify가 자동 플레이리스트를 막아 둔 경우) 이름·회차로 그린다
-  function sealArt(kind, title, sub) {
+  // 슬리브 그림: 회차마다 한 번 그린다. 색 = 느낌, 무늬 = 장르(점·줄·물결·격자·동심원), 가운데 큰 글씨 = 제목의 장르·느낌 말
+  function sealArt(kind, r) {
     const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
-    const col = SPECIAL[kind].colors || slotOf(new Date()).colors;
+    const col = r.colors, tg = r.tags || { g: [], m: [], words: '' };
     const gr = g.createLinearGradient(0, 0, 512, 512); col.forEach((x, i) => gr.addColorStop(i / (col.length - 1), x));
     g.fillStyle = gr; g.fillRect(0, 0, 512, 512);
-    g.globalAlpha = 0.18; for (let i = 0; i < 9; i++) { g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(256, 256, 60 + i * 24, 0, 7); g.stroke(); } g.globalAlpha = 1;
-    g.fillStyle = '#fff'; g.textBaseline = 'alphabetic';
-    g.font = '700 74px "Space Grotesk", "Noto Sans KR", sans-serif'; g.fillText(kind === 'weekly' ? 'WEEKLY' : 'DAYLIST', 34, 420);
-    g.font = '700 30px "Noto Sans KR", sans-serif'; g.fillText(title, 38, 462);
-    g.font = '600 22px "JetBrains Mono", monospace'; g.globalAlpha = 0.85; g.fillText(sub, 38, 494); g.globalAlpha = 1;
-    g.font = '700 18px "JetBrains Mono", monospace'; g.fillText('T/L/L DIGS', 34, 50);
-    return c.toDataURL('image/jpeg', 0.86);
+    const pat = (tg.g[0] && tg.g[0][1]) || 'rings';
+    g.save(); g.globalAlpha = 0.2; g.strokeStyle = g.fillStyle = '#fff'; g.lineWidth = 2;
+    if (pat === 'dots') { for (let y = 20; y < 512; y += 34) for (let x = (y / 34) % 2 ? 37 : 20; x < 512; x += 34) { g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); } }
+    else if (pat === 'stripes') { g.lineWidth = 16; for (let i = -512; i < 1024; i += 48) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 512, 512); g.stroke(); } }
+    else if (pat === 'waves') { for (let y = 30; y < 520; y += 28) { g.beginPath(); for (let x = 0; x <= 512; x += 8) g.lineTo(x, y + Math.sin(x / 40 + y / 60) * 9); g.stroke(); } }
+    else if (pat === 'grid') { g.lineWidth = 1.5; for (let i = 0; i <= 512; i += 32) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 512); g.moveTo(0, i); g.lineTo(512, i); g.stroke(); } }
+    else { for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(256, 256, 60 + i * 24, 0, 7); g.stroke(); } }
+    g.restore();
+    // 글씨: 밝은 표지면 어두운 글씨
+    const lum = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11) / 255; };
+    const ink = lum(col[0]) * 0.5 + lum(col[1]) * 0.5 > 0.62 ? '#111827' : '#fff';
+    g.fillStyle = ink; g.textBaseline = 'alphabetic';
+    g.font = '700 18px "JetBrains Mono", monospace'; g.fillText('T/L/L DIGS · ' + (kind === 'weekly' ? 'WEEKLY' : 'DAYLIST'), 34, 50);
+    // 큰 글씨: 장르·느낌 말(없으면 WEEKLY/DAYLIST). 길면 두 줄로 줄이며 맞춘다
+    const big = (tg.words || '').toUpperCase() || (kind === 'weekly' ? 'WEEKLY' : 'DAYLIST');
+    const lines = [], ws = big.split(' '); let cur = '';
+    let size = 74;
+    const fit = () => { lines.length = 0; cur = ''; g.font = `700 ${size}px "Space Grotesk", "Noto Sans KR", sans-serif`; for (const w of ws) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > 444 && cur) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); };
+    fit(); while ((lines.length > 3 || lines.some((l) => g.measureText(l).width > 444)) && size > 30) { size -= 4; fit(); }
+    const lh = size * 1.02, y0 = 420 - (lines.length - 1) * lh;
+    lines.slice(0, 3).forEach((l, i) => g.fillText(l, 34, y0 + i * lh));
+    g.font = '700 26px "Noto Sans KR", sans-serif'; g.fillText(tagLine(tg) || r.title || '', 38, 462);
+    g.font = '600 22px "JetBrains Mono", monospace'; g.globalAlpha = 0.85; g.fillText(r.sub || '', 38, 494); g.globalAlpha = 1;
+    return c.toDataURL('image/jpeg', 0.84);
+  }
+  // 회차 기록 만들기(없을 때 한 번). 표지는 이때 정해지고, 제목을 직접 고치기 전엔 안 바뀐다
+  const spxBusy = {};
+  function ensureSpx(kind) {
+    const have = spxNow(kind); if (have) return Promise.resolve(have);
+    const id = plId((LS.get('music.special') || {})[kind]); if (!id) return Promise.resolve(null);
+    const K = SPECIAL[kind], key = K.key(), bk = kind + key;
+    if (spxBusy[bk]) return spxBusy[bk];
+    return (spxBusy[bk] = (async () => {
+      let title = '', tracks = [];
+      try { const pl = await api('/playlists/' + id + '?fields=name'); if (pl && pl.name) title = pl.name; } catch {}
+      try { const j = await srv('/api/music/spx?id=' + id, { spotify: false }); if (j && !j.none) { if (!title && j.name) title = j.name; tracks = j.tracks || []; } } catch {}
+      if (/^\s*(daylist|데이리스트)\s*$/i.test(title)) title = ''; // 제목 없는 빈 데이리스트
+      const prev = spxAll()[kind];
+      if (!title && kind === 'daylist' && prev && prev.id === id && prev.key === key) title = prev.title || '';
+      const r = { key, id, title: title || '', sub: K.sub(), tracks: tracks.slice(0, 200) };
+      setSpxTitle(kind, r, r.title);
+      return r;
+    })().finally(() => { delete spxBusy[bk]; }));
+  }
+  // 제목 → 장르·느낌·색·표지(제목을 넣거나 고칠 때만 다시 그림)
+  function setSpxTitle(kind, r, title) {
+    r.title = String(title || '').trim().slice(0, 120);
+    r.tags = kind === 'daylist' ? tagsOf(r.title) : { g: [], m: [], words: '' };
+    r.colors = colorsOf(kind, r.tags);
+    r.img = sealArt(kind, r);
+    spxSave(kind, r);
+    const key = 'spotify:playlist:' + r.id; delete meta[key];
+    if (S.tracksFor === key) { tkCache.delete(key); tkDone.delete(key); }
+    return r;
+  }
+  // 판(크레이트 항목 모양): 이름 = 제목(없으면 위클리/데이리스트), 아래 줄 = 장르·느낌
+  function spxEntry(kind, r) {
+    const K = SPECIAL[kind];
+    const nm = String(r.title || '').replace(/^\s*(daylist|데이리스트)\s*[•·:\-–]\s*/i, '').trim();
+    return { k: 'pl', id: r.id, name: nm || K.name, artist: tagLine(r.tags) || (K.name + ' · ' + (r.sub || '')), img: r.img, sealed: true, n: (r.tracks || []).length || 0 };
+  }
+  // 곡 목록(트랙 칸 모양)
+  const spxTracks = (r) => (r.tracks || []).map((t, i) => ({ id: t.id, uri: t.uri, name: t.name, duration_ms: t.ms, artists: [{ name: t.artist }], _no: i + 1, _a: t.artist }));
+  // 데이리스트는 임베드가 곡을 못 줄 때가 많다 → 그 판을 트는 동안 지금 곡 + 대기열(/me/player/queue)로 목록을 채워 둔다
+  let spxQAt = 0;
+  async function spxCapture(st) {
+    const key = ctxKey(st); if (!key.startsWith('spotify:playlist:')) return;
+    const id = key.split(':')[2], kind = ['weekly', 'daylist'].find((k) => plId((LS.get('music.special') || {})[k]) === id);
+    if (!kind || Date.now() - spxQAt < 20000) return;
+    spxQAt = Date.now();
+    const r = await ensureSpx(kind); if (!r) return;
+    let q = null; try { q = await api('/me/player/queue', { noRecover: true }); } catch { return; }
+    const add = [q && q.currently_playing, ...((q && q.queue) || [])].filter((x) => x && x.type === 'track' && x.uri);
+    const have = new Set((r.tracks || []).map((t) => t.uri)); let n = 0;
+    for (const x of add) if (!have.has(x.uri) && r.tracks.length < 200) { have.add(x.uri); n++; r.tracks.push({ id: x.id, uri: x.uri, name: x.name, artist: artists(x), ms: x.duration_ms || 0 }); }
+    if (!n) return;
+    spxSave(kind, r); delete meta[key];
+    const t = spxTracks(r); tkDone.set(key, t); tkCache.set(key, Promise.resolve(t));
+    if (S.tracksFor === key) { S.tracks = t; renderTracks(true); }
+    if (sealCur && sealCur.kind === kind) sealList(r);
   }
   // 비닐: 반투명 광택 + 가장자리 주름. 찢은 자국은 그 위에 그린다
   function drawFilm(cv, path) {
@@ -2869,16 +3018,16 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const opened = (LS.get('music.opened') || {})[pnd.kind] === SPECIAL[pnd.kind].key();
     sealCur = { kind: pnd.kind, loading: true }; // 표지를 받는 동안 또 열리지 않게
     const K = SPECIAL[pnd.kind], sub = K.sub();
-    let title = K.name, img = '';
-    try { const pl = await api('/playlists/' + pnd.id + '?fields=name,images'); if (pl) { title = pl.name || title; img = pickImg(pl.images, 300); } } catch {}
-    if (!img) img = sealArt(pnd.kind, title, sub);
-    const entry = { k: 'pl', id: pnd.id, name: title, artist: K.name + ' · ' + sub, img, sealed: true };
+    const R = await ensureSpx(pnd.kind);
+    if (!R) { sealCur = null; return; }
+    const entry = spxEntry(pnd.kind, R), title = entry.name, img = R.img;
     meta['spotify:playlist:' + pnd.id] = entry; // 판 라벨·트랙 머리에 이 이름·그림을 쓴다
     sealCur = { kind: pnd.kind, key: K.key(), entry, path: [], open: false, span: [1e9, -1e9] };
     // 잡지 신간 팝업이 비닐을 가리지 않게 잠깐 내린다(다음에 열 때 다시 뜸)
     const mp = $('magPop'); if (mp && !mp.hidden) { mp.classList.remove('on'); mp.hidden = true; }
     $('sealH').textContent = pnd.kind === 'weekly' ? 'NEW ARRIVAL · 이번 주 위클리' : 'NEW ARRIVAL · ' + sub + ' 데이리스트';
     $('sealT').textContent = title; $('sealS').textContent = '비닐을 손가락으로 죽 그어 뜯으세요';
+    sealList(R);
     $('sealStk').innerHTML = pnd.kind === 'weekly' ? 'NEW<br>WEEK' : 'NEW<br>' + sub;
     $('sealArt').style.backgroundImage = bg(img);
     $('sealPlay').hidden = true; $('sealCard').classList.remove('open');
@@ -2894,6 +3043,31 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('sealS').textContent = '슬리브를 누르면 판을 꺼내 올립니다'; $('sealStk').innerHTML = 'NEW';
   }
   const film = () => $('sealFilm');
+  // 비닐 밑 곡 목록 + 장르·느낌 줄. 데이리스트 제목을 못 읽었으면 '제목 넣기'
+  function sealList(r) {
+    const tg = r.tags, kind = sealCur && sealCur.kind;
+    $('sealG').textContent = tagLine(tg) ? '장르 · 느낌  ' + tagLine(tg) : kind === 'daylist' ? (r.title ? '제목에서 장르·느낌을 못 찾음' : 'Spotify 앱의 데이리스트 제목을 넣으면 장르·느낌이 표지에 들어갑니다') : '';
+    $('sealTi').hidden = kind !== 'daylist'; $('sealTi').textContent = r.title ? '제목 고치기' : '제목 넣기';
+    const box = $('sealTk'), t = r.tracks || [];
+    box.innerHTML = '';
+    if (!t.length) { const p = document.createElement('li'); p.className = 'none'; p.textContent = '곡 목록은 판을 틀면 채워집니다(Spotify가 자동 플레이리스트 목록을 막아 둠)'; box.appendChild(p); return; }
+    t.forEach((x, i) => {
+      const li = document.createElement('li'); li.innerHTML = '<span></span><b></b><i></i>';
+      li.firstChild.textContent = String(i + 1).padStart(2, '0'); li.children[1].textContent = x.name; li.lastChild.textContent = x.artist;
+      box.appendChild(li);
+    });
+    const n = document.createElement('li'); n.className = 'none'; n.textContent = t.length + '곡'; box.appendChild(n);
+  }
+  function sealTitle() {
+    const C = sealCur; if (!C || C.kind !== 'daylist') return;
+    const r = spxNow('daylist'); if (!r) return;
+    const v = prompt('Spotify 앱에 보이는 데이리스트 제목 (예: dreamy indie pop tuesday evening)', r.title || '');
+    if (v == null) return;
+    setSpxTitle('daylist', r, v);
+    const e = spxEntry('daylist', r); C.entry = e; meta['spotify:playlist:' + r.id] = e;
+    $('sealT').textContent = e.name; $('sealArt').style.backgroundImage = bg(r.img); sealList(r);
+    render(); renderTracks(true);
+  }
   function spxPaint() {
     const sp = LS.get('music.special') || {}, op = LS.get('music.opened') || {};
     for (const [id, kind] of [['spW', 'weekly'], ['spD', 'daylist']]) $(id).classList.toggle('new', !!plId(sp[kind]) && op[kind] !== SPECIAL[kind].key());
@@ -2952,6 +3126,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const up = () => { if (!down) return; down = false; if (sealCur && !sealCur.open) { sealCur.path = []; drawFilm($('sealFilm'), []); } };
     card.addEventListener('pointerup', up); card.addEventListener('pointercancel', up);
     $('sealPlay').addEventListener('click', playSeal);
+    $('sealTi').addEventListener('click', sealTitle);
     $('sealLater').addEventListener('click', () => { S.sealLater = true; closeSeal(); });
     // 설정: 링크 저장
     for (const [id, kind] of [['lkWeekly', 'weekly'], ['lkDaylist', 'daylist']]) {

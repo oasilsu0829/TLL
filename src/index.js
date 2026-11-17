@@ -4,6 +4,7 @@
 import { musicApi } from './music.js';
 import { json, ensureTables } from './util.js';
 import { lyricsApi } from './lyrics.js';
+import { spxApi } from './spx.js';
 
 export default {
   async fetch(req, env) {
@@ -20,6 +21,8 @@ export default {
     if (!path.startsWith('/api/')) return env.ASSETS.fetch(req);
     // 가사(전체화면): DB를 쓰지 않는다
     if (path === '/api/music/lyrics' && req.method === 'GET') return lyricsApi(req);
+    // 위클리·데이리스트 이름·곡 목록(임베드 페이지): DB를 쓰지 않는다
+    if (path === '/api/music/spx' && req.method === 'GET') return spxApi(req);
 
     // 인증은 Spotify 토큰(X-Spotify)으로 music.js가 한다. 손님 잼 창은 로그인 없이 곡만 보낸다
     try { await ensureTables(env); } catch (err) { return json({ error: err.message || String(err) }, 500); }
