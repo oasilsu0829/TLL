@@ -59,7 +59,7 @@ function start() {
     scene.environment = new THREE.PMREMGenerator(renderer).fromScene(env, 0.02).texture;
   }
   const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(-1.5, 3, 1.5); scene.add(key);
-  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0006; key.shadow.normalBias = 0.01; key.shadow.radius = 5;
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0006; key.shadow.normalBias = 0.01; key.shadow.radius = 8;
   Object.assign(key.shadow.camera, { left: -1.6, right: 1.6, top: 1.6, bottom: -1.6, near: 0.5, far: 7 });
   // 역광: 뒤에서 본체 윤곽을 따라 가는 빛(조명 모드에서 더 세게)
   const rim = new THREE.DirectionalLight(0xcfe0ff, 0.5); rim.position.set(0.6, 1.1, -3); scene.add(rim);
@@ -119,14 +119,14 @@ function start() {
     const face = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.106), new THREE.MeshStandardMaterial({ map: t, transparent: true, metalness: 0.6, roughness: 0.4 }));
     face.position.set(0, -0.07, 0.7205); deck.add(face);
   }
-  // 책상에 떨어지는 그림자만 그리는 바닥(배경은 비친다)
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.22 }));
+  // 책상에 떨어지는 그림자만(2026-11-17 사용자 선택 7: 0.22 → 0.35, 퍼짐 넓게) 그리는 바닥(배경은 비친다)
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.35 }));
   floor.rotation.x = -Math.PI / 2; floor.position.y = -0.196; floor.receiveShadow = true; deck.add(floor);
   // 바닥 그림자
   const sh = document.createElement('canvas'); sh.width = sh.height = 128;
   const sg = sh.getContext('2d'), gr = sg.createRadialGradient(64, 64, 10, 64, 64, 64);
-  gr.addColorStop(0, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); sg.fillStyle = gr; sg.fillRect(0, 0, 128, 128);
-  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }));
+  gr.addColorStop(0, 'rgba(0,0,0,.5)'); gr.addColorStop(.55, 'rgba(0,0,0,.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); sg.fillStyle = gr; sg.fillRect(0, 0, 128, 128);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 2.8), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.197; deck.add(shadow);
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다

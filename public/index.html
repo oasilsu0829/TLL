@@ -296,7 +296,21 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .sfxrow input { width: 18px; height: 18px; accent-color: var(--ink); }
 /* 밤 조명: 턴테이블 칸만 어둡게, 3D는 스트로브 등·판 위 조명만 남는다 */
 .deckp { transition: background .8s, border-color .8s; overflow: clip; } /* 숨은 CSS 턴테이블이 옆으로 넘쳐 칸이 밀리던 것(포커스·전체화면 때) 막음 */
-body.night .deckp { background: radial-gradient(120% 90% at 45% 45%, #1c1d22, #0a0a0c 70%); border-color: #1d1e23; color: #e4e4e7; }
+/* 턴테이블 뒤 배경(2026-11-17 사용자 선택 5·6): 어두운 그라데이션 + 그레인 + 아주 옅은 가로 결(매트 판 느낌).
+   --bgl = 위에 덮는 어둠. 멈추면 한 단계 어둡고 재생하면 1.4초에 걸쳐 밝아짐, 곡 사이 무음 홈에서 잠깐 숨 쉼(.gap). 움직임 줄이기면 전환 없음 */
+@property --bgl { syntax: '<number>'; inherits: false; initial-value: 0; }
+body.night .deckp { --bgl: 0; transition: --bgl 1.4s ease, background .8s, border-color .8s;
+  background:
+    linear-gradient(rgba(0,0,0,var(--bgl)), rgba(0,0,0,var(--bgl))),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 4px),
+    var(--grain),
+    radial-gradient(120% 90% at 45% 45%, #1c1d22, #0a0a0c 70%);
+  background-size: 100% 100%, auto, 260px 70px, 100% 100%; background-blend-mode: normal, normal, soft-light, normal;
+  border-color: #1d1e23; color: #e4e4e7; }
+body.night:not(.playing) .deckp { --bgl: .32; }
+body.night .deckp.gap { animation: deckGap 1.3s ease; }
+@keyframes deckGap { 0%, 100% { --bgl: 0; } 35% { --bgl: .22; } }
+@media (prefers-reduced-motion: reduce) { body.night .deckp { transition: none; } body.night .deckp.gap { animation: none; } }
 body.night .deckp .strip { border-color: #24252b; }
 body.night .deckp .seek, body.night .deckp .go { background: #141519; border-color: #2a2b31; color: #e4e4e7; box-shadow: none; }
 body.night .deckp .go small { color: #8b8f98; }
@@ -2500,6 +2514,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       const total = S.tracks.reduce((x, t) => x + (t.duration_ms || 0), 0); let before = 0; for (let k = 0; k < i; k++) before += S.tracks[k].duration_ms || 0;
       if (total) Deck3D.flashGap(before / total);
     }
+    if (i > 0) { const dp = document.querySelector('.deckp'); if (dp) { dp.classList.remove('gap'); void dp.offsetWidth; dp.classList.add('gap'); setTimeout(() => dp.classList.remove('gap'), 1400); } }
     typeOut(`▸ ${String(i >= 0 ? i + 1 : (it.track_number || '')).padStart(2, '0')}  ${it.name}`);
   }
   function typeOut(text) {
