@@ -129,53 +129,91 @@ function start() {
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 2.8), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.197; deck.add(shadow);
 
-  // 탁자 위 온더락 잔(갓파더: 스카치 + 아마레토, 큰 얼음 하나)과 잔 위에 걸쳐 둔 시가, 끝에서 피어오르는 연기(2026-11-17 사용자 요청)
-  // 본체 오른쪽 옆, 시가 불씨는 톤암 쪽(연기가 화면 안에서 오르게). 실제 크기 비율(턴테이블 폭 45cm = 1.77): 잔 지름 8.5cm · 높이 8.5cm, 시가 12.5cm · 링 50
+  // 탁자 위 온더락 잔(갓파더: 스카치 + 아마레토, 큰 각얼음)과 잔 위에 걸쳐 둔 시가, 끝에서 피어오르는 연기(2026-11-17 사용자 요청)
+  // 본체 오른쪽 옆, 가죽 코스터 위. 실제 크기 비율(턴테이블 폭 45cm = 1.77): 잔 지름 8.5cm · 높이 8.5cm, 시가 12.5cm · 링 50
+  // 유리·술·얼음은 MeshPhysicalMaterial transmission(실제 굴절: 뒤 턴테이블이 잔 너머로 휘어 보임). 잔을 누르면 재즈바(D.onBar)
   const bar = (() => {
-    const g = new THREE.Group(); g.position.set(1.07, -0.196, -0.08); deck.add(g);
-    const R = 0.165, H = 0.33, W = 0.009, B = 0.055;
-    // 잔: 두꺼운 바닥 + 얇은 벽(옆으로 돌린 단면)
-    const prof = [[0, B], [R - W, B], [R - W, H - 0.002], [R - W / 2, H], [R, H - 0.002], [R, 0.006], [R - 0.006, 0], [0, 0]].map(([x, y]) => new THREE.Vector2(x, y));
-    const glassM = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, roughness: 0.04, metalness: 0, envMapIntensity: 2.2, side: THREE.DoubleSide, depthWrite: false });
-    const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 56), glassM); glass.renderOrder = 3; g.add(glass);
-    // 잔 바닥(두꺼운 유리 덩어리)은 조금 더 진하게
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.004, R - 0.006, B - 0.004, 56), new THREE.MeshStandardMaterial({ color: 0xdfe9f2, transparent: true, opacity: 0.28, roughness: 0.08, envMapIntensity: 2 }));
-    base.position.y = (B - 0.004) / 2 + 0.002; base.renderOrder = 1; g.add(base);
-    // 술: 호박색, 잔 1/3쯤
-    const LQ = 0.11;
-    const liqM = new THREE.MeshStandardMaterial({ color: 0x9a520f, emissive: 0x4a1e02, emissiveIntensity: 0.6, transparent: true, opacity: 0.82, roughness: 0.12, envMapIntensity: 1.4, depthWrite: false });
-    const liq = new THREE.Mesh(new THREE.CylinderGeometry(R - W - 0.002, R - W - 0.002, LQ, 56), liqM); liq.position.y = B + LQ / 2; liq.renderOrder = 2; g.add(liq);
-    // 큰 각얼음(술 위로 머리를 내밂)
-    const ice = new THREE.Mesh(new RoundedBoxGeometry(0.17, 0.165, 0.17, 3, 0.022), new THREE.MeshStandardMaterial({ color: 0xe8f2ff, transparent: true, opacity: 0.42, roughness: 0.15, envMapIntensity: 2.4, depthWrite: false }));
-    ice.position.set(0.012, B + 0.092, -0.008); ice.rotation.set(0.12, 0.5, -0.08); ice.renderOrder = 2; g.add(ice);
-    // 시가: 잔 테에 가로로 걸침. 축(로컬 x) -0.16 머리 ~ +0.31 불붙은 끝
-    const cig = new THREE.Group(); cig.position.set(0.02, H + 0.039, 0); cig.rotation.set(0, 2.35, 0.04); g.add(cig);
+    // 유리: 굴절(transmission)은 화면 뒤 CSS 배경(재즈바)을 못 담아 잔이 탁해 보였다 → 프레넬 셰이더(가장자리·컷 면만 빛나고 가운데는 비침)
+    // 더하기 섞기를 미리 곱한 알파로: 빛난 만큼만 알파가 올라가 뒤 배경이 그대로 보인다. flat = 화면 미분으로 각진 면(크리스털 컷)
+    const fres = (col, pw, k, flat, sp = 1.4) => new THREE.ShaderMaterial({
+      uniforms: { c: { value: new THREE.Color(col) }, p: { value: pw }, k: { value: k }, sp: { value: sp }, L: { value: new THREE.Vector3(-0.35, 1, 0.55).normalize() }, L2: { value: new THREE.Vector3(0.8, 0.5, 0.3).normalize() }, j: { value: 0 } },
+      vertexShader: 'varying vec3 vN; varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: 'uniform vec3 c; uniform float p, k, sp, j; uniform vec3 L, L2; varying vec3 vN; varying vec3 vW; void main(){ vec3 V = normalize(cameraPosition - vW); vec3 N = ' + (flat ? 'normalize(cross(dFdx(vW), dFdy(vW)))' : 'normalize(vN)') + '; if (dot(N, V) < 0.0) N = -N; float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), p); float s = pow(max(dot(N, normalize(L + V)), 0.0), 90.0) * sp + pow(max(dot(N, normalize(L2 + V)), 0.0), 60.0) * sp * 0.5; vec3 warm = mix(vec3(1.0), vec3(1.0, 0.78, 0.52), j); vec3 col = (c * f * k + vec3(s)) * warm; gl_FragColor = vec4(col, clamp(max(col.r, max(col.g, col.b)), 0.0, 1.0)); }',
+      transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.CustomBlending,
+      blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor,
+    });
+    const fresM = [];
+    const F = (...a) => { const m = fres(...a); fresM.push(m); return m; };
+    const g = new THREE.Group(); g.position.set(1.05, -0.196, 0.04); deck.add(g);
+    // 가죽 코스터: 소가죽 적갈색 + 둘레 스티치
+    const cc = document.createElement('canvas'); cc.width = cc.height = 256; const cg = cc.getContext('2d');
+    const lg = cg.createRadialGradient(128, 118, 10, 128, 128, 128); lg.addColorStop(0, '#5a2318'); lg.addColorStop(0.8, '#3e160f'); lg.addColorStop(1, '#2a0d08');
+    cg.fillStyle = lg; cg.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 1800; i++) { cg.fillStyle = `rgba(${Math.random() < 0.5 ? '0,0,0' : '120,60,40'},${Math.random() * 0.12})`; cg.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 1); }
+    cg.strokeStyle = 'rgba(210,170,120,.55)'; cg.lineWidth = 2.4; cg.setLineDash([7, 5]); cg.beginPath(); cg.arc(128, 128, 112, 0, Math.PI * 2); cg.stroke();
+    const ct = new THREE.CanvasTexture(cc); ct.colorSpace = THREE.SRGBColorSpace;
+    const coaster = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.012, 64), [new THREE.MeshStandardMaterial({ color: 0x2a0d08, roughness: 0.7 }), new THREE.MeshStandardMaterial({ map: ct, roughness: 0.55 }), new THREE.MeshStandardMaterial({ color: 0x2a0d08 })]);
+    coaster.position.y = 0.006; coaster.receiveShadow = true; g.add(coaster);
+    const G = new THREE.Group(); G.position.y = 0.012; g.add(G);
+    const R = 0.165, H = 0.33, W = 0.011, B = 0.058;
+    // 잔: 바깥은 크리스털 컷(아래 2/3 세로 면 + 굽 위 다이아몬드 띠), 안은 매끈. 닫힌 덩어리로 만들어 두께만큼 굴절
+    const prof = [[0, B], [R - W - 0.006, B], [R - W, B + 0.01], [R - W, H - 0.004], [R - W * 0.45, H], [R - 0.001, H - 0.004], [R, H * 0.68], [R - 0.004, 0.03], [R - 0.012, 0.006], [R - 0.022, 0], [0, 0]].map(([x, y]) => new THREE.Vector2(x, y));
+    const glassM = F(0xdfeeff, 2.6, 0.95, false, 1.6);
+    const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 72), glassM); glass.renderOrder = 6; G.add(glass);
+    // 두꺼운 바닥 유리 덩어리: 살짝 보이게(빛이 모이는 굽)
+    const baseM = F(0xcfe4ff, 1.2, 0.35, false, 0.8);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.012, R - 0.02, B - 0.006, 48), baseM); base.position.y = (B - 0.006) / 2 + 0.003; base.renderOrder = 6; G.add(base);
+    // 컷 면: 아래 2/3에 세로로 깎은 면 24개(평평한 면이 빛을 따로따로 받음) — 바깥 껍질 한 겹을 각진 원기둥으로
+    const facetM = F(0xe8f2ff, 1.8, 0.75, true, 2.2);
+    const facet = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.0015, R - 0.004, H * 0.62, 24, 1, true), facetM); facet.position.y = 0.03 + H * 0.31; facet.renderOrder = 6; G.add(facet);
+    // 굽 위 다이아몬드 띠: 비스듬히 깎은 홈 두 방향(얇은 고리를 기울여 겹침)
+    const cutM = F(0xffffff, 1.0, 0.5, true, 2.5);
+    for (let i = 0; i < 12; i++) for (const s of [1, -1]) {
+      const v = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.06, 0.006), cutM); const a = (i / 12) * Math.PI * 2 + (s > 0 ? 0 : Math.PI / 12);
+      v.position.set(Math.cos(a) * (R - 0.001), 0.05, Math.sin(a) * (R - 0.001)); v.rotation.set(0, -a, s * 0.55); v.renderOrder = 6; G.add(v);
+    }
+    // 술: 호박색(스카치 + 아마레토). 빛이 지나며 깊어지는 색(attenuation) + 위 표면 살짝 볼록(메니스커스)
+    const LQ = 0.105, LR = R - W - 0.002;
+    const liqM = new THREE.MeshStandardMaterial({ color: 0xb8641c, emissive: 0x6a2a06, emissiveIntensity: 0.28, roughness: 0.08, metalness: 0, envMapIntensity: 5, transparent: true, opacity: 0.84, depthWrite: false });
+    const liq = new THREE.Mesh(new THREE.CylinderGeometry(LR, LR - 0.006, LQ, 64), liqM); liq.position.y = B + LQ / 2 + 0.002; liq.renderOrder = 4; G.add(liq);
+    const liqF = new THREE.Mesh(liq.geometry, F(0xffb060, 2.0, 0.32, false, 1.1)); liq.add(liqF); liqF.renderOrder = 5;
+    // 큰 각얼음(손으로 깎은 투명 얼음, 가운데만 살짝 흐림) — 술 위로 머리를 내밂
+    const iceM = F(0xeaf4ff, 1.6, 0.5, true, 1.4);
+    const ice = new THREE.Mesh(new RoundedBoxGeometry(0.168, 0.162, 0.168, 4, 0.024), iceM);
+    ice.position.set(0.006, B + 0.094, -0.004); ice.rotation.set(0.1, 0.55, -0.07); ice.renderOrder = 5; G.add(ice);
+    const iceBody = new THREE.Mesh(ice.geometry, new THREE.MeshBasicMaterial({ color: 0xdfeaf2, transparent: true, opacity: 0.05, depthWrite: false })); ice.add(iceBody);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false }));
+    core.scale.set(1, 0.6, 1); ice.add(core);
+    // 누르는 자리(보이지 않는 원기둥, 잔·시가를 감쌈)
+    const hit = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.04, R + 0.04, H + 0.12, 16), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false }));
+    hit.position.y = (H + 0.12) / 2; hit.userData.act = 'bar'; G.add(hit);
+    // 시가: 잔 테에 가로로 걸침. 축(로컬 x) -0.16 머리 ~ +0.31 불붙은 끝(불씨는 턴테이블 쪽)
+    const cig = new THREE.Group(); cig.position.set(0.02, H + 0.039, 0); cig.rotation.set(0, 2.35, 0.04); G.add(cig);
     const wc = document.createElement('canvas'); wc.width = 512; wc.height = 64; const wg = wc.getContext('2d');
     wg.fillStyle = '#6a4122'; wg.fillRect(0, 0, 512, 64);
     for (let i = 0; i < 70; i++) { wg.strokeStyle = `rgba(${Math.random() < 0.5 ? '40,22,10' : '150,100,60'},${0.08 + Math.random() * 0.14})`; wg.lineWidth = 0.6 + Math.random() * 1.6; wg.beginPath(); const y = Math.random() * 64; wg.moveTo(0, y); wg.bezierCurveTo(170, y + (Math.random() - 0.5) * 18, 340, y + (Math.random() - 0.5) * 18, 512, y + (Math.random() - 0.5) * 8); wg.stroke(); }
     const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace;
     const CR = 0.039, along = (m, a, b) => { m.rotation.z = Math.PI / 2; m.position.x = (a + b) / 2; cig.add(m); return m; };
-    along(new THREE.Mesh(new THREE.CylinderGeometry(CR, CR, 0.462, 40, 1, true), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.78, metalness: 0 })), -0.155, 0.307);
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(CR, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.8 }));
+    const wrapM = new THREE.MeshPhysicalMaterial({ map: wt, roughness: 0.62, sheen: 0.4, sheenColor: new THREE.Color(0x8a5a30), clearcoat: 0.15, clearcoatRoughness: 0.6 });
+    along(new THREE.Mesh(new THREE.CylinderGeometry(CR, CR, 0.462, 40, 1, true), wrapM), -0.155, 0.307);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(CR, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), wrapM);
     cap.scale.set(1, 0.55, 1); cap.rotation.z = Math.PI / 2; cap.position.x = -0.155; cig.add(cap);
-    // 띠(금테 두른 적갈색 종이)
     const bc = document.createElement('canvas'); bc.width = 256; bc.height = 32; const bg2 = bc.getContext('2d');
     bg2.fillStyle = '#7d1414'; bg2.fillRect(0, 0, 256, 32); bg2.fillStyle = '#d8b25a'; bg2.fillRect(0, 0, 256, 4); bg2.fillRect(0, 28, 256, 4);
     bg2.font = 'bold 15px Georgia,serif'; bg2.textAlign = 'center'; bg2.fillText('T / L / L', 128, 21);
     const bt = new THREE.CanvasTexture(bc); bt.colorSpace = THREE.SRGBColorSpace;
     along(new THREE.Mesh(new THREE.CylinderGeometry(CR + 0.0012, CR + 0.0012, 0.026, 40, 1, true), new THREE.MeshStandardMaterial({ map: bt, roughness: 0.35, metalness: 0.25 })), -0.112, -0.086);
-    // 불씨(주황, 깜빡임)와 재
     const emberM = new THREE.MeshStandardMaterial({ color: 0x2a1006, emissive: 0xff5a14, emissiveIntensity: 1.6, roughness: 0.9 });
     along(new THREE.Mesh(new THREE.CylinderGeometry(CR * 0.99, CR, 0.008, 40, 1, true), emberM), 0.307, 0.315);
-    const ashM = new THREE.MeshStandardMaterial({ color: 0x9c9a96, roughness: 1 });
-    along(new THREE.Mesh(new THREE.CylinderGeometry(CR * 0.93, CR * 0.98, 0.032, 40), ashM), 0.315, 0.347);
+    along(new THREE.Mesh(new THREE.CylinderGeometry(CR * 0.93, CR * 0.98, 0.032, 40), new THREE.MeshStandardMaterial({ color: 0x9c9a96, roughness: 1 })), 0.315, 0.347);
     const tip = new THREE.Mesh(new THREE.CircleGeometry(CR * 0.93, 32), new THREE.MeshStandardMaterial({ color: 0x55504b, emissive: 0xff4a10, emissiveIntensity: 0.35, roughness: 1 }));
     tip.rotation.y = Math.PI / 2; tip.position.x = 0.3475; cig.add(tip);
     const emberL = new THREE.PointLight(0xff6a20, 0.12, 0.35, 2); emberL.position.set(0.32, 0, 0); cig.add(emberL);
     cig.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    // 잔 위 조명(위에서 떨어지는 빛, 밤 조명에서만): 잔 테와 술이 반짝이게
-    const lamp = new THREE.SpotLight(0xffe2b8, 0, 2.4, 0.32, 0.7, 1.3); lamp.position.set(0.95, 1.7, 0.1); lamp.target = g; scene.add(lamp);
-    // 연기: 부드러운 점 스프라이트를 불씨에서 올려 보냄. 위로 갈수록 커지고 흩어지며 사라짐
+    // 잔 위 조명(위에서 떨어지는 빛): 컷 면·테·얼음이 반짝이게. 재즈바에선 더 따뜻하고 세게
+    const lamp = new THREE.SpotLight(0xffe2b8, 0, 2.4, 0.3, 0.6, 1.3); lamp.position.set(0.85, 1.7, 0.35); lamp.target = G; scene.add(lamp);
+    const glint = new THREE.PointLight(0xffffff, 0, 0.9, 2); glint.position.set(0.85, 0.55, 0.45); scene.add(glint);
+    // 연기
     const sc = document.createElement('canvas'); sc.width = sc.height = 64; const sg2 = sc.getContext('2d');
     const sgr = sg2.createRadialGradient(32, 32, 0, 32, 32, 32); sgr.addColorStop(0, 'rgba(255,255,255,1)'); sgr.addColorStop(0.45, 'rgba(255,255,255,.45)'); sgr.addColorStop(1, 'rgba(255,255,255,0)');
     sg2.fillStyle = sgr; sg2.fillRect(0, 0, 64, 64);
@@ -185,27 +223,34 @@ function start() {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smTex, color: 0xc9ccd2, transparent: true, opacity: 0, depthWrite: false }));
       sp.renderOrder = 5; scene.add(sp); puffs.push({ sp, age: (i / N) * 5.2, life: 4.6 + Math.random() * 1.2, sd: Math.random() * 100, p: new THREE.Vector3() });
     }
-    let fl = 0;
+    let jazz = 0, jazzT = 0, ring = -1;
+    const coolRim = new THREE.Color(0xcfe0ff), warmRim = new THREE.Color(0xffa860), smokeCool = new THREE.Color(0xc9ccd2), smokeWarm = new THREE.Color(0xe6c9a8);
     function step(dt, T, nightK) {
-      // 불씨 깜빡임(빨기 전 은은한 숨)
-      fl += dt; const pulse = 0.75 + 0.25 * Math.sin(T * 2.1) * Math.sin(T * 0.7 + 1) + (Math.random() - 0.5) * 0.12;
+      jazz += (jazzT - jazz) * Math.min(1, dt * 1.6);
+      const pulse = 0.75 + 0.25 * Math.sin(T * 2.1) * Math.sin(T * 0.7 + 1) + (Math.random() - 0.5) * 0.12;
       emberM.emissiveIntensity = 1.3 + pulse * 0.9; emberL.intensity = 0.06 + pulse * 0.1;
-      lamp.intensity = nightK * 2.4;
+      lamp.intensity = nightK * lerp(2.6, 3.6, jazz); lamp.color.setHex(0xffe2b8).lerp(warmRim, jazz * 0.4);
+      glint.intensity = nightK * lerp(0.35, 0.5, jazz);
+      rim.color.copy(coolRim).lerp(warmRim, jazz);
+      fresM.forEach((m) => { m.uniforms.j.value = jazz; });
+      // 잔을 누르면 얼음이 잔 안에서 살짝 흔들림(쨍)
+      if (ring >= 0) { const k = (performance.now() - ring) / 900; if (k >= 1) { ring = -1; ice.rotation.z = -0.07; ice.position.x = 0.006; } else { const a = (1 - k) * (1 - k); ice.rotation.z = -0.07 + Math.sin(k * 40) * 0.05 * a; ice.position.x = 0.006 + Math.sin(k * 33) * 0.006 * a; } }
       g.updateMatrixWorld(); cig.localToWorld(src.set(0.335, 0.012, 0));
       for (const q of puffs) {
         q.age += dt;
         if (q.age >= q.life) { q.age -= q.life; q.sd = Math.random() * 100; }
         const k = q.age / q.life, h = q.age * 0.13 + k * k * 0.25;
-        // 처음엔 가는 줄기로 곧게, 올라가며 S자로 꼬이고 바람에 왼쪽 뒤로 흩어짐
         const sway = Math.sin(T * 0.6 + q.sd + h * 9) * 0.035 * (0.2 + k * 1.6) + Math.sin(T * 0.23 + q.sd) * 0.05 * k * k;
         q.p.set(src.x + sway - k * k * 0.12, src.y + h, src.z + Math.cos(T * 0.5 + q.sd + h * 7) * 0.025 * (0.2 + k * 1.4) - k * 0.05);
         q.sp.position.copy(q.p);
         const s = 0.025 + k * 0.26; q.sp.scale.set(s, s, 1);
-        q.sp.material.opacity = Math.min(1, k / 0.08) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.17, nightK);
+        q.sp.material.opacity = Math.min(1, k / 0.08) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.17, nightK) * (1 + jazz * 0.3);
+        q.sp.material.color.copy(smokeCool).lerp(smokeWarm, jazz);
         q.sp.material.rotation = q.sd + k * 2;
       }
     }
-    return { step };
+    [glass, base, facet, liq, ice, hit].forEach((m) => { m.userData.ns = true; }); G.children.forEach((m) => { if (m.material === cutM) m.userData.ns = true; });
+    return { step, hit, clink() { ring = performance.now(); }, setJazz(on) { jazzT = on ? 1 : 0; }, busy: () => ring >= 0 || Math.abs(jazzT - jazz) > 0.002 };
   })();
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
@@ -506,7 +551,7 @@ function start() {
   let grab = null;  // { phi, spin0, t, last, v } 판을 손으로 잡은 상태
   let shakeT = -1;
   let strobeTex = null, strobeAng = 0;
-  const clips = [], clickables = [];
+  const clips = [], clickables = [bar.hit];
   let speed45 = false, volume = 50, cueUp = 1, coverK = 0, coverT = 0, idle = 0, dragCtl = null;
   // 마지막으로 뭔가 바뀐 시각(만짐·라벨·색·볼륨…). 2초 넘게 조용하면 프레임을 낮춘다(배터리)
   let poke = 0, touchAt = 0; // poke: 깨우기(시간창 글자 등), touchAt: 손으로 만진 시각
@@ -722,7 +767,7 @@ function start() {
     halo(ctl.target.pop, new THREE.Vector3(0, 0.075, 0), 0xffd9a0, 0.06, () => night * 0.45);
     record = makeRecord(); record.position.set(0, REC_Y, 0); platter.add(record);
     // 그림자: 판·플래터·톤암·조작부가 드리우고, 본체·매트가 받는다
-    deck.traverse((o) => { if (o.isMesh && o !== floor && !(o.material && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } });
+    deck.traverse((o) => { if (o.isMesh && o !== floor && !o.userData.ns && !(o.material && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } });
     applyLabel();
     D.ok = true;
     // 3D가 늦게 떴으면 화면이 먼저 정한 앨범 색을 받아 온다
@@ -762,7 +807,7 @@ function start() {
     return (lo + hi) / 2;
   }
 
-  const camBase = new THREE.Vector3(), camLook = new THREE.Vector3(0.2, -0.02, 0);
+  const camBase = new THREE.Vector3(), camLook = new THREE.Vector3(0.24, -0.02, 0);
   let camZoom = 0;
   function resize() {
     poke = performance.now();
@@ -821,6 +866,7 @@ function start() {
       else if (act === 'r8' || act === 'r16') { press(ctl[act].b); ctl.range = act === 'r8' ? 8 : 16; D.onSound && D.onSound('click'); }
       else if (act === 'reset') { press(ctl.reset); D.onSound && D.onSound('click'); D.onButton && D.onButton('reset'); }
       else if (act === 'power') { ctl.power.rotation.y += ctl.power.rotation.y < 0 ? 1.2 : -1.2; D.onSound && D.onSound('click'); }
+      else if (act === 'bar') { bar.clink(); D.onBar && D.onBar(); }
       else if (act === 'cue') { D.onSound && D.onSound('cue'); D.onButton && D.onButton('cue'); }
       else if (act === 'slider' || act === 'dial') { dragCtl = { act, x: e.clientX, y: e.clientY, rot: ctl.dial.rotation.y }; el.setPointerCapture(e.pointerId); }
       return;
@@ -901,7 +947,7 @@ function start() {
     if (D._off) { loop.last = now; setTimeout(() => requestAnimationFrame(loop), 500); return; }
     if (document.hidden || window.MusicJamOn || !onScreen) { loop.last = now; requestAnimationFrame(loop); return; }
     // 조용할 때(멈춤 · 움직이는 것 없음 · 2초 넘게 안 만짐)는 초당 10번, 덮개가 닫혔으면 초당 2번만 그린다
-    const calm = !(playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
+    const calm = !(bar.busy() || playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
       vel < 0.005 && Math.abs(yaw) < 0.001 && lift < 0.0005 && Math.abs(cueUp - 1) < 0.005 &&
       Math.abs(coverT - coverK) < 0.001 && Math.abs(nightT - night) < 0.001 &&
       Math.abs((0.25 - volume / 100 * 0.5) - ctl.knob.position.z) < 0.0005 && now - poke > 2000;
@@ -1148,6 +1194,7 @@ function start() {
   D.setNight = (on) => { nightT = on ? 1 : 0; };
   // 앨범 대표색: 밤 조명이 그 색을 조금 머금는다
   const warm = new THREE.Color(0xffd8a8), tintC = new THREE.Color(0xffd8a8);
+  D.setJazz = (on) => { bar.setJazz(on); poke = performance.now(); };
   D.setTint = (hex) => { const h = hex || '#ffd8a8'; if (h === D.setTint.last) return; D.setTint.last = h; poke = performance.now(); tintC.copy(warm).lerp(new THREE.Color(h), 0.45); };
   // 포인트 색(앨범 표지에서 뽑은 색, 없으면 바하마 블루): 카트리지·노브 표시·램프 렌즈·불빛·후광
   D.setAccent = (main, glow) => {

@@ -14,6 +14,10 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - 포인트 색(2026-11-13): 처음엔 바하마 블루 #026395로 통일했다가 같은 날 사용자 요청으로 '앨범 표지 색 따라가기'로 되돌림. 앨범이 바뀌면 applyAmb()가 배경(.amb)과 함께 accentOf(표지 대표색 중 채도 가장 높은 색)로 `--main`(L 34%, 흰 바탕 글자) · `--main-glow`(L 60%, 불빛)를 바꾸고 Deck3D.setAccent로 3D 카트리지·노브 표시·램프·후광도 바꾼다. 흑백 표지·색 못 뽑음·앨범 없음이면 바하마 블루. `--red`는 지우기·경고에만. 그대로 둔 빨강: 잼 REC, RCA 케이블, 클립보드 여백 줄, 잡지 자체 색
 - 친구용 버그 수정(2026-11-17, v1.12.1, 로컬 Playwright + 가짜 Spotify로 확인): 폰에서 기기 목록(.devs)이 오른쪽 화면 밖으로 나가 화면이 흔들림 → 760px 이하는 오른쪽 맞춤, Esc로 닫힘 · 개발 모드 User Management에 없는 계정은 Spotify가 403(글자 본문)을 줘서 '재생할 기기가 없습니다'로 보였음 → api()가 알아보고 ERR.UNREG(설정 창에도), 서버 /me 확인도 403 · 친구는 로그인할 때마다 서버 Client ID(fetchCid(true), 주인이 바꾸면 예전 값으로 계속 실패하던 것) · 잼 링크(#jam)로 와서 로그인하면 돌아올 때 #jam 유지(music.pkce.h) → 바로 참가 · 손님 창 '내 잼 새로 시작'은 서버 잼(하나뿐)을 덮어써 주인 잼을 끊었음 → 'Spotify로 로그인하고 같이 듣기'로 바꿈 · 동기화 오류 문구의 Sabathia '일정 앱 토큰' 안내 지움
 - 아이폰 수정(2026-11-17, v1.12.4, 친구가 아이폰): pickCid의 뒤돌아보기 정규식((?<!…))이 iOS 16.4 전 사파리에서 메인 스크립트 전체를 깨뜨림 → 뺌. importmap도 16.4부터라 three를 '/3d/three.module.min.js' 경로로 직접 import(deck3d·boombox·RoundedBox, index.html의 importmap은 남겨 둠). 새 코드에 뒤돌아보기·importmap 의존 금지. IOS 상수: 기기 없음 안내('Spotify 앱을 열어 잠깐 재생한 뒤'), 홈 화면 앱 로그인에서 확인값을 잃으면 사파리에서 로그인하라는 안내. 실제 아이폰은 미확인
+- 턴테이블 뒤 배경(2026-11-17, v1.13.1~1.14.0, 사용자 선택 2·5·6·7): body.night .deckp 배경 = 그레인·옅은 가로 결 + 위에서 떨어지는 원뿔 빛·바닥 웅덩이(--a3) + 어둠 덮개 --bgl(@property, 멈추면 .32, 곡 사이 .gap 숨 쉼). 3D 바닥 그림자 0.35
+  - 시안(1~4안): https://claude.ai/artifact/HVbj3vHKXAD9cRrLeuQU5U
+  - 온더락 잔(deck3d.js bar): 본체 오른쪽 가죽 코스터 위 갓파더(호박색 술·큰 각얼음), 잔 테에 걸친 시가(띠 T/L/L, 불씨 깜빡임), 연기 스프라이트 42개. 유리는 transmission을 쓰지 않는다(화면 뒤 CSS 배경을 못 담아 탁해짐) → 프레넬 셰이더 fres()(미리 곱한 알파 더하기 섞기, 크리스털 컷은 화면 미분 각진 면). 연기 때문에 조용할 때도 초당 15번 그림
+  - 잔을 누르면 재즈바(Deck3D.onBar → index.html Jazz.set, LS tll.jazz, 쨍 소리 sfx.clink): 캔버스로 그린 술장·에디슨 전구·네온 Jazz·보케·호두나무 카운터 JPEG(--jazzimg)를 .deckp::before에 깔고 1.4초에 바꿈. 3D는 역광·잔 조명·연기가 따뜻해짐(D.setJazz). 다시 누르면 기본
 - 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase)
 
 ## 구조
