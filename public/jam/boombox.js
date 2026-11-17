@@ -1,7 +1,7 @@
 // 잼 모드 카세트 라디오(3D). three r170(../3d), 앞면 그림은 tapes/*.webp(Stitch 시안 "Cassette Front Cover Designs"에서 잘라냄, 2026-11-12)
 // createBoombox(canvas, base) → { setTape(key), insert(), eject(), setDoor(open), setPlaying(on), setProgress(0~1), press(key, down), onKey, keys, resize(), dispose() }
 // 좌표: +Y 위 +Z 앞. 본체 2.3 x 1.7 x 0.72. 카세트 칸 중심 (-0.47, 0), 문은 아래 경첩으로 열림(0.46 rad)
-import * as THREE from 'three';
+import * as THREE from '/3d/three.module.min.js';
 import { RoundedBoxGeometry } from '../3d/geometries/RoundedBoxGeometry.js';
 import { buildSea } from './sea.js';
 

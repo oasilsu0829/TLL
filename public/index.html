@@ -251,8 +251,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .lp.shine .sheen { animation: lpShine 1s .25s ease-in-out; }
 @keyframes lpShine { from { background-position: 130% 0; } to { background-position: -30% 0; } }
 .lp.back .sheen { display: none; }
-.cinfo { position: absolute; right: 2%; top: 4%; z-index: 70; padding: 5px 8px 4px; background: #f6f0e2; color: #2e2418; border-radius: 2px; box-shadow: 0 2px 6px rgba(0,0,0,.3); transform: rotate(3deg) translateY(-6px); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,1.4,.4,1); pointer-events: none; max-width: 46%; font-family: var(--mono); font-size: 9px; line-height: 1.35; }
+.cinfo { position: absolute; right: 11%; top: 12%; z-index: 70; padding: 5px 8px 4px; background: #f6f0e2; color: #2e2418; border-radius: 2px; box-shadow: 0 2px 6px rgba(0,0,0,.3); transform: rotate(3deg) translateY(-6px); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,1.4,.4,1); pointer-events: none; max-width: 46%; font-family: var(--mono); font-size: 9px; line-height: 1.35; }
 .cinfo b { display: block; font-family: var(--sans); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cinfo span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* 항목 중간에서 줄이 갈리지 않게 줄 단위로 */
 .crate-view.focus .cinfo.on { opacity: 1; transform: rotate(3deg); }
 .pick { width: 100%; text-align: center; margin-top: 14px; min-height: 36px; display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
 .pick b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -978,6 +979,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const API = 'https://api.spotify.com/v1';
   const DEV = 'T/L/L'; // Spotify 기기 목록에 보이는 이 브라우저 이름
   const MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // 사파리 엔진(맥 사파리, 아이폰·아이패드의 모든 브라우저). 3D로 기운 요소에 blur()를 걸면 레티나에서 반 크기로 왼쪽 위에 잘못 그려진다
+  const WEBKIT = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent));
 
   const S = {
     st: null,          // /me/player 결과 + at(받은 시각)
@@ -1025,9 +1029,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // 붙여넣은 글에서 Client ID(32자리 16진수)만 골라낸다. 'Client ID: abc…' 같은 줄이나 공백이 섞여도 됨
   const pickCid = (t) => {
     t = String(t || '');
-    const exact = /(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])/i; // 앞뒤가 16진수가 아닌 딱 32자리
-    const m = t.match(exact) || t.replace(/[\s-]+/g, '').match(/^[0-9a-f]{32}$/i); // 줄바꿈·공백으로 쪼개진 것만 있는 경우
-    return m ? m[0].toLowerCase() : '';
+    // 앞뒤가 16진수가 아닌 딱 32자리. 뒤돌아보기((?<!…))는 iOS 16.4 전 사파리에서 스크립트 전체가 안 열려서 쓰지 않는다
+    const m = t.match(/(?:^|[^0-9a-f])([0-9a-f]{32})(?![0-9a-f])/i) || t.replace(/[\s-]+/g, '').match(/^()([0-9a-f]{32})$/i); // 줄바꿈·공백으로 쪼개진 것만 있는 경우
+    return m ? m[m.length - 1].toLowerCase() : '';
   };
   function checkCid(auto) {
     const i = $('cid'), n = $('cidNote'), raw = i.value, c = pickCid(raw);
@@ -1083,7 +1087,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const p = LS.get('music.pkce'); LS.del('music.pkce');
     history.replaceState(null, '', HOME + (location.hash || (p && p.h) || ''));
     if (q.get('error')) { toast(q.get('error') === 'access_denied' ? '로그인을 취소했습니다' : 'Spotify 로그인 실패: ' + q.get('error')); return; }
-    if (!p || p.state !== q.get('state')) { toast('로그인 확인값이 맞지 않습니다. 다시 로그인하세요'); return; }
+    if (!p || p.state !== q.get('state')) {
+      // 아이폰 홈 화면 앱은 Spotify 로그인 창에서 돌아올 때 저장소가 달라 확인값을 잃을 수 있다
+      toast(IOS && !p ? '로그인 확인값을 잃었습니다. 홈 화면 앱에서 계속 이러면 사파리에서 이 주소를 열어 로그인해 주세요' : '로그인 확인값이 맞지 않습니다. 다시 로그인하세요', 8000);
+      return;
+    }
     try {
       await tokenReq({ grant_type: 'authorization_code', code: q.get('code'), redirect_uri: REDIRECT, code_verifier: p.v });
       if (!FRIEND) pushCid(clientId());
@@ -1129,7 +1137,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 
   // ---------- Web API ----------
   const ERR = {
-    NO_ACTIVE_DEVICE: '재생할 기기가 없습니다. 폰이나 PC에서 Spotify 앱을 한 번 열어 주세요',
+    // 아이폰은 Spotify 앱이 뒤로 가면 금방 기기 목록에서 사라진다(가장 흔한 '안 됨')
+    NO_ACTIVE_DEVICE: IOS ? '재생할 기기가 없습니다. Spotify 앱을 열어 아무 곡이나 잠깐 재생한 뒤 이 화면으로 돌아와 다시 눌러 주세요'
+      : '재생할 기기가 없습니다. 폰이나 PC에서 Spotify 앱을 한 번 열어 주세요',
     PREMIUM_REQUIRED: 'Spotify Premium이 필요합니다',
     VOLUME_CONTROL_DISALLOW: '이 기기는 음량을 바꿀 수 없습니다',
     UNREG: FRIEND ? '이 Spotify 계정은 아직 등록되지 않았습니다. 링크를 준 사람에게 Spotify 가입 이메일을 알려 주세요'
@@ -1414,7 +1424,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     e.style.zIndex = d < -0.5 ? 46 + Math.round(d) : 41 - Math.round(Math.max(d, 0));
     e.style.transform = `translateY(calc(${p.ty.toFixed(2)}% + ${near ? 'var(--lift, 0%)' : '0%'})) scale(${p.s.toFixed(3)}) rotateX(${p.rx.toFixed(2)}deg)`;
     const w = +(e.style.getPropertyValue('--w') || 0), fz = crateFocus && d > 0.5 ? Math.min(3, d * 1.1) : 0;
-    e.style.filter = [d > 0 ? `brightness(${(1 - Math.min(d, 6) * 0.12).toFixed(2)})` : '', w ? `saturate(${(1 - w * 0.35).toFixed(2)})` : '', fz ? `blur(${fz.toFixed(1)}px)` : ''].join(' ').trim();
+    // 사파리에서는 흐림 대신 조금 더 어둡게(뒤 판이 왼쪽 위에 작게 따로 보이던 문제)
+    const dim = d > 0 ? 1 - Math.min(d, 6) * 0.12 - (WEBKIT ? fz * 0.05 : 0) : 0;
+    e.style.filter = [d > 0 ? `brightness(${dim.toFixed(2)})` : '', w ? `saturate(${(1 - w * 0.35).toFixed(2)})` : '', fz && !WEBKIT ? `blur(${fz.toFixed(1)}px)` : ''].join(' ').trim();
     e.setAttribute('aria-hidden', String(!near));
   }
   // 크레이트 위치(소수). 손가락·관성·스프링이 이 값을 움직이고, 반올림한 값이 고른 판(pos)
@@ -1442,7 +1454,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       if (el) { el.classList.remove('shine'); void el.offsetWidth; el.classList.add('shine'); }
       const ci = $('cinfo'); ci.innerHTML = '';
       const b = document.createElement('b'); b.textContent = a.name;
-      ci.append(b, [a.m ? '부록 싱글' : isPl(a) ? '플레이리스트' : isSingle(a) ? '7" 싱글' : 'LP', a.year, a.n ? a.n + '곡' : '', a.p ? a.p + '번 들음' : ''].filter(Boolean).join(' · '));
+      ci.append(b);
+      for (const t of [[a.m ? '부록 싱글' : isPl(a) ? '플레이리스트' : isSingle(a) ? '7" 싱글' : 'LP', a.year, a.n ? a.n + '곡' : ''], [a.p ? a.p + '번 들음' : '']]) {
+        const line = t.filter(Boolean).join(' · ');
+        if (line) { const s = document.createElement('span'); s.textContent = line; ci.append(s); }
+      }
       setTimeout(() => ci.classList.add('on'), 450);
     }, 260);
   }
