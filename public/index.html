@@ -314,14 +314,6 @@ body.night:not(.playing) .deckp { --bgl: .32; }
 body.night .deckp.gap { animation: deckGap 1.3s ease; }
 @keyframes deckGap { 0%, 100% { --bgl: 0; } 35% { --bgl: .22; } }
 @media (prefers-reduced-motion: reduce) { body.night .deckp { transition: none; } body.night .deckp.gap { animation: none; } }
-/* 재즈바(2026-11-17, 온더락 잔을 누르면): 캔버스로 그린 그림(--jazzimg)을 칸 바탕 위·내용 아래에 깔고 1.4초에 바꿈. 멈추면 조금 어둡게 */
-.deckp { isolation: isolate; }
-.deckp::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.4s ease, filter 1.4s ease;
-  background: var(--jazzimg, none) center 42% / cover no-repeat; }
-body.jazz .deckp::before { opacity: 1; }
-body.jazz:not(.playing) .deckp::before { filter: brightness(.72); }
-body.jazz.lpfull .deckp::before { filter: brightness(.55); }
-@media (prefers-reduced-motion: reduce) { .deckp::before { transition: none; } }
 body.night .deckp .strip { border-color: #24252b; }
 body.night .deckp .seek, body.night .deckp .go { background: #141519; border-color: #2a2b31; color: #e4e4e7; box-shadow: none; }
 body.night .deckp .go small { color: #8b8f98; }
@@ -2787,95 +2779,6 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   });
   addEventListener('online', sync);
   // 조명은 늘 켠다(2026-11-13 사용자 결정: 조명 버튼 없앰). body.night는 <body>에 박아 둠
-  // ---------- 재즈바 배경 (2026-11-17 사용자 요청: 온더락 잔을 누르면 재즈바로) ----------
-  // 그림 파일 없이 캔버스로 한 번 그려 JPEG로 쓴다: 뒤 술장(병·선반 불빛) · 에디슨 전구 · 네온 'Jazz' → 크게 흐림(심도) → 보케 → 앞은 윤나는 호두나무 카운터
-  const Jazz = (() => {
-    let url = '';
-    function paint() {
-      const W = 1280, H = 860, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-      const rnd = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
-      // 1) 뒤 장면(나중에 통째로 흐림)
-      const back = document.createElement('canvas'); back.width = W; back.height = H; const b = back.getContext('2d');
-      let gr = b.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#120a07'); gr.addColorStop(0.5, '#25130a'); gr.addColorStop(1, '#0d0705');
-      b.fillStyle = gr; b.fillRect(0, 0, W, H);
-      // 벽 판넬(세로 결)
-      for (let x = 0; x < W; x += 92) { b.fillStyle = 'rgba(0,0,0,.25)'; b.fillRect(x, 0, 3, H * 0.6); b.fillStyle = 'rgba(255,190,120,.035)'; b.fillRect(x + 3, 0, 2, H * 0.6); }
-      // 술장: 선반 3단, 선반 밑 따뜻한 불빛 + 병
-      const shelves = [0.2, 0.34, 0.48];
-      shelves.forEach((sy, si) => {
-        const y = sy * H;
-        const glow = b.createLinearGradient(0, y - 120, 0, y); glow.addColorStop(0, 'rgba(255,160,70,0)'); glow.addColorStop(1, 'rgba(255,170,80,.28)');
-        b.fillStyle = glow; b.fillRect(W * 0.08, y - 120, W * 0.84, 120);
-        let x = W * 0.09 + rnd() * 20;
-        while (x < W * 0.9) {
-          const bw = 22 + rnd() * 26, bh = 70 + rnd() * 55, nk = bw * (0.28 + rnd() * 0.12), kind = rnd();
-          const col = kind < 0.4 ? [196, 118, 44] : kind < 0.58 ? [52, 96, 48] : kind < 0.78 ? [225, 215, 190] : kind < 0.9 ? [90, 40, 20] : [40, 70, 110];
-          const al = kind > 0.58 && kind < 0.78 ? 0.35 : 0.85;
-          b.fillStyle = `rgba(${col},${al})`;
-          b.beginPath(); b.moveTo(x, y); b.lineTo(x, y - bh * 0.62); b.quadraticCurveTo(x, y - bh * 0.78, x + (bw - nk) / 2, y - bh * 0.82);
-          b.lineTo(x + (bw - nk) / 2, y - bh); b.lineTo(x + (bw + nk) / 2, y - bh); b.lineTo(x + (bw + nk) / 2, y - bh * 0.82);
-          b.quadraticCurveTo(x + bw, y - bh * 0.78, x + bw, y - bh * 0.62); b.lineTo(x + bw, y); b.closePath(); b.fill();
-          b.fillStyle = 'rgba(255,235,200,.35)'; b.fillRect(x + bw * 0.18, y - bh * 0.6, bw * 0.1, bh * 0.5); // 반사 줄
-          if (rnd() < 0.5) { b.fillStyle = 'rgba(240,225,190,.55)'; b.fillRect(x + 3, y - bh * 0.45, bw - 6, bh * 0.18); } // 라벨
-          x += bw + 4 + rnd() * 10;
-        }
-        b.fillStyle = '#1a0d07'; b.fillRect(W * 0.07, y, W * 0.86, 8); b.fillStyle = 'rgba(255,200,130,.5)'; b.fillRect(W * 0.07, y, W * 0.86, 1.5);
-        void si;
-      });
-      // 에디슨 전구 3개(위에서 늘어진 줄)
-      [[0.18, 0.12], [0.5, 0.08], [0.82, 0.13]].forEach(([px, py]) => {
-        const x = px * W, y = py * H;
-        b.strokeStyle = 'rgba(30,20,14,.9)'; b.lineWidth = 2; b.beginPath(); b.moveTo(x, 0); b.lineTo(x, y - 18); b.stroke();
-        const r = b.createRadialGradient(x, y, 0, x, y, 170); r.addColorStop(0, 'rgba(255,214,150,.95)'); r.addColorStop(0.08, 'rgba(255,170,80,.55)'); r.addColorStop(0.4, 'rgba(255,120,40,.12)'); r.addColorStop(1, 'rgba(255,100,30,0)');
-        b.fillStyle = r; b.fillRect(x - 170, y - 170, 340, 340);
-      });
-      // 네온 'Jazz'(왼쪽 위 벽)
-      b.save(); b.translate(W * 0.2, H * 0.31); b.rotate(-0.06); b.font = 'italic 700 120px Georgia, "Times New Roman", serif'; b.textAlign = 'center';
-      for (const [blur, col, lw] of [[60, 'rgba(255,60,150,.9)', 10], [24, 'rgba(255,90,170,1)', 6], [6, 'rgba(255,200,230,1)', 2.2]]) { b.shadowColor = col; b.shadowBlur = blur; b.strokeStyle = col; b.lineWidth = lw; b.strokeText('Jazz', 0, 0); }
-      b.restore();
-      // 흐림: 줄였다 키우기 두 번(얕은 심도)
-      const blurPass = (src, k) => { const s = document.createElement('canvas'); s.width = Math.round(W / k); s.height = Math.round(H / k); const sc = s.getContext('2d'); sc.imageSmoothingQuality = 'high'; sc.drawImage(src, 0, 0, s.width, s.height); return s; };
-      const s1 = blurPass(back, 4), s2 = blurPass(s1, 3);
-      g.imageSmoothingQuality = 'high'; g.drawImage(s2, 0, 0, W, H);
-      // 2) 보케(술장·전구 쪽, 겹치면 밝아지게)
-      g.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 70; i++) {
-        const x = W * (0.06 + rnd() * 0.88), y = H * (0.04 + rnd() * 0.5), r = 10 + rnd() * 34, warm = rnd() < 0.82;
-        const col = warm ? (rnd() < 0.5 ? '255,180,90' : '255,215,160') : (rnd() < 0.5 ? '255,90,170' : '90,170,200');
-        const a = 0.05 + rnd() * 0.16, rg = g.createRadialGradient(x, y, 0, x, y, r);
-        rg.addColorStop(0, `rgba(${col},${a * 0.7})`); rg.addColorStop(0.82, `rgba(${col},${a})`); rg.addColorStop(1, `rgba(${col},0)`);
-        g.fillStyle = rg; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
-      }
-      g.globalCompositeOperation = 'source-over';
-      // 3) 앞 카운터(호두나무, 윤): 수평선 56%
-      const top = H * 0.56;
-      gr = g.createLinearGradient(0, top, 0, H); gr.addColorStop(0, '#3a1d0d'); gr.addColorStop(0.25, '#26120a'); gr.addColorStop(1, '#0e0604');
-      g.fillStyle = gr; g.fillRect(0, top, W, H - top);
-      for (let i = 0; i < 160; i++) { // 나뭇결(멀수록 촘촘)
-        const t = rnd(), y = top + Math.pow(t, 1.8) * (H - top), a = 0.04 + rnd() * 0.08;
-        g.strokeStyle = rnd() < 0.5 ? `rgba(0,0,0,${a})` : `rgba(160,90,45,${a * 0.8})`; g.lineWidth = 0.6 + t * 2.4;
-        g.beginPath(); g.moveTo(-20, y); g.bezierCurveTo(W * 0.3, y + (rnd() - 0.5) * 8 * (1 + t * 3), W * 0.7, y + (rnd() - 0.5) * 8 * (1 + t * 3), W + 20, y + (rnd() - 0.5) * 6); g.stroke();
-      }
-      // 카운터에 비친 술장 불빛(뒤집어 아주 흐리게)
-      g.save(); g.globalAlpha = 0.22; g.globalCompositeOperation = 'lighter'; g.translate(0, top * 2); g.scale(1, -0.55);
-      g.drawImage(s2, 0, 0, W, top * 1.6); g.restore();
-      // 카운터 앞 모서리 빛·수평선 경계 부드럽게
-      gr = g.createLinearGradient(0, top - 14, 0, top + 18); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.45, 'rgba(255,190,120,.12)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = gr; g.fillRect(0, top - 14, W, 32);
-      // 4) 연기 낀 공기 + 비네팅
-      gr = g.createLinearGradient(0, 0, 0, H * 0.6); gr.addColorStop(0, 'rgba(120,80,50,.10)'); gr.addColorStop(1, 'rgba(120,80,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H * 0.6);
-      const vg = g.createRadialGradient(W / 2, H * 0.52, H * 0.25, W / 2, H * 0.52, H * 0.95); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)');
-      g.fillStyle = vg; g.fillRect(0, 0, W, H);
-      return c.toDataURL('image/jpeg', 0.86);
-    }
-    function set(on, quiet) {
-      if (on && !url) { url = paint(); document.documentElement.style.setProperty('--jazzimg', `url("${url}")`); }
-      document.body.classList.toggle('jazz', on); LS.set('tll.jazz', on);
-      if (window.Deck3D && Deck3D.ok && Deck3D.setJazz) Deck3D.setJazz(on);
-      if (!quiet) toast(on ? '재즈바' : '기본 배경');
-    }
-    return { set, on: () => document.body.classList.contains('jazz') };
-  })();
   // 3D가 뜨면 조명·판 잡기를 연결
   (function hook3d() {
     if (window.Deck3D && Deck3D.ok) {
@@ -2883,8 +2786,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       Deck3D.onVolume = (v) => setVol(v);
       Deck3D.onSound = (k) => { if (sfx[k]) sfx[k](); };
       Deck3D.setVolume(LS.get('music.vol') ?? 50);
-      Deck3D.onBar = () => { sfx.clink && sfx.clink(); Jazz.set(!Jazz.on()); };
-      if (LS.get('tll.jazz')) Jazz.set(true, true);
+      Deck3D.onBar = () => { sfx.clink && sfx.clink(); }; // 온더락 잔을 누르면 잔이 살짝 돌며 쨍
+      LS.del('tll.jazz'); // 재즈바(잠깐 있었음)는 지움
       Deck3D.onScratch = onScratch; Deck3D.setNight(true); render(); return; }
     setTimeout(hook3d, 400);
   })();

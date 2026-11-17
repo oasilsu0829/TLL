@@ -17,7 +17,8 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - 턴테이블 뒤 배경(2026-11-17, v1.13.1~1.14.0, 사용자 선택 2·5·6·7): body.night .deckp 배경 = 그레인·옅은 가로 결 + 위에서 떨어지는 원뿔 빛·바닥 웅덩이(--a3) + 어둠 덮개 --bgl(@property, 멈추면 .32, 곡 사이 .gap 숨 쉼). 3D 바닥 그림자 0.35
   - 시안(1~4안): https://claude.ai/artifact/HVbj3vHKXAD9cRrLeuQU5U
   - 온더락 잔(deck3d.js bar): 본체 오른쪽 가죽 코스터 위 갓파더(호박색 술·큰 각얼음), 잔 테에 걸친 시가(띠 T/L/L, 불씨 깜빡임), 연기 스프라이트 42개. 유리는 transmission을 쓰지 않는다(화면 뒤 CSS 배경을 못 담아 탁해짐) → 프레넬 셰이더 fres()(미리 곱한 알파 더하기 섞기, 크리스털 컷은 화면 미분 각진 면). 연기 때문에 조용할 때도 초당 15번 그림
-  - 잔을 누르면 재즈바(Deck3D.onBar → index.html Jazz.set, LS tll.jazz, 쨍 소리 sfx.clink): 캔버스로 그린 술장·에디슨 전구·네온 Jazz·보케·호두나무 카운터 JPEG(--jazzimg)를 .deckp::before에 깔고 1.4초에 바꿈. 3D는 역광·잔 조명·연기가 따뜻해짐(D.setJazz). 다시 누르면 기본
+  - 재즈바 배경은 넣었다가 사용자 요청으로 지움(사진이 별로). 3D 재즈바 계획(카운터·술장·무대·펜던트, 폰 가벼운 판)은 '다음에'로 미룸. 잔을 누르면 잔이 코스터 위에서 살짝 돌고(용수철, 누를 때마다 방향 바꿈) 얼음이 흔들리며 쨍(sfx.clink)
+  - 시가(로부스토): 겉잎 그림(얼룩·사선 이음매·잎맥, bump) + 손말이 굵기 흔들림, 세 겹 캡과 잘린 단면, 금박 띠(metalnessMap, 메달 T/L/L·RESERVA), 탄 띠·불씨 고리(emissiveMap 흐름)·겹 재(금 간 회백)
 - 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase)
 
 ## 구조
