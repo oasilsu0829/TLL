@@ -971,6 +971,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const API = 'https://api.spotify.com/v1';
   const DEV = 'T/L/L'; // Spotify 기기 목록에 보이는 이 브라우저 이름
   const MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // 사파리 엔진(맥 사파리, 아이폰·아이패드의 모든 브라우저). 3D로 기운 요소에 blur()를 걸면 레티나에서 반 크기로 왼쪽 위에 잘못 그려진다
+  const WEBKIT = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent));
 
   const S = {
     st: null,          // /me/player 결과 + at(받은 시각)
@@ -1407,7 +1409,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     e.style.zIndex = d < -0.5 ? 46 + Math.round(d) : 41 - Math.round(Math.max(d, 0));
     e.style.transform = `translateY(calc(${p.ty.toFixed(2)}% + ${near ? 'var(--lift, 0%)' : '0%'})) scale(${p.s.toFixed(3)}) rotateX(${p.rx.toFixed(2)}deg)`;
     const w = +(e.style.getPropertyValue('--w') || 0), fz = crateFocus && d > 0.5 ? Math.min(3, d * 1.1) : 0;
-    e.style.filter = [d > 0 ? `brightness(${(1 - Math.min(d, 6) * 0.12).toFixed(2)})` : '', w ? `saturate(${(1 - w * 0.35).toFixed(2)})` : '', fz ? `blur(${fz.toFixed(1)}px)` : ''].join(' ').trim();
+    // 사파리에서는 흐림 대신 조금 더 어둡게(뒤 판이 왼쪽 위에 작게 따로 보이던 문제)
+    const dim = d > 0 ? 1 - Math.min(d, 6) * 0.12 - (WEBKIT ? fz * 0.05 : 0) : 0;
+    e.style.filter = [d > 0 ? `brightness(${dim.toFixed(2)})` : '', w ? `saturate(${(1 - w * 0.35).toFixed(2)})` : '', fz && !WEBKIT ? `blur(${fz.toFixed(1)}px)` : ''].join(' ').trim();
     e.setAttribute('aria-hidden', String(!near));
   }
   // 크레이트 위치(소수). 손가락·관성·스프링이 이 값을 움직이고, 반올림한 값이 고른 판(pos)
