@@ -641,6 +641,7 @@ body.lpfull .lpmeta { display: block; position: absolute; left: 4px; bottom: 6px
 .fsb { position: absolute; top: 0; right: 0; z-index: 10; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; color: rgba(255,255,255,.72); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); transition: background .15s, color .15s, opacity .5s; }
 .fsb:hover { background: rgba(255,255,255,.14); color: #fff; }
 body.lpfull.lpidle .fsb { opacity: 0; pointer-events: none; }
+.fsb.pipb { right: 44px; }
 body.lpfull .tw { display: none; }
 /* 전체화면 가사(애플 뮤직처럼): 턴테이블을 왼쪽으로 밀고 오른쪽에 가사. 배경은 앨범 색을 머금은 어둠 */
 body.lpfull { --lyrw: 44%; }
@@ -743,6 +744,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     <div class="stage">
       <div class="deck3d" id="deck3d" aria-hidden="true"></div>
       <button class="fsb" type="button" id="fullBtn" aria-pressed="false" aria-label="전체화면 · 가사" title="전체화면 · 가사 (F)"><svg class="ico"><use href="#i-fs" id="fullUse"/></svg></button>
+      <button class="fsb pipb" type="button" id="pipBtn" hidden aria-label="PiP" title="PiP (아이폰·아이패드)"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></button>
       <div class="lyr" id="lyr" aria-label="가사"></div>
       <div class="tw" id="tw" aria-live="polite"></div>
       <div class="lpmeta" aria-hidden="true"><p class="lt" id="lpT"></p><p class="la" id="lpA"></p></div>
@@ -3203,6 +3205,19 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       touch(c); renderCrates(); renderCrate();
     },
   };
+  // ---------- PiP (아이폰·아이패드만, public/pip.js) ----------
+  // iOS는 탭 순간에 바로 불러야 PiP를 허락해서, 모듈을 미리 불러 둔다
+  (function pip() {
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    import('/pip.js').then((P) => {
+      if (!P.supported()) return;
+      const btn = $('pipBtn'); btn.hidden = false;
+      const core = Object.assign({ toggle, skip }, window.MusicCore);
+      P.prepare(core);
+      btn.addEventListener('click', () => { P.open(core).catch(() => toast('PiP를 열지 못했습니다')); });
+    }).catch(() => {});
+  })();
   let jamMod = null;
   const jam = () => (jamMod = jamMod || import('/jam/jam.js').catch((e) => { jamMod = null; toast('잼 모드를 불러오지 못했습니다'); throw e; }));
   // 친구가 연 잼이 있으면(이 기기가 호스트가 아니면) 손님 창: 곡만 넣는다(jam/guest.js). 없으면 내 잼 시작
