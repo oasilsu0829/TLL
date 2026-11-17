@@ -144,7 +144,7 @@ function start() {
     });
     const fresM = [];
     const F = (...a) => { const m = fres(...a); fresM.push(m); return m; };
-    const g = new THREE.Group(); g.position.set(1.13, -0.196, 0.04); deck.add(g);
+    const g = new THREE.Group(); g.position.set(1.25, -0.196, 0.04); deck.add(g);
     // 가죽 코스터: 소가죽 적갈색 + 둘레 스티치
     const cc = document.createElement('canvas'); cc.width = cc.height = 256; const cg = cc.getContext('2d');
     const lg = cg.createRadialGradient(128, 118, 10, 128, 128, 128); lg.addColorStop(0, '#5a2318'); lg.addColorStop(0.8, '#3e160f'); lg.addColorStop(1, '#2a0d08');
