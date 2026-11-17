@@ -28,7 +28,7 @@ export function indexAt(L, ms) {
 }
 
 const LEAD = 250; // 줄이 아주 조금 먼저 켜져야 맞아 보인다
-const WAVE_UP = 8, WAVE_DOWN = 16, WAVE_MS = 38; // 물결로 움직일 줄 범위, 줄마다 늦어지는 시간
+const WAVE_UP = 8, WAVE_DOWN = 16, WAVE_MS = 55; // 물결로 움직일 줄 범위, 줄마다 늦어지는 시간
 
 export function mount(host, core) {
   host.innerHTML = '<div class="lyr-sc"><div class="lyr-in"></div></div><p class="lyr-note"></p>';
