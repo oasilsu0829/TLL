@@ -1,12 +1,13 @@
 // T/L/L 서비스 워커. 주소 전체(/)를 맡는다: 내 턴테이블(/), 친구용(/deck/)
 // - 앱 파일: 캐시를 먼저 보여 주고 뒤에서 새 파일을 받아 둔다(다음에 열 때 반영)
 // - 새로고침은 네트워크를 먼저 쓴다. 글꼴은 따로 캐시. /api/ 는 건드리지 않는다
-// 여러 파일을 함께 고쳤으면 VERSION을 올린다
-const VERSION = 'tll-v11';
+// 버전은 /version.js 하나에서 정한다(그 파일이 바뀌면 브라우저가 서비스 워커를 새로 설치한다)
+importScripts('/version.js');
+const VERSION = 'tll-' + ((self.TLL_VERSION && self.TLL_VERSION.v) || '0');
 const FONTS = 'tll-fonts-1';
 const KEEP = [VERSION, FONTS];
 const SHELL = [
-  '/', '/deck/', '/shell.js', '/merge.js', '/lyrics.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
+  '/', '/deck/', '/version.js', '/shell.js', '/merge.js', '/lyrics.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
   '/manifest.webmanifest', '/icon-192.png', '/deck/manifest.webmanifest', '/deck/icon-192.png',
 ];
 
@@ -82,6 +83,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+  if (url.pathname === '/version.js' && url.searchParams.has('check')) return; // 업데이트 확인은 항상 네트워크
 
   // 화면(HTML)은 ?code=… 같은 꼬리를 떼고 주소 하나로 저장한다
   const nav = req.mode === 'navigate';

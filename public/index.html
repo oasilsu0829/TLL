@@ -451,6 +451,8 @@ dialog::backdrop { background: rgba(17,24,39,.35); }
 .dlg .acts .btn { min-height: 44px; }
 .note { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
 .note.warn { color: var(--red); }
+.verrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.verrow .note { margin: 0; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: min(440px, calc(100vw - 32px)); background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; box-shadow: var(--shadow-xl); }
 
 /* 오른쪽 칸 탭: 지금 재생 · 크레이트 */
@@ -899,6 +901,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     <p class="note" id="sdkNote"></p>
     <label class="sfxrow"><input type="checkbox" id="sfxOn"> 효과음 (크레이트 넘김 · 판 갈아 끼우기)</label>
     <p class="note" id="syncNote"></p>
+    <div class="verrow"><span class="note" id="verNote"></span><button class="btn" type="button" id="verBtn">업데이트 확인</button></div>
     <div class="owner-only">
       <h3 style="margin:6px 0 4px;font-size:14px">친구용 링크</h3>
       <p class="note">친구에게는 이 링크를 보내세요. 로그인 버튼만 있고, 크레이트는 Spotify 계정마다 따로 저장됩니다. 먼저 Spotify 대시보드 → 내 앱 → <b>User Management</b>에 친구 Spotify 이메일을, <b>Redirect URIs</b>에 이 링크를 넣어 두세요.</p>
@@ -946,6 +949,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
 
+<script src="/version.js"></script>
 <script src="/shell.js"></script>
 <script src="/merge.js"></script>
 <script type="importmap">{"imports":{"three":"/3d/three.module.min.js"}}</script>
