@@ -131,19 +131,48 @@ function start() {
 
   // 탁자 위 온더락 잔(갓파더: 스카치 + 아마레토, 큰 각얼음)과 잔 위에 걸쳐 둔 시가, 끝에서 피어오르는 연기(2026-11-17 사용자 요청)
   // 본체 오른쪽 옆, 가죽 코스터 위. 실제 크기 비율(턴테이블 폭 45cm = 1.77): 잔 지름 8.5cm · 높이 8.5cm, 시가 12.5cm · 링 50
-  // 유리·술·얼음은 프레넬 셰이더(아래 fres). 잔을 누르면 살짝 돌며 쨍(D.onBar)
+  // 유리는 PC·패드 실제 굴절 / 폰 조명 반응(아래 GMODE). 잔을 누르면 살짝 돌며 쨍(D.onBar)
   const bar = (() => {
-    // 유리: 굴절(transmission)은 화면 뒤 CSS 배경(재즈바)을 못 담아 잔이 탁해 보였다 → 프레넬 셰이더(가장자리·컷 면만 빛나고 가운데는 비침)
-    // 더하기 섞기를 미리 곱한 알파로: 빛난 만큼만 알파가 올라가 뒤 배경이 그대로 보인다. flat = 화면 미분으로 각진 면(크리스털 컷)
-    const fres = (col, pw, k, flat, sp = 1.4) => new THREE.ShaderMaterial({
-      uniforms: { c: { value: new THREE.Color(col) }, p: { value: pw }, k: { value: k }, sp: { value: sp }, L: { value: new THREE.Vector3(-0.35, 1, 0.55).normalize() }, L2: { value: new THREE.Vector3(0.8, 0.5, 0.3).normalize() } },
+    // 유리(2026-11-17 사용자 선택 D): PC·패드 = 실제 굴절(C), 폰 = 조명에 반응하는 유리(B). 둘 다 스스로 빛나지 않고 방 조명(잔 위 스포트·반짝 점광)을 따라 밝기가 바뀐다
+    //  - 공통 겉면(specM): 검은 바탕 + 반사만 더하기 섞기 → 빛이 닿는 컷 면·테에만 하이라이트, 어두운 쪽은 투명
+    //  - C: 잔 뒤 장면(앱 배경과 같은 그라데이션 판 + 턴테이블)을 반 해상도로 따로 그려(prepass, 4프레임에 한 번) 술·얼음·굽이 그걸 굴절해 보여 줌
+    //    (예전 transmission은 화면 뒤 CSS 배경을 못 봐서 탁해졌다 → 배경판을 3D 안에 같은 모양으로 둠)
+    //  - 강제: localStorage tll.glass = "b" | "c"
+    const GMODE = (() => { try { const v = JSON.parse(localStorage.getItem('tll.glass')); if (v === 'b' || v === 'c') return v; } catch {} return matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'b' : 'c'; })();
+    const ADD = { transparent: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor };
+    const specM = (flat, o = {}) => new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0, roughness: o.r ?? 0.03, clearcoat: 1, clearcoatRoughness: 0.02, specularIntensity: 1, envMapIntensity: o.env ?? 1.5, flatShading: !!flat, opacity: o.a ?? 0.05, side: o.side ?? THREE.FrontSide, ...ADD });
+    // 잔 뒤 장면(굴절용)
+    const rt = GMODE === 'c' ? new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType }) : null;
+    const bdC = document.createElement('canvas'); bdC.width = 256; bdC.height = 160; { const x = bdC.getContext('2d'); const r = x.createRadialGradient(115, 72, 0, 115, 72, 190); r.addColorStop(0, '#1c1d22'); r.addColorStop(0.7, '#0a0a0c'); r.addColorStop(1, '#0a0a0c'); x.fillStyle = r; x.fillRect(0, 0, 256, 160); }
+    const bdT = new THREE.CanvasTexture(bdC); bdT.colorSpace = THREE.SRGBColorSpace;
+    const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: bdT, depthWrite: false, toneMapped: false })); backdrop.visible = false; backdrop.renderOrder = -10; scene.add(backdrop);
+    const lampU = { dir: { value: new THREE.Vector3(0, 1, 0) }, col: { value: new THREE.Color(0xffe2b8) }, k: { value: 0 } };
+    const resU = { value: new THREE.Vector2(1, 1) };
+    // 굴절 셰이더: 화면 자리 + 면 기울기만큼 비켜 뒤 장면을 읽고(색마다 조금씩 달리: 분산), 투과색을 곱하고, 조명이 닿는 곳에 반사·가장자리
+    const refrM = (o) => new THREE.ShaderMaterial({
+      uniforms: { tBack: { value: rt && rt.texture }, res: resU, tint: { value: new THREE.Color(...o.tint) }, glow: { value: new THREE.Color(...(o.glow || [0, 0, 0])) }, str: { value: o.str }, rimK: { value: o.rim },
+        lampDir: lampU.dir, lampCol: lampU.col, lampK: lampU.k, liqY: { value: -1e3 }, liqT: { value: new THREE.Color(0.78, 0.4, 0.12) } },
       vertexShader: 'varying vec3 vN; varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }',
-      fragmentShader: 'uniform vec3 c; uniform float p, k, sp; uniform vec3 L, L2; varying vec3 vN; varying vec3 vW; void main(){ vec3 V = normalize(cameraPosition - vW); vec3 N = ' + (flat ? 'normalize(cross(dFdx(vW), dFdy(vW)))' : 'normalize(vN)') + '; if (dot(N, V) < 0.0) N = -N; float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), p); float s = pow(max(dot(N, normalize(L + V)), 0.0), 90.0) * sp + pow(max(dot(N, normalize(L2 + V)), 0.0), 60.0) * sp * 0.5; vec3 col = c * f * k + vec3(s); gl_FragColor = vec4(col, clamp(max(col.r, max(col.g, col.b)), 0.0, 1.0)); }',
-      transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.CustomBlending,
-      blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor,
+      fragmentShader: `uniform sampler2D tBack; uniform vec2 res; uniform vec3 tint, glow, lampDir, lampCol, liqT; uniform float str, rimK, lampK, liqY;
+varying vec3 vN; varying vec3 vW;
+void main(){
+  vec3 V = normalize(cameraPosition - vW);
+  vec3 N = ${o.flat ? 'normalize(cross(dFdx(vW), dFdy(vW)))' : 'normalize(vN)'}; if (dot(N, V) < 0.0) N = -N;
+  vec3 nv = normalize((viewMatrix * vec4(N, 0.0)).xyz);
+  vec2 uv = gl_FragCoord.xy / res, off = -nv.xy * str;
+  vec3 bg = vec3(texture2D(tBack, uv + off * 0.94).r, texture2D(tBack, uv + off).g, texture2D(tBack, uv + off * 1.06).b);
+  vec3 col = bg * tint;
+  if (vW.y < liqY && ${o.inLiq ? 'true' : 'false'}) col *= liqT;
+  float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
+  float s = pow(max(dot(N, normalize(lampDir + V)), 0.0), 140.0);
+  float hk = clamp(1.0 - (liqY - vW.y) / 0.105 * 0.8, 0.2, 1.0); // 술: 위(빛 들어오는 쪽)일수록 밝음. 술이 아니면 liqY가 아주 낮아 hk = 1
+  col += lampCol * lampK * (s * 1.4 + f * rimK) + glow * lampK * hk * (0.55 + 0.45 * f);
+  gl_FragColor = vec4(col, ${o.alpha ?? '1.0'});
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`,
+      transparent: o.alpha != null, depthWrite: o.alpha == null,
     });
-    const fresM = [];
-    const F = (...a) => { const m = fres(...a); fresM.push(m); return m; };
     const g = new THREE.Group(); g.position.set(1.25, -0.196, 0.04); deck.add(g);
     // 가죽 코스터: 소가죽 적갈색 + 둘레 스티치
     const cc = document.createElement('canvas'); cc.width = cc.height = 256; const cg = cc.getContext('2d');
@@ -154,36 +183,66 @@ function start() {
     const ct = new THREE.CanvasTexture(cc); ct.colorSpace = THREE.SRGBColorSpace;
     const coaster = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.012, 64), [new THREE.MeshStandardMaterial({ color: 0x2a0d08, roughness: 0.7 }), new THREE.MeshStandardMaterial({ map: ct, roughness: 0.55 }), new THREE.MeshStandardMaterial({ color: 0x2a0d08 })]);
     coaster.position.y = 0.006; coaster.receiveShadow = true; g.add(coaster);
+    // 코스터에 맺힌 빛(술을 지나 모인 호박색 무늬, 조명 반대쪽으로 비켜 남)
+    const csC = document.createElement('canvas'); csC.width = csC.height = 128; { const x = csC.getContext('2d'); const r = x.createRadialGradient(64, 64, 6, 64, 64, 64); r.addColorStop(0, 'rgba(255,190,100,.9)'); r.addColorStop(0.35, 'rgba(255,140,50,.45)'); r.addColorStop(0.7, 'rgba(200,90,20,.12)'); r.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = r; x.fillRect(0, 0, 128, 128);
+      x.globalCompositeOperation = 'lighter'; x.strokeStyle = 'rgba(255,220,160,.35)'; x.lineWidth = 1.5; for (let i = 0; i < 5; i++) { x.beginPath(); x.ellipse(64, 64, 18 + i * 7, 14 + i * 6, i * 0.4, 0, Math.PI * 2); x.stroke(); } }
+    const causM = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(csC), color: 0xffffff, opacity: 0, ...ADD });
+    const caus = new THREE.Mesh(new THREE.CircleGeometry(0.15, 40), causM); caus.rotation.x = -Math.PI / 2; caus.scale.set(1.15, 0.85, 1); caus.position.set(0.05, 0.0125, -0.04); g.add(caus);
     const G = new THREE.Group(); G.position.y = 0.012; g.add(G);
     const R = 0.165, H = 0.33, W = 0.011, B = 0.058;
-    // 잔: 바깥은 크리스털 컷(아래 2/3 세로 면 + 굽 위 다이아몬드 띠), 안은 매끈. 닫힌 덩어리로 만들어 두께만큼 굴절
+    // 잔: 바깥은 크리스털 컷(아래 2/3 세로 면 + 굽 위 다이아몬드 띠), 안은 매끈. 얇은 벽은 겉면 반사만(굴절은 두꺼운 굽·술·얼음)
     const prof = [[0, B], [R - W - 0.006, B], [R - W, B + 0.01], [R - W, H - 0.004], [R - W * 0.45, H], [R - 0.001, H - 0.004], [R, H * 0.68], [R - 0.004, 0.03], [R - 0.012, 0.006], [R - 0.022, 0], [0, 0]].map(([x, y]) => new THREE.Vector2(x, y));
-    const glassM = F(0xdfeeff, 2.6, 0.95, false, 1.6);
-    const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 72), glassM); glass.renderOrder = 6; G.add(glass);
-    // 두꺼운 바닥 유리 덩어리: 살짝 보이게(빛이 모이는 굽)
-    const baseM = F(0xcfe4ff, 1.2, 0.35, false, 0.8);
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.012, R - 0.02, B - 0.006, 48), baseM); base.position.y = (B - 0.006) / 2 + 0.003; base.renderOrder = 6; G.add(base);
-    // 컷 면: 아래 2/3에 세로로 깎은 면 24개(평평한 면이 빛을 따로따로 받음) — 바깥 껍질 한 겹을 각진 원기둥으로
-    const facetM = F(0xe8f2ff, 1.8, 0.75, true, 2.2);
-    const facet = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.0015, R - 0.004, H * 0.62, 24, 1, true), facetM); facet.position.y = 0.03 + H * 0.31; facet.renderOrder = 6; G.add(facet);
-    // 굽 위 다이아몬드 띠: 비스듬히 깎은 홈 두 방향(얇은 고리를 기울여 겹침)
-    const cutM = F(0xffffff, 1.0, 0.5, true, 2.5);
+    const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 72), specM(false, { side: THREE.DoubleSide, a: 0.04 })); glass.renderOrder = 6; G.add(glass);
+    // 아주 옅은 유리 몸(빛을 조금 먹어 뒤가 살짝 어두워짐)
+    const tintG = new THREE.Mesh(glass.geometry, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.1, depthWrite: false })); tintG.renderOrder = 3; G.add(tintG);
+    // 테: 얇은 반사선 하나로 윤곽
+    const lip = new THREE.Mesh(new THREE.TorusGeometry(R - W * 0.45, 0.0022, 8, 96), new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.08, clearcoat: 1, envMapIntensity: 2, opacity: 0.06, ...ADD })); lip.rotation.x = Math.PI / 2; lip.position.y = H - 0.001; lip.renderOrder = 7; G.add(lip);
+    // 두꺼운 굽
+    const baseG = new THREE.CylinderGeometry(R - 0.012, R - 0.02, B - 0.006, 48);
+    const base = new THREE.Mesh(baseG, GMODE === 'c' ? refrM({ tint: [0.86, 0.9, 0.93], str: 0.05, rim: 0.5 }) : new THREE.MeshPhysicalMaterial({ color: 0xc9d6df, roughness: 0.1, transparent: true, opacity: 0.16, depthWrite: false, clearcoat: 1 }));
+    base.position.y = (B - 0.006) / 2 + 0.003; base.renderOrder = 2; G.add(base);
+    // 컷 면: 아래 2/3에 세로로 깎은 면 24개(빛이 닿는 몇 면만 반짝)
+    const facet = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.0015, R - 0.004, H * 0.62, 24, 1, true), specM(true, { a: 0.03, env: 2 })); facet.position.y = 0.03 + H * 0.31; facet.renderOrder = 6; G.add(facet);
+    // 굽 위 다이아몬드 띠
+    const cutM = specM(true, { a: 0.02, env: 2.5 });
     for (let i = 0; i < 12; i++) for (const s of [1, -1]) {
       const v = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.06, 0.006), cutM); const a = (i / 12) * Math.PI * 2 + (s > 0 ? 0 : Math.PI / 12);
       v.position.set(Math.cos(a) * (R - 0.001), 0.05, Math.sin(a) * (R - 0.001)); v.rotation.set(0, -a, s * 0.55); v.renderOrder = 6; G.add(v);
     }
-    // 술: 호박색(스카치 + 아마레토). 빛이 지나며 깊어지는 색(attenuation) + 위 표면 살짝 볼록(메니스커스)
+    // 술: 호박색(스카치 + 아마레토). C = 뒤를 호박색으로 굴절 + 조명 받은 만큼 속에서 은은히(산란), B = 조명 받는 반투명
     const LQ = 0.105, LR = R - W - 0.002;
-    const liqM = new THREE.MeshStandardMaterial({ color: 0xb8641c, emissive: 0x6a2a06, emissiveIntensity: 0.28, roughness: 0.08, metalness: 0, envMapIntensity: 5, transparent: true, opacity: 0.84, depthWrite: false });
-    const liq = new THREE.Mesh(new THREE.CylinderGeometry(LR, LR - 0.006, LQ, 64), liqM); liq.position.y = B + LQ / 2 + 0.002; liq.renderOrder = 4; G.add(liq);
-    const liqF = new THREE.Mesh(liq.geometry, F(0xffb060, 2.0, 0.32, false, 1.1)); liq.add(liqF); liqF.renderOrder = 5;
-    // 큰 각얼음(손으로 깎은 투명 얼음, 가운데만 살짝 흐림) — 술 위로 머리를 내밂
-    const iceM = F(0xeaf4ff, 1.6, 0.5, true, 1.4);
-    const ice = new THREE.Mesh(new RoundedBoxGeometry(0.168, 0.162, 0.168, 4, 0.024), iceM);
-    ice.position.set(0.006, B + 0.094, -0.004); ice.rotation.set(0.1, 0.55, -0.07); ice.renderOrder = 5; G.add(ice);
-    const iceBody = new THREE.Mesh(ice.geometry, new THREE.MeshBasicMaterial({ color: 0xdfeaf2, transparent: true, opacity: 0.05, depthWrite: false })); ice.add(iceBody);
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false }));
+    const liqG = new THREE.CylinderGeometry(LR, LR - 0.006, LQ, 64);
+    const liqM = GMODE === 'c' ? refrM({ tint: [0.85, 0.42, 0.12], glow: [0.2, 0.07, 0.012], str: 0.035, rim: 0.3, alpha: '0.92' })
+      : new THREE.MeshPhysicalMaterial({ color: 0xa4561a, emissive: 0x5a2206, emissiveIntensity: 0, roughness: 0.1, clearcoat: 1, transparent: true, opacity: 0.86, depthWrite: false });
+    const liq = new THREE.Mesh(liqG, liqM); liq.position.y = B + LQ / 2 + 0.002; liq.renderOrder = 4; G.add(liq);
+    const liqTop = new THREE.Mesh(new THREE.CircleGeometry(LR - 0.001, 64), specM(false, { a: 0.02, r: 0.02 })); liqTop.rotation.x = -Math.PI / 2; liqTop.position.y = LQ / 2 + 0.0005; liqTop.renderOrder = 5; liq.add(liqTop);
+    // 큰 각얼음(손으로 깎은 투명 얼음, 가운데만 살짝 흐림) — 술 위로 머리를 내밂. 술 속 부분은 호박색으로 비침(liqY)
+    const iceG = new RoundedBoxGeometry(0.168, 0.162, 0.168, 4, 0.024);
+    const iceM = GMODE === 'c' ? refrM({ tint: [1.0, 1.0, 1.0], glow: [0.03, 0.035, 0.04], str: 0.07, rim: 1.0, inLiq: true }) : new THREE.MeshPhysicalMaterial({ color: 0xe2ebf2, roughness: 0.14, clearcoat: 1, transparent: true, opacity: 0.26, depthWrite: false });
+    const ice = new THREE.Mesh(iceG, iceM);
+    ice.position.set(0.006, B + 0.094, -0.004); ice.rotation.set(0.1, 0.55, -0.07); ice.renderOrder = 3; G.add(ice);
+    const iceS = new THREE.Mesh(iceG, specM(false, { a: 0.02, r: 0.06 })); iceS.renderOrder = 6; ice.add(iceS);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, depthWrite: false }));
     core.scale.set(1, 0.6, 1); ice.add(core);
+    // 굴절용 앞 그리기: 잔 속(굴절하는 것들)만 감추고, 배경판을 카메라 뒤 먼 곳에 화면 가득 세워 반 해상도로 그림
+    const refrParts = [base, ice, glass, tintG, facet, lip, caus];
+    // 굴절용 장면엔 술을 간단한 호박색으로 넣어(자기 자신을 읽을 순 없으니) 얼음·굽 너머로 술이 보이게
+    const liqPre = new THREE.MeshStandardMaterial({ color: 0x8a3f10, emissive: 0x4a1a04, emissiveIntensity: 0.6, roughness: 0.2 });
+    const _ds = new THREE.Vector2(), _dir = new THREE.Vector3();
+    function prepass(n) {
+      if (!rt) return;
+      renderer.getDrawingBufferSize(_ds); resU.value.copy(_ds);
+      const w = Math.max(4, _ds.x >> 1), h = Math.max(4, _ds.y >> 1);
+      const fresh = rt.width !== w || rt.height !== h; if (fresh) rt.setSize(w, h);
+      if (!fresh && n % 4) return;
+      const D0 = 9, hh = 2 * D0 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2);
+      cam.getWorldDirection(_dir); backdrop.position.copy(cam.position).addScaledVector(_dir, D0); backdrop.quaternion.copy(cam.quaternion); backdrop.scale.set(hh * cam.aspect * 1.05, hh * 1.05, 1);
+      const vis = refrParts.map((m) => m.visible); refrParts.forEach((m) => { m.visible = false; }); backdrop.visible = true; const lm = liq.material; liq.material = liqPre; liqTop.visible = false;
+      const prevRT = renderer.getRenderTarget(), sm = renderer.shadowMap.needsUpdate; renderer.shadowMap.needsUpdate = false;
+      renderer.setRenderTarget(rt); renderer.setClearColor(0x0a0a0c, 1); renderer.clear(); renderer.render(scene, cam);
+      renderer.setRenderTarget(prevRT); renderer.setClearColor(0x000000, 0); renderer.shadowMap.needsUpdate = sm;
+      refrParts.forEach((m, i) => { m.visible = vis[i]; }); backdrop.visible = false; liq.material = lm; liqTop.visible = true;
+    }
     // 누르는 자리(보이지 않는 원기둥, 잔·시가를 감쌈)
     const hit = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.04, R + 0.04, H + 0.12, 16), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false }));
     hit.position.y = (H + 0.12) / 2; hit.userData.act = 'bar'; G.add(hit);
@@ -293,6 +352,11 @@ function start() {
       emberM.emissiveIntensity = 1.5 + pulse * 1.1; emberL.intensity = 0.06 + pulse * 0.1; emT.offset.x = (T * 0.03) % 1; emT.offset.y = Math.sin(T * 1.7) * 0.05;
       lamp.intensity = nightK * 2.6;
       glint.intensity = nightK * 0.35;
+      // 유리 밝기는 실제 조명을 따라감: 잔 위 조명 세기·방향
+      const lk = lamp.intensity / 2.6; lampU.k.value = lk * 0.9; lampU.dir.value.copy(lamp.position).sub(_dir.setFromMatrixPosition(G.matrixWorld)).normalize();
+      causM.opacity = 0.2 * lk; causM.color.setScalar(0.35 * lk);
+      if (GMODE === 'b') liqM.emissiveIntensity = 0.1 * lk;
+      if (GMODE === 'c') { G.updateMatrixWorld(); const ly = liq.getWorldPosition(_dir).y + LQ / 2; ice.material.uniforms.liqY.value = ly; liq.material.uniforms.liqY.value = ly; }
       // 잔 돌기: 용수철(살짝 넘쳤다 돌아옴)
       turnV += ((turnT - turn) * 60 - turnV * 9) * Math.min(dt, 0.05); turn += turnV * Math.min(dt, 0.05);
       G.rotation.y = turn;
@@ -310,8 +374,8 @@ function start() {
         q.sp.material.rotation = q.sd + k * 2;
       }
     }
-    [glass, base, facet, liq, ice, hit].forEach((m) => { m.userData.ns = true; }); G.children.forEach((m) => { if (m.material === cutM) m.userData.ns = true; });
-    return { step, hit, clink() { ring = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, busy: () => ring >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
+    [glass, tintG, lip, base, facet, liq, ice, hit, caus].forEach((m) => { m.userData.ns = true; }); G.children.forEach((m) => { if (m.material === cutM) m.userData.ns = true; });
+    return { step, prepass, hit, clink() { ring = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, busy: () => ring >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
   })();
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
@@ -1099,6 +1163,7 @@ function start() {
     // 그림자: 판·톤암·덮개가 움직이는 동안은 매번, 판만 돌 땐 6번에 한 번(돌아가는 원판 그림자는 거의 안 바뀐다)
     frameN++;
     if (lively || far || Math.abs(coverT - coverK) > 0.001 || frameN % 6 === 0) renderer.shadowMap.needsUpdate = true;
+    bar.prepass(frameN);
     renderer.render(scene, cam);
     requestAnimationFrame(loop);
   }
