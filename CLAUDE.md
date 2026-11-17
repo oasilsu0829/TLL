@@ -17,6 +17,11 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
 - 턴테이블 뒤 배경(2026-11-17, v1.13.1~1.14.0, 사용자 선택 2·5·6·7): body.night .deckp 배경 = 그레인·옅은 가로 결 + 위에서 떨어지는 원뿔 빛·바닥 웅덩이(--a3) + 어둠 덮개 --bgl(@property, 멈추면 .32, 곡 사이 .gap 숨 쉼). 3D 바닥 그림자 0.35
   - 시안(1~4안): https://claude.ai/artifact/HVbj3vHKXAD9cRrLeuQU5U
   - 온더락 잔(deck3d.js bar): 본체 오른쪽 가죽 코스터 위 갓파더(호박색 술·큰 각얼음), 잔 테에 걸친 시가(띠 T/L/L, 불씨 깜빡임), 연기 스프라이트 42개. 유리는 transmission을 쓰지 않는다(화면 뒤 CSS 배경을 못 담아 탁해짐) → 프레넬 셰이더 fres()(미리 곱한 알파 더하기 섞기, 크리스털 컷은 화면 미분 각진 면). 연기 때문에 조용할 때도 초당 15번 그림
+  - 유리 v1.14.1(사용자 선택 D + 소리 S3): 프레넬 자체 발광은 조명에 비해 너무 밝아 버림. GMODE = PC·패드 'c'(실제 굴절: prepass가 4프레임에 한 번 잔 뒤 장면을 반 해상도 RT로 그림 — 앱 배경과 같은 그라데이션 판 backdrop을 카메라 앞 먼 곳에 세움, 술은 liqPre로 바꿔 넣음 → 굽·얼음·술이 refrM 셰이더로 굴절·분산·투과색, 술은 높이별 산란 빛) / 폰 'b'(조명 반응 반투명). 얇은 벽·컷 면·테는 둘 다 specM(검은 바탕 반사만 더하기). 밝기는 잔 위 조명 lamp를 따라감, 코스터에 호박색 맺힌 빛. 강제 localStorage tll.glass = "b"|"c"
+  - 보드카·각얼음 v1.15.0(사용자 선택 B + 각얼음, 원래 갓파더 호박색 → 보드카 투명): 술은 물처럼 꺾이는 투명(C 굴절 str 0.06 + 수면 근처 아지랑이 shim, B 옅은 반투명). 수면 RingGeometry 64×12 꼭짓점으로 메니스커스 + 누르면 잔물결(shapeSurf), 수면 경계 은빛 고리
+    술 다리(C만): 수면 위 안쪽 벽 clearcoatMap 줄무늬, 누르면 9초 흘러내림 · 잔 밖 성에·물방울(frost) + 흘러내리는 물방울 겹(runs, offset) · 각얼음은 BoxGeometry 4분할을 모서리 쳐 내고 흔든 각진 덩어리, 속에 공기 기둥 스프라이트·금 두 장·기포 점, 녹은 자국(clearcoatMap)
+    녹기: 10분에 크기 88%·술 3% 늘어남, 판을 바꾸면(D.drop) 새 얼음. 코스터 맺힌 빛은 하얗게, 폰(b)에선 방사선 무늬가 져서 끔
+  - 소리 S3(sfx.clink): 얼음 달그락 두 번(6.5kHz 대역 잡음 + 딱) → 5.52k·5.546k 맥놀이 핑 + 8.3k·11k 배음
   - 재즈바 배경은 넣었다가 사용자 요청으로 지움(사진이 별로). 3D 재즈바 계획(카운터·술장·무대·펜던트, 폰 가벼운 판)은 '다음에'로 미룸. 잔을 누르면 잔이 코스터 위에서 살짝 돌고(용수철, 누를 때마다 방향 바꿈) 얼음이 흔들리며 쨍(sfx.clink)
   - 시가(로부스토): 겉잎 그림(얼룩·사선 이음매·잎맥, bump) + 손말이 굵기 흔들림, 세 겹 캡과 잘린 단면, 금박 띠(metalnessMap, 메달 T/L/L·RESERVA), 탄 띠·불씨 고리(emissiveMap 흐름)·겹 재(금 간 회백)
 - 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase)
@@ -57,7 +62,7 @@ public/       음악 (MUS-09, 2026-11-11). Spotify 플레이어. Stitch 시안 "
                       (2026-11-15 버그) 비닐이 크레이트 칸 안에 있어서 폰에선 화면 밑에 깔리고, 판 꺼내기를 누르면 화면 밖 턴테이블에서 모션이 돌아 '판이 안 나옴' → #seal을 body로 옮겨 화면 전체 겹(z 300)으로, playSeal이 턴테이블을 화면에 끌어옴, 비닐이 뜨면 잡지 신간 팝업을 내림. 지금 재생·크레이트 탭 줄에 WEEKLY·DAYLIST 단추(#spW·#spD, 폰은 위클리·데일리): 누르면 언제든 뜸(이번 회차를 이미 뜯었으면 슬리브만, 링크가 없으면 설정 창). 새 회차면 불 켜짐(spxPaint)
                       컬러 바이닐(2026-11-16 사용자 요청): 위클리·데이리스트 판은 슬리브 그림(sealArt)과 같은 색(위클리 파랑·청록·연두, 데이리스트는 시간대 색) 그라데이션 + 동심원. index.html vcFor(key)가 music.special 링크와 맞으면 색을 L.vc로 넘기고 deck3d drawRecord가 판 윗면·옆면을 칠함, 지금 재생 판은 .np-disc.vc
                       남은 것: Spotify가 개발 모드 앱의 자동 플레이리스트(위클리·데이리스트) 읽기를 막아 이름·표지·트랙 목록은 못 받음(재생은 됨)
-                      회차 기록(2026-11-17, v1.15.0, 사용자 요청 '커버 변동 없게 · 곡 목록 · 제목의 장르·느낌 반영'): LS music.spx {weekly|daylist: {key, id, title, tags, colors, img, tracks}}. ensureSpx가 회차마다 한 번 만들고 그 회차 동안 표지·판 색이 그대로(지금 재생 슬리브도 곡 표지 대신 회차 표지, entryFor·vcFor가 spxById로 읽음)
+                      회차 기록(2026-11-17, v1.16.0, 사용자 요청 '커버 변동 없게 · 곡 목록 · 제목의 장르·느낌 반영'): LS music.spx {weekly|daylist: {key, id, title, tags, colors, img, tracks}}. ensureSpx가 회차마다 한 번 만들고 그 회차 동안 표지·판 색이 그대로(지금 재생 슬리브도 곡 표지 대신 회차 표지, entryFor·vcFor가 spxById로 읽음)
                         곡 목록: 서버 GET /api/music/spx?id(src/spx.js, open.spotify.com/embed/playlist/<id>의 __NEXT_DATA__, 15분 캐시, 로그인 없음). 위클리(디스커버 위클리)는 여기서 30곡이 옴. 데이리스트는 계정 전용이라 임베드가 'daylist' 0곡을 줄 수 있음 → 그 판을 트는 동안 /me/player/queue로 20초마다 채움(spxCapture). 비닐 밑 #sealTk에 보임
                         장르·느낌: tagsOf(제목)가 GENRES·MOODS 정규식(영어·한국어)으로 뽑음 → 색 = 첫 느낌, 무늬 = 첫 장르(dots·stripes·waves·grid·rings), 큰 글씨 = 요일·시간대 뺀 제목. 제목을 못 읽으면 비닐 창 '제목 넣기'(prompt)로 사용자가 넣음(그때만 표지 다시 그림). 실제 데이리스트로 임베드가 제목을 주는지는 미확인
                     - 평가 후 손봄(2026-11-11): 3D는 조용할 때(멈춤·움직임 없음·2초 넘게 안 만짐) 초당 10번, 덮개가 닫히면 2번만 그림(deck3d calm, poke). 라벨·색·시간창은 값이 바뀔 때만 깨움
