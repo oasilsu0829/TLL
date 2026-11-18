@@ -7,7 +7,7 @@ const VERSION = 'tll-' + ((self.TLL_VERSION && self.TLL_VERSION.v) || '0');
 const FONTS = 'tll-fonts-1';
 const KEEP = [VERSION, FONTS];
 const SHELL = [
-  '/', '/deck/', '/version.js', '/shell.js', '/merge.js', '/lyrics.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
+  '/', '/deck/', '/version.js', '/shell.js', '/merge.js', '/lyrics.js', '/pip.js', '/3d/deck3d.js', '/3d/three.module.min.js', '/3d/geometries/RoundedBoxGeometry.js',
   '/manifest.webmanifest', '/icon-192.png', '/deck/manifest.webmanifest', '/deck/icon-192.png',
 ];
 
