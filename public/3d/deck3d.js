@@ -129,7 +129,7 @@ function start() {
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 2.8), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.197; deck.add(shadow);
 
-  // 탁자 위 온더락 잔(갓파더: 스카치 + 아마레토, 큰 각얼음)과 잔 위에 걸쳐 둔 시가, 끝에서 피어오르는 연기(2026-11-17 사용자 요청)
+  // 탁자 위 온더락 잔(보드카·각얼음)과 그 앞 크리스털 재떨이에 걸쳐 둔 시가, 끝에서 피어오르는 리본 연기(2026-11-17 · 11-18 사용자 요청)
   // 본체 오른쪽 옆, 가죽 코스터 위. 실제 크기 비율(턴테이블 폭 45cm = 1.77): 잔 지름 8.5cm · 높이 8.5cm, 시가 12.5cm · 링 50
   // 유리는 PC·패드 실제 굴절 / 폰 조명 반응(아래 GMODE). 잔을 누르면 살짝 돌며 쨍(D.onBar)
   const bar = (() => {
@@ -305,7 +305,88 @@ void main(){
     // 시가(로부스토 12.5cm · 링 50, 2026-11-17 사용자 요청 '더 현실적이고 디테일 있게'): 잔 테에 가로로 걸침. 축(로컬 x) 머리 -0.16 ~ 불씨 +0.30, 재 ~ +0.35
     // 겉잎: 얼룩진 콜로라도 갈색 + 비스듬히 감긴 이음매 + 잎맥(울퉁불퉁: bump) + 기름기(클리어코트). 몸통 굵기도 손으로 만 것처럼 아주 조금씩 다름
     // 머리: 세 겹 캡 + 길로틴으로 자른 단면(속잎이 보임). 발: 탄 띠(그을음) → 불씨 고리(깜빡임) → 겹겹이 쌓인 재(금 간 회백색)
-    const cig = new THREE.Group(); cig.position.set(0.02, H + 0.039, 0); cig.rotation.set(0, 2.35, 0.04); G.add(cig);
+    // 크리스털 재떨이(2026-11-18 사용자 요청: 시가를 잔에서 떼어 따로 · 홈 대신 대각선 대칭의 아트 문양 음각): 잔 앞 탁자 위
+    // 팔각 두꺼운 유리 + 둥근 우묵한 속. 바닥 가운데 큰 원형 문양(8방향 대칭: 90도 돌림 + 대각선 거울)과 옆면 여덟 칸 문양을 서리 낀 음각처럼(빛이 닿으면 하얗게)
+    // 유리는 잔과 같은 방식(PC·패드 굴절 refrM / 폰 옅은 반투명) + 반사 겉면 specM
+    const tray = new THREE.Group(); tray.position.set(1.17, -0.196, 0.56); tray.rotation.y = 0.18; deck.add(tray);
+    const RO = 0.2, RI = 0.135, TH = 0.095, BF = 0.042, P8 = Math.PI / 8;
+    const outerP = [[0, 0], [RO - 0.014, 0], [RO, 0.012], [RO, TH - 0.012], [RO - 0.008, TH], [RI + 0.014, TH]].map(([x, y]) => new THREE.Vector2(x, y));
+    const bowlP = [[RI + 0.014, TH], [RI + 0.002, TH - 0.006], [RI - 0.006, TH - 0.022], [RI * 0.86, BF + 0.012], [RI * 0.7, BF + 0.002], [RI * 0.5, BF], [0, BF]].map(([x, y]) => new THREE.Vector2(x, y));
+    const outerG = new THREE.LatheGeometry(outerP, 8, P8), bowlG = new THREE.LatheGeometry(bowlP, 64);
+    const thickM = (flat) => (GMODE === 'c' ? refrM({ tint: [0.88, 0.92, 0.95], str: 0.07, rim: 0.6, flat }) : new THREE.MeshPhysicalMaterial({ color: 0xc9d6df, roughness: 0.08, transparent: true, opacity: 0.14, depthWrite: false, clearcoat: 1, flatShading: flat, side: THREE.DoubleSide }));
+    const trayBody = new THREE.Mesh(outerG, thickM(true)), trayBowl = new THREE.Mesh(bowlG, thickM(false));
+    const trayCut = new THREE.Mesh(outerG, specM(true, { a: 0.04, env: 2.4 })), traySpec = new THREE.Mesh(bowlG, specM(false, { a: 0.03, env: 2 }));
+    trayBody.renderOrder = trayBowl.renderOrder = 4; trayCut.renderOrder = traySpec.renderOrder = 6;
+    tray.add(trayBody, trayBowl, trayCut, traySpec);
+    // 문양 그리기: 그린 것을 8번(90도씩 4번 × 거울 2번) 겹쳐 대각선까지 대칭
+    const sym8 = (x, S, f) => { for (let r = 0; r < 4; r++) for (const m of [1, -1]) { x.save(); x.translate(S / 2, S / 2); x.rotate(r * Math.PI / 2); x.scale(1, m); f(x); x.restore(); } };
+    const ES = 1024, ec8 = document.createElement('canvas'); ec8.width = ec8.height = ES; const e8 = ec8.getContext('2d');
+    e8.fillStyle = '#000'; e8.fillRect(0, 0, ES, ES); e8.strokeStyle = '#fff'; e8.fillStyle = '#fff'; e8.lineCap = 'round'; e8.lineJoin = 'round';
+    const oct = (x, r) => { x.beginPath(); for (let i = 0; i <= 8; i++) { const a = P8 + i * Math.PI / 4; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); } x.stroke(); };
+    sym8(e8, ES, (x) => {
+      x.lineWidth = 3;
+      // 가운데 8각 별
+      x.beginPath(); x.moveTo(0, 0); x.lineTo(78, 0); x.lineTo(26, 26 * Math.tan(P8 / 2)); x.closePath(); x.globalAlpha = 0.5; x.fill(); x.globalAlpha = 1; x.stroke();
+      x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(P8 * 2) * 52, Math.sin(P8 * 2) * 52); x.lineTo(26, 26 * Math.tan(P8 / 2)); x.stroke();
+      x.lineWidth = 2; x.beginPath(); x.arc(0, 0, 18, 0, Math.PI / 4); x.stroke(); x.beginPath(); x.arc(0, 0, 86, 0, Math.PI / 4); x.stroke();
+      // 해살: 별에서 뻗는 가는 빛줄기(0~45도)
+      x.lineWidth = 1.6; for (let a = 4; a < 45; a += 6) { const t = a * Math.PI / 180; x.beginPath(); x.moveTo(Math.cos(t) * 90, Math.sin(t) * 90); x.lineTo(Math.cos(t) * 185, Math.sin(t) * 185); x.stroke(); }
+      // 8각 띠 두 줄 + 그 사이 눈금
+      x.lineWidth = 3; oct(x, 200); oct(x, 228); x.lineWidth = 1.4;
+      for (let a = 0; a < 45; a += 3) { const t = a * Math.PI / 180; x.beginPath(); x.moveTo(Math.cos(t) * 204, Math.sin(t) * 204); x.lineTo(Math.cos(t) * 224, Math.sin(t) * 224); x.stroke(); }
+      // 대각선 위 부채꼴(아르데코 조개): 대각선 방향 바깥에서 안쪽으로 펼쳐짐
+      const fc = 330; x.save(); x.translate(fc * Math.SQRT1_2, fc * Math.SQRT1_2); x.rotate(Math.PI * 1.25);
+      for (let k = 0; k < 4; k++) { x.lineWidth = k ? 1.8 : 3; x.beginPath(); x.arc(0, 0, 34 + k * 26, -0.85, 0.85); x.stroke(); }
+      x.lineWidth = 1.4; for (let i = -4; i <= 4; i++) { const t = i * 0.2; x.beginPath(); x.moveTo(Math.cos(t) * 20, Math.sin(t) * 20); x.lineTo(Math.cos(t) * 112, Math.sin(t) * 112); x.stroke(); }
+      x.restore();
+      // 축 위 마름모 줄
+      x.lineWidth = 2.4; for (const [cx, w] of [[262, 16], [300, 11], [330, 7]]) { x.beginPath(); x.moveTo(cx - w, 0); x.lineTo(cx, w * 0.7); x.lineTo(cx + w, 0); x.lineTo(cx, -w * 0.7); x.closePath(); x.stroke(); }
+      // 꽃잎처럼 겹친 호(네잎 고리)
+      x.lineWidth = 2; x.beginPath(); x.arc(120, 120, 62, Math.PI * 0.95, Math.PI * 1.55); x.stroke();
+      x.beginPath(); x.arc(0, 150, 70, -0.3, 0.3 + Math.PI * 0.5); x.stroke();
+      // 바깥 원 띠 + 갈매기 무늬
+      x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 440, 0, Math.PI / 4); x.stroke(); x.beginPath(); x.arc(0, 0, 470, 0, Math.PI / 4); x.stroke();
+      x.lineWidth = 2; for (let a = 0; a < 45; a += 7.5) { const t0 = (a + 1) * Math.PI / 180, t1 = (a + 3.75) * Math.PI / 180, t2 = (a + 6.5) * Math.PI / 180;
+        x.beginPath(); x.moveTo(Math.cos(t0) * 445, Math.sin(t0) * 445); x.lineTo(Math.cos(t1) * 465, Math.sin(t1) * 465); x.lineTo(Math.cos(t2) * 445, Math.sin(t2) * 445); x.stroke(); }
+      // 띠와 바깥 원 사이: 대각선으로 엮인 격자(X)
+      x.lineWidth = 1.2; for (let a = 0; a < 45; a += 5) { const t = a * Math.PI / 180, u = (a + 5) * Math.PI / 180;
+        x.beginPath(); x.moveTo(Math.cos(t) * 240, Math.sin(t) * 240); x.lineTo(Math.cos(u) * 430, Math.sin(u) * 430); x.moveTo(Math.cos(u) * 240, Math.sin(u) * 240); x.lineTo(Math.cos(t) * 430, Math.sin(t) * 430); x.stroke(); }
+    });
+    // 잘린 면이 살짝 흐려 보이게(서리): 선 둘레를 조금 번지게
+    { const t = document.createElement('canvas'); t.width = t.height = ES; const tx = t.getContext('2d'); tx.filter = 'blur(2px)'; tx.drawImage(ec8, 0, 0); e8.globalCompositeOperation = 'lighter'; e8.globalAlpha = 0.6; e8.drawImage(t, 0, 0); e8.globalAlpha = 1; e8.globalCompositeOperation = 'source-over'; }
+    const engT = new THREE.CanvasTexture(ec8); engT.anisotropy = 8;
+    const engM = new THREE.MeshBasicMaterial({ map: engT, color: 0x000000, side: THREE.DoubleSide, ...ADD });
+    const floorEng = new THREE.Mesh(new THREE.CircleGeometry(RI * 0.98, 64), engM); floorEng.rotation.x = -Math.PI / 2; floorEng.position.y = BF + 0.0008; floorEng.renderOrder = 7; tray.add(floorEng);
+    // 옆면 여덟 칸: 칸마다 가운데 마름모 + 대각선 X 격자 + 위아래 부채꼴(상하·좌우 거울 대칭)
+    const sc8 = document.createElement('canvas'); sc8.width = 512; sc8.height = 256; const s8 = sc8.getContext('2d');
+    s8.fillStyle = '#000'; s8.fillRect(0, 0, 512, 256); s8.strokeStyle = '#fff'; s8.lineCap = 'round';
+    for (const mx of [1, -1]) for (const my of [1, -1]) { s8.save(); s8.translate(256, 128); s8.scale(mx, my);
+      s8.lineWidth = 3; s8.beginPath(); s8.moveTo(0, 96); s8.lineTo(150, 0); s8.stroke(); // 큰 마름모
+      s8.lineWidth = 1.6; s8.beginPath(); s8.moveTo(0, 70); s8.lineTo(110, 0); s8.stroke(); s8.beginPath(); s8.moveTo(0, 44); s8.lineTo(70, 0); s8.stroke();
+      s8.lineWidth = 1.2; for (let k = 0; k < 6; k++) { s8.beginPath(); s8.moveTo(160 + k * 16, 0); s8.lineTo(160 + k * 16 + 70, 112); s8.stroke(); s8.beginPath(); s8.moveTo(160 + k * 16 + 70, 0); s8.lineTo(160 + k * 16, 112); s8.stroke(); }
+      s8.lineWidth = 2; for (let k = 0; k < 3; k++) { s8.beginPath(); s8.arc(0, 128, 18 + k * 12, Math.PI * 1.15, Math.PI * 1.5); s8.stroke(); }
+      s8.lineWidth = 2.6; s8.beginPath(); s8.moveTo(0, 118); s8.lineTo(256, 118); s8.stroke(); s8.lineWidth = 3; s8.beginPath(); s8.moveTo(252, 0); s8.lineTo(252, 128); s8.stroke();
+      s8.restore(); }
+    { const t = document.createElement('canvas'); t.width = 512; t.height = 256; const tx = t.getContext('2d'); tx.filter = 'blur(1.5px)'; tx.drawImage(sc8, 0, 0); s8.globalCompositeOperation = 'lighter'; s8.globalAlpha = 0.5; s8.drawImage(t, 0, 0); s8.globalCompositeOperation = 'source-over'; s8.globalAlpha = 1; }
+    const sideT = new THREE.CanvasTexture(sc8); sideT.wrapS = THREE.RepeatWrapping; sideT.repeat.x = 8; sideT.anisotropy = 8;
+    const sideEngM = new THREE.MeshBasicMaterial({ map: sideT, color: 0x000000, side: THREE.DoubleSide, ...ADD });
+    const sideEng = new THREE.Mesh(new THREE.CylinderGeometry(RO + 0.0012, RO + 0.0012, TH - 0.03, 8, 1, true, P8), sideEngM);
+    sideEng.position.y = TH / 2; sideEng.renderOrder = 7; tray.add(sideEng);
+    // 바닥에 맺힌 빛(두꺼운 유리를 지난 조명)
+    const trayCausM = new THREE.MeshBasicMaterial({ map: causM.map, color: 0x000000, ...ADD });
+    const trayCaus = new THREE.Mesh(new THREE.CircleGeometry(0.24, 40), trayCausM); trayCaus.rotation.x = -Math.PI / 2; trayCaus.position.set(0.04, 0.001, -0.05); trayCaus.visible = GMODE === 'c'; tray.add(trayCaus);
+    // 털어 둔 재 몇 덩이
+    const ashBits = new THREE.Group(); tray.add(ashBits);
+    for (const [x, z, r, sy] of [[-0.05, -0.06, 0.022, 0.45], [-0.075, -0.03, 0.015, 0.5], [-0.03, -0.085, 0.012, 0.6]]) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 10), new THREE.MeshBasicMaterial({ color: 0x55524e })); // 불씨 빛에 주황으로 물들지 않게 조명 없이 m.scale.y = sy; m.position.set(x, BF + r * sy * 0.6, z); m.userData.ns = true; ashBits.add(m);
+    }
+    const trayHit = new THREE.Mesh(new THREE.CylinderGeometry(RO + 0.06, RO + 0.06, 0.3, 16), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false }));
+    trayHit.position.y = 0.15; trayHit.userData.act = 'cig'; tray.add(trayHit);
+    [trayBody, trayBowl, trayCut, traySpec, floorEng, sideEng, trayCaus, trayHit].forEach((m) => { m.userData.ns = true; });
+    if (GMODE === 'c') refrParts.push(trayBody, trayBowl);
+    // 시가는 재떨이 테에 걸쳐 둠: 불씨·재는 우묵한 속 위, 머리는 테 밖(앞 왼쪽, 턴테이블 쪽)으로
+    const CIG_P = new THREE.Vector3(-0.176, TH + 0.036, 0.29), CIG_R = new THREE.Euler(0, 0.785, 0.09);
+    const cig = new THREE.Group(); cig.position.copy(CIG_P); cig.rotation.copy(CIG_R); tray.add(cig);
     const CR = 0.039, X0 = -0.155, X1 = 0.302, LEN = X1 - X0;
     const rndC = (() => { let sd = 11; return () => ((sd = (sd * 16807) % 2147483647) / 2147483647); })();
     // 겉잎 그림(가로 = 둘레, 세로 = 길이. 캔버스 아래쪽 = 불 붙은 끝)
@@ -396,21 +477,106 @@ void main(){
     const sgr = sg2.createRadialGradient(32, 32, 0, 32, 32, 32); sgr.addColorStop(0, 'rgba(255,255,255,1)'); sgr.addColorStop(0.45, 'rgba(255,255,255,.45)'); sgr.addColorStop(1, 'rgba(255,255,255,0)');
     sg2.fillStyle = sgr; sg2.fillRect(0, 0, 64, 64);
     const smTex = new THREE.CanvasTexture(sc);
-    const puffs = [], N = 42, src = new THREE.Vector3();
+    // 위쪽에서 풀어져 흩어지는 연기(리본 끝에서 이어짐)
+    const puffs = [], N = 18, src = new THREE.Vector3(), RIB_H = 0.5;
     for (let i = 0; i < N; i++) {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smTex, color: 0xc9ccd2, transparent: true, opacity: 0, depthWrite: false }));
-      sp.renderOrder = 5; scene.add(sp); puffs.push({ sp, age: (i / N) * 5.2, life: 4.6 + Math.random() * 1.2, sd: Math.random() * 100, p: new THREE.Vector3() });
+      sp.renderOrder = 5; scene.add(sp); puffs.push({ sp, age: (i / N) * 4.4, life: 3.8 + Math.random() * 1.2, sd: Math.random() * 100, p: new THREE.Vector3() });
+    }
+    // 리본 연기(2026-11-18 사용자 선택 5번): 불씨에서 실처럼 곧게 오르다 높이 올라갈수록 꼬이고 넓어지며 풀어짐. 가닥 셋이 서로 감김
+    // 화면을 향한 띠(점마다 카메라 쪽 옆 방향으로 폭), 결 그림은 가로 = 폭(가운데 진함), 세로 = 높이(아래·위 옅어짐 + 가는 결)
+    const rc = document.createElement('canvas'); rc.width = 64; rc.height = 256; const rg = rc.getContext('2d');
+    for (let y = 0; y < 256; y++) { const v = y / 255, a = Math.min(1, v / 0.06) * Math.pow(1 - v, 1.3);
+      const gr = rg.createLinearGradient(0, 0, 64, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); rg.fillStyle = gr; rg.fillRect(0, 255 - y, 64, 1); }
+    rg.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 40; i++) { rg.fillStyle = `rgba(0,0,0,${0.15 + Math.random() * 0.25})`; rg.fillRect(Math.random() * 64, 0, 1 + Math.random() * 3, 256); }
+    const ribT = new THREE.CanvasTexture(rc);
+    const NS = 56, ribs = [];
+    for (let k = 0; k < 3; k++) {
+      const geo = new THREE.BufferGeometry(), pos = new Float32Array((NS + 1) * 6), uv = new Float32Array((NS + 1) * 4), idx = [];
+      for (let i = 0; i <= NS; i++) { uv.set([0, i / NS, 1, i / NS], i * 4); if (i < NS) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx);
+      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: ribT, color: 0xd2d5db, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+      m.frustumCulled = false; m.renderOrder = 5; scene.add(m); ribs.push({ m, pos, ph: k * 2.1, amp: [1, 0.75, 0.55][k], w: [1, 0.7, 0.5][k], h: [1, 0.85, 0.7][k] });
+    }
+    const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _t = new THREE.Vector3(), _v = new THREE.Vector3(), _side = new THREE.Vector3();
+    const ribPts = Array.from({ length: NS + 1 }, () => new THREE.Vector3());
+    function stepRibbons(T, op, grow) {
+      for (const r of ribs) {
+        const HR = RIB_H * r.h * grow;
+        for (let i = 0; i <= NS; i++) {
+          const t = i / NS, h = t * HR, a = Math.pow(Math.max(0, (t - 0.12) / 0.88), 1.6) * 0.1 * r.amp;
+          const w1 = h * 24 - T * 1.7 + r.ph, w2 = h * 43 - T * 2.6 + r.ph * 1.7;
+          ribPts[i].set(src.x + a * (Math.sin(w1) + 0.45 * Math.sin(w2)) - t * t * 0.05, src.y + h, src.z + a * 0.8 * Math.cos(w1 * 0.85 + 0.6) - t * 0.03);
+        }
+        for (let i = 0; i <= NS; i++) {
+          const p0 = ribPts[Math.max(0, i - 1)], p1 = ribPts[Math.min(NS, i + 1)];
+          _t.subVectors(p1, p0).normalize(); _v.subVectors(cam.position, ribPts[i]).normalize(); _side.crossVectors(_t, _v).normalize();
+          const t = i / NS, w = (0.006 + 0.075 * t * t) * r.w * (0.85 + 0.15 * Math.sin(T * 1.3 + t * 9 + r.ph));
+          _p.copy(ribPts[i]).addScaledVector(_side, -w); _q.copy(ribPts[i]).addScaledVector(_side, w);
+          r.pos.set([_p.x, _p.y, _p.z, _q.x, _q.y, _q.z], i * 6);
+        }
+        r.m.geometry.attributes.position.needsUpdate = true;
+        r.m.material.opacity = op * (r.h === 1 ? 1 : 0.7);
+      }
+    }
+    // 한 모금(2026-11-18 사용자 요청): 시가가 재떨이에서 들려 화면 앞(보는 사람 입 앞)으로 와서 한 번 빨고(불씨가 확 밝아짐), 돌아가는 동안 화면 앞에서 연기를 내뿜음
+    // 0~1.1초 다가옴 · 1.1~2.7초 빨기 · 2.7~3.9초 돌아감 · 2.9초부터 내뿜은 연기(4초쯤 흩어짐) · 그 뒤 리본 연기가 다시 자라 오름
+    // 내뿜은 연기 결: 둥근 덩어리 대신 소용돌이 진 가는 결(작은 점을 흔들며 이어 찍고 흐리게)
+    const wc2 = document.createElement('canvas'); wc2.width = wc2.height = 128; const wx = wc2.getContext('2d');
+    { const rr = (() => { let sd = 7; return () => ((sd = (sd * 16807) % 2147483647) / 2147483647); })();
+      wx.filter = 'blur(2.5px)';
+      for (let k = 0; k < 9; k++) { let x = 64 + (rr() - 0.5) * 50, y = 64 + (rr() - 0.5) * 50, a = rr() * 7;
+        for (let i = 0; i < 70; i++) { a += (rr() - 0.5) * 0.9; x += Math.cos(a) * 1.6; y += Math.sin(a) * 1.6; const d = Math.hypot(x - 64, y - 64) / 64; if (d > 0.95) break;
+          wx.fillStyle = `rgba(255,255,255,${0.05 * (1 - d)})`; wx.beginPath(); wx.arc(x, y, 3 + rr() * 7 * (1 - d), 0, 7); wx.fill(); } }
+      wx.filter = 'none'; const rg2 = wx.createRadialGradient(64, 64, 0, 64, 64, 64); rg2.addColorStop(0, 'rgba(255,255,255,.35)'); rg2.addColorStop(1, 'rgba(255,255,255,0)'); wx.fillStyle = rg2; wx.fillRect(0, 0, 128, 128); }
+    const wispTex = new THREE.CanvasTexture(wc2);
+    const exh = [];
+    for (let i = 0; i < 40; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: wispTex, color: 0xd6d9de, transparent: true, opacity: 0, depthWrite: false, depthTest: false })); sp.renderOrder = 30; sp.visible = false; scene.add(sp); exh.push({ sp, age: -1, life: 1, v: new THREE.Vector3(), sd: 0 }); }
+    let pf0 = -1, exhOn = 0, ribGrow = 1, ribK = 1;
+    const restP = new THREE.Vector3(), restQ = new THREE.Quaternion(), nearP = new THREE.Vector3(), nearQ = new THREE.Quaternion(), _f = new THREE.Vector3(), _u = new THREE.Vector3(), _r = new THREE.Vector3(), _ax = new THREE.Vector3(1, 0, 0);
+    function restPose() { tray.updateMatrixWorld(); const o = new THREE.Object3D(); o.position.copy(CIG_P); o.rotation.copy(CIG_R); tray.add(o); o.updateMatrixWorld(); o.matrixWorld.decompose(restP, restQ, _v); tray.remove(o); }
+    function nearPose(T) {
+      cam.updateMatrixWorld(); cam.getWorldDirection(_f); _u.setFromMatrixColumn(cam.matrixWorld, 1); _r.setFromMatrixColumn(cam.matrixWorld, 0);
+      const dir = _v.copy(_f).multiplyScalar(0.8).addScaledVector(_u, 0.42).addScaledVector(_r, -0.42).normalize(); // 오른쪽 아래(입) → 왼쪽 위로 비스듬히: 불씨가 화면 가운데 근처에서 보임
+      nearQ.setFromUnitVectors(_ax, dir);
+      const tip = _p.copy(cam.position).addScaledVector(_f, 0.55).addScaledVector(_u, -0.17 + Math.sin(T * 2.2) * 0.003).addScaledVector(_r, 0.2); // 머리 끝은 화면 오른쪽 아래 구석(입 쪽)
+      nearP.copy(tip).addScaledVector(dir, -(capX - 0.004)); // 머리 끝이 tip에 오게
+    }
+    function puff() {
+      if (pf0 >= 0) return;
+      pf0 = performance.now(); restPose(); scene.attach(cig);
     }
     // 잔을 누르면: 잔이 코스터 위에서 살짝 돌고(속 얼음은 늦게 따라 흔들림) 쨍. 누를 때마다 방향을 바꿔 제자리 근처를 오감
     let ring = -1, turn = 0, turnV = 0, turnT = 0, dir = 1;
     function step(dt, T, nightK) {
       const pulse = 0.75 + 0.25 * Math.sin(T * 2.1) * Math.sin(T * 0.7 + 1) + (Math.random() - 0.5) * 0.12;
-      emberM.emissiveIntensity = 1.5 + pulse * 1.1; emberL.intensity = 0.06 + pulse * 0.1; emT.offset.x = (T * 0.03) % 1; emT.offset.y = Math.sin(T * 1.7) * 0.05;
+      // 한 모금: 시가 자리·불씨 세기
+      let draw = 0;
+      if (pf0 >= 0) {
+        const e = (performance.now() - pf0) / 1000;
+        nearPose(T);
+        if (e < 1.1) { const k = ease(e / 1.1); cig.position.lerpVectors(restP, nearP, k).y += Math.sin(k * Math.PI) * 0.12; cig.quaternion.slerpQuaternions(restQ, nearQ, k); ribK = Math.max(0, 1 - e / 0.3); }
+        else if (e < 2.7) { const k = (e - 1.1) / 1.6; draw = Math.sin(Math.min(1, k * 1.25) * Math.PI * 0.5) * (1 - Math.max(0, (k - 0.85) / 0.15)); cig.position.copy(nearP).addScaledVector(_f, -0.012 * Math.sin(k * Math.PI)); cig.quaternion.copy(nearQ); }
+        else if (e < 3.9) { const k = ease((e - 2.7) / 1.2); restPose(); cig.position.lerpVectors(nearP, restP, k).y += Math.sin(k * Math.PI) * 0.1; cig.quaternion.slerpQuaternions(nearQ, restQ, k); draw = Math.max(0, 0.35 - k); }
+        else { tray.attach(cig); cig.position.copy(CIG_P); cig.rotation.copy(CIG_R); pf0 = -1; ribGrow = 0; ribK = 1; }
+        if (e >= 2.9 && exhOn === 0) { exhOn = 1; D.onSound && D.onSound('exhale'); }
+        if (e >= 2.9 && exhOn === 1 && e < 3.8) { // 0.9초 동안 입 앞에서 내뿜음
+          for (const q of exh) if (q.age < 0 && Math.random() < 0.35) {
+            q.age = 0; q.life = 2.8 + Math.random() * 1.6; q.sd = Math.random() * 100; q.sp.visible = true;
+            q.sp.position.copy(cam.position).addScaledVector(_f, 0.32).addScaledVector(_u, -0.1).addScaledVector(_r, (Math.random() - 0.5) * 0.03);
+            q.v.copy(_f).multiplyScalar(0.55 + Math.random() * 0.6).addScaledVector(_r, (Math.random() - 0.5) * 0.3).addScaledVector(_u, 0.03 + Math.random() * 0.12);
+          }
+        }
+        if (e < 1) exhOn = 0;
+      }
+      emberM.emissiveIntensity = 1.5 + pulse * 1.1 + draw * 5; emberL.intensity = 0.06 + pulse * 0.1 + draw * 0.9; emberL.distance = 0.35 + draw * 0.5; emT.offset.x = (T * 0.03) % 1; emT.offset.y = Math.sin(T * 1.7) * 0.05;
       lamp.intensity = nightK * 2.6;
       glint.intensity = nightK * 0.35;
       // 유리 밝기는 실제 조명을 따라감: 잔 위 조명 세기·방향
       const lk = lamp.intensity / 2.6; lampU.k.value = lk * 0.9; lampU.dir.value.copy(lamp.position).sub(_dir.setFromMatrixPosition(G.matrixWorld)).normalize();
       causM.opacity = 0.1 * lk; causM.color.setScalar(0.16 * lk);
+      // 재떨이 음각: 방 조명이 밝을수록 서리 낀 선이 하얗게
+      engM.color.setScalar(0.07 + 0.2 * nightK); sideEngM.color.setScalar(0.05 + 0.14 * nightK); trayCausM.color.setScalar(0.06 * nightK);
       timeU.value = T;
       const now = performance.now();
       if (rip0 >= 0) shapeSurf(now);
@@ -425,21 +591,35 @@ void main(){
       turnV += ((turnT - turn) * 60 - turnV * 9) * Math.min(dt, 0.05); turn += turnV * Math.min(dt, 0.05);
       G.rotation.y = turn;
       if (ring >= 0) { const k = (performance.now() - ring) / 1100; if (k >= 1) { ring = -1; ice.rotation.z = -0.07; ice.position.x = 0.006; ice.rotation.y = 0.55; } else { const a = (1 - k) * (1 - k); ice.rotation.z = -0.07 + Math.sin(k * 38) * 0.05 * a; ice.position.x = 0.006 + Math.sin(k * 31) * 0.007 * a; ice.rotation.y = 0.55 - Math.sin(k * 9) * 0.25 * a * dir; } }
-      g.updateMatrixWorld(); cig.localToWorld(src.set(X1 + ASH + 0.012, 0.012, 0));
+      cig.updateMatrixWorld(); cig.localToWorld(src.set(X1 + ASH + 0.006, 0.006, 0));
+      // 리본: 모금 중엔 숨기고, 돌아온 뒤 불씨에서 다시 자라 오름
+      if (ribGrow < 1) ribGrow = Math.min(1, ribGrow + dt / 2.2);
+      const sOp = lerp(0.32, 0.48, nightK) * ribK * (pf0 >= 0 ? 0 : 1);
+      stepRibbons(T, sOp, Math.max(0.02, ribGrow));
+      for (const q of exh) {
+        if (q.age < 0) continue;
+        q.age += dt; const k = q.age / q.life;
+        if (k >= 1) { q.age = -1; q.sp.visible = false; q.sp.material.opacity = 0; continue; }
+        q.v.multiplyScalar(Math.exp(-1.25 * dt)); q.v.y += 0.02 * dt;
+        q.sp.position.addScaledVector(q.v, dt); q.sp.position.x += Math.sin(T * 1.1 + q.sd) * 0.01 * dt;
+        const s = 0.03 + (1 - Math.pow(1 - k, 2)) * 0.3; q.sp.scale.set(s, s, 1);
+        q.sp.material.opacity = Math.min(1, k / 0.06) * Math.pow(1 - k, 1.8) * lerp(0.28, 0.4, nightK);
+        q.sp.material.rotation = q.sd + k * 1.5;
+      }
       for (const q of puffs) {
         q.age += dt;
         if (q.age >= q.life) { q.age -= q.life; q.sd = Math.random() * 100; }
-        const k = q.age / q.life, h = q.age * 0.13 + k * k * 0.25;
+        const k = q.age / q.life, h = RIB_H * 0.8 * ribGrow + q.age * 0.08 + k * k * 0.18;
         const sway = Math.sin(T * 0.6 + q.sd + h * 9) * 0.035 * (0.2 + k * 1.6) + Math.sin(T * 0.23 + q.sd) * 0.05 * k * k;
         q.p.set(src.x + sway - k * k * 0.12, src.y + h, src.z + Math.cos(T * 0.5 + q.sd + h * 7) * 0.025 * (0.2 + k * 1.4) - k * 0.05);
         q.sp.position.copy(q.p);
         const s = 0.025 + k * 0.26; q.sp.scale.set(s, s, 1);
-        q.sp.material.opacity = Math.min(1, k / 0.08) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.17, nightK);
+        q.sp.material.opacity = Math.min(1, k / 0.2) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.16, nightK) * ribK * (pf0 >= 0 ? 0 : ribGrow);
         q.sp.material.rotation = q.sd + k * 2;
       }
     }
     [glass, tintG, lip, base, facet, liq, ice, hit, caus, frost, runs, liqTop, liqSpec, silver].concat(legs ? [legs] : []).forEach((m) => { m.userData.ns = true; }); inside.traverse((m) => { m.userData.ns = true; }); iceS.userData.ns = true; G.children.forEach((m) => { if (m.material === cutM) m.userData.ns = true; });
-    return { step, prepass, hit, clink() { ring = rip0 = legT0 = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, newIce() { melt0 = performance.now(); }, busy: () => ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
+    return { step, prepass, hit, trayHit, puff() { puff(); D.onSound && D.onSound('puff'); }, lively: () => pf0 >= 0, clink() { ring = rip0 = legT0 = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, newIce() { melt0 = performance.now(); }, busy: () => pf0 >= 0 || ribGrow < 1 || exh.some((q) => q.age >= 0) || ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
   })();
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
@@ -740,7 +920,7 @@ void main(){
   let grab = null;  // { phi, spin0, t, last, v } 판을 손으로 잡은 상태
   let shakeT = -1;
   let strobeTex = null, strobeAng = 0;
-  const clips = [], clickables = [bar.hit];
+  const clips = [], clickables = [bar.hit, bar.trayHit];
   let speed45 = false, volume = 50, cueUp = 1, coverK = 0, coverT = 0, idle = 0, dragCtl = null;
   // 마지막으로 뭔가 바뀐 시각(만짐·라벨·색·볼륨…). 2초 넘게 조용하면 프레임을 낮춘다(배터리)
   let poke = 0, touchAt = 0; // poke: 깨우기(시간창 글자 등), touchAt: 손으로 만진 시각
@@ -1056,6 +1236,7 @@ void main(){
       else if (act === 'reset') { press(ctl.reset); D.onSound && D.onSound('click'); D.onButton && D.onButton('reset'); }
       else if (act === 'power') { ctl.power.rotation.y += ctl.power.rotation.y < 0 ? 1.2 : -1.2; D.onSound && D.onSound('click'); }
       else if (act === 'bar') { bar.clink(); D.onBar && D.onBar(); }
+      else if (act === 'cig') bar.puff();
       else if (act === 'cue') { D.onSound && D.onSound('cue'); D.onButton && D.onButton('cue'); }
       else if (act === 'slider' || act === 'dial') { dragCtl = { act, x: e.clientX, y: e.clientY, rot: ctl.dial.rotation.y }; el.setPointerCapture(e.pointerId); }
       return;
@@ -1143,7 +1324,7 @@ void main(){
     // 시가 연기가 있어 조용할 때도 초당 15번(덮개 닫힘은 2번 그대로)
     if (calm && now - loop.last < (coverK > 0.99 ? 500 : 66)) { requestAnimationFrame(loop); return; }
     // 판만 도는 평소 재생은 초당 30번이면 충분하다(120Hz 화면에서 4배 덜 그림). 판 갈기·잡기·조작 중엔 매 프레임
-    const lively = !!(grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0) || now - touchAt < 1200;
+    const lively = !!(grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || bar.lively()) || now - touchAt < 1200;
     if (!calm && !lively && now - loop.last < 31) { requestAnimationFrame(loop); return; }
     const dt = Math.min(calm ? 0.6 : 0.05, (now - loop.last) / 1000); loop.last = now;
     const busy = !!drop;
