@@ -2741,7 +2741,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // 크레이트 넘기기: 앞(아래)·옆으로 밀거나 휠. 지금 판을 누르면 그 앨범 재생
   let swiped = false;
   const cr = $('crate');
-  // 손으로 훑기: 왼쪽·아래로 밀면 다음 판. 판들이 손가락을 그대로 따라 기울고, 놓으면 관성으로 더 넘어가다 스프링으로 멈춘다
+  // 손으로 훑기: 오른쪽·위로 밀면 다음 판(2026-11-18 방향 뒤집음, 휠도 위로 굴리면 다음 판). 판들이 손가락을 그대로 따라 기울고, 놓으면 관성으로 더 넘어가다 스프링으로 멈춘다
   // 폰 세로 화면은 위아래가 페이지 스크롤이라(touch-action: pan-y) 좌우로만, 넓은 가로 화면은 위아래도
   cr.addEventListener('pointerdown', (e) => {
     if (!crate().albums.length) return;
@@ -2758,10 +2758,10 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       try { cr.setPointerCapture(e.pointerId); } catch {}
     }
     const unit = (g.axis === 'x' ? cr.clientWidth : cr.clientHeight) * 0.22, N = crate().albums.length;
-    const amt = (g.axis === 'x' ? -dx : dy) / unit;
+    const amt = (g.axis === 'x' ? dx : -dy) / unit;
     cf = Math.max(-0.35, Math.min(N - 0.65, g.f0 + amt));
     const now = performance.now(), dt = Math.max(8, now - g.lt);
-    const inst = ((g.axis === 'x' ? -(e.clientX - g.lx) : e.clientY - g.ly) / unit) / (dt / 1000);
+    const inst = ((g.axis === 'x' ? e.clientX - g.lx : -(e.clientY - g.ly)) / unit) / (dt / 1000);
     g.v = g.v * 0.6 + inst * 0.4; g.lx = e.clientX; g.ly = e.clientY; g.lt = now;
     cfCommit(); drawCrate();
   });
@@ -2788,7 +2788,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     if (Math.abs(d) < 8) return;
     e.preventDefault();
     if (Date.now() - wheelAt < 110) return;
-    wheelAt = Date.now(); flip(d > 0 ? 1 : -1);
+    wheelAt = Date.now(); flip(d > 0 ? -1 : 1);
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('devs').hidden) { $('devs').hidden = true; $('devBtn').setAttribute('aria-expanded', 'false'); return; }
