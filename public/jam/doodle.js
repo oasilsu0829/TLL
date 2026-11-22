@@ -4,7 +4,7 @@
 // 종이 두 가지: 'paper'(흰 스케치북 + 검은 펜) · 'night'(검은 종이 + 흰 젤펜). 달을 누르면 바뀜, LS music.jamLook
 // createBoombox(canvas, base) → 3D 때와 같은 모양:
 //   { setTape(key), insert(key, snd), eject(snd), setDoor(open), setPlaying(on), setProgress(0~1), press(k, down), tap(k), latch(k, on),
-//     setFrame(x, y, w, h 화면 비율), resize(), penguinAct('add'|'peck'|'poke'), penguinState, penguinAt() → {x, y, on}, tapeKey, onKey, onDoor, onPenguin, dispose() }
+//     setFrame(x, y, w, h 화면 비율), resize(), penguinAct('add'|'peck'|'poke'|'angry'|'cheer'), penguinState, onSfx(소리 이름), penguinAt() → {x, y, on}, tapeKey, onKey, onDoor, onPenguin, dispose() }
 // 장면 좌표(단위): 무대(#jamStage) 가운데가 (0,0), 720 x 540 상자가 무대에 들어가게 S배. 라디오 중심 (-70, 20), 갑판 바닥 y 230
 
 export const TAPES = ['mondrian', 'enso', 'jack', 'prism', 'wave', 'target', 'bauhaus', 'pastel', 'popart', 'holo', 'galaxy', 'stripes70', 'sunburst', 'marble', 'brutal', 'checker', 'memphis', 'acrylic'];
@@ -269,7 +269,7 @@ export async function createBoombox(canvas, base) {
     fill(ell(0, 52, 5, 8 * fl), '#ff9d2e', false);
     g.restore();
     // 밧줄 사리
-    const rx0 = 330, ry0 = DECK + 2;
+    const rx0 = 352, ry0 = DECK + 2;
     for (let i = 0; i < 4; i++) stroke(ell(rx0, ry0 - i * 7, 40 - i * 5, 11 - i), true, { w: 2, c: K.ink });
     stroke([[rx0 - 22, ry0 - 26], [rx0 - 40, ry0 - 60], [rx0 - 30, ry0 - 92]], false, { w: 2 });
   }
@@ -285,87 +285,172 @@ export async function createBoombox(canvas, base) {
   }
   function drawNotes() { for (const n of notes) { g.globalAlpha = Math.max(0, Math.min(1, n.life * 3) * (1 - n.life / 3.2)); text(n.ch, n.x, n.y, n.s, { c: K.note, b: true }); } g.globalAlpha = 1; }
 
-  // ---- p: 황제펭귄(옆모습 낙서, 눈은 안 그림). 성격 = 지 맘대로 ----
-  const AREA = { x0: 200, x1: 320 };
-  const P = { x: 250, y: 0, dir: -1, rot: 0, lift: 0, flip: 0, lie: 0, headA: 0, wing: 0.15, squash: 1, st: 'stare', t0: 0, dur: 4000, tx: 250, real: null, ph: 0, back: 0, z: 0 };
+  // ---- p: 통통한 황제펭귄 (2026-11-22 사용자 요청: 몰랑이의 삐약이처럼 동글동글·뚱뚱, 흰 눈, 대사 없이 몸짓으로) ----
+  // 몸 = 공 하나(검은 머리·등, 흰 얼굴·배, 노란 볼 무늬), 짧은 지느러미 둘, 작은 부리, 흰 눈(뜸·깜빡·웃음·감음·찡그림·화남·어질어질)
+  // 움직임: 상태가 목표 자세(T)만 정하고 실제 자세는 매 프레임 지수 감쇠로 따라감 → 상태가 바뀌어도 툭 끊기지 않음
+  // 소리는 api.onSfx('call'|'peep'|'honk'|'bray'|'snore')로 jam.js에 맡김(효과음 설정을 따름)
+  const AREA = { x0: 224, x1: 312 };
+  const P = { x: 262, face: -0.3, rot: 0, lift: 0, sqx: 1, sqy: 1, wl: 0.2, wr: 0.2, lie: 0, spin: 0, blush: 0, puff: 1, fl: 0, fr: 0, ph: 0,
+    st: 'stand', prev: '', t0: 0, dur: 3000, tx: 262, back: 262, dir: 1, real: null, eye: 'open', look: 0, beak: 0, z: 0,
+    blinkAt: 0, blinkTo: 0, callAt: performance.now() + 12000, callK: -1e9, hopN: -1, fired: 0 };
   const rnd = (a, b) => a + Math.random() * (b - a);
-  const go = (st, now, dur) => { P.st = st; P.t0 = now; P.dur = dur; };
+  const snd = (k) => { try { api.onSfx && api.onSfx(k); } catch (e) { console.warn('jam sfx', e); } };
+  const go = (st, now, dur) => { P.prev = P.st; P.st = st; P.t0 = now; P.dur = dur; P.fired = 0; P.hopN = -1; };
+  const DUR = { dance: [6000, 11000], bop: [4000, 7000], hop: [2600, 4000], spin: [1700, 1700], clap: [3000, 5000], moon: [4000, 7000], sit: [5000, 9000], stand: [2500, 5500],
+    sleep: [9000, 16000], preen: [3000, 5000], shiver: [1800, 1800], yawn: [2400, 2400] };
   function pick(now) {
-    const W = playing ? [['dance', 46], ['wander', 14], ['slide', 7], ['stare', 9], ['preen', 9], ['sulk', 7], ['peckfake', 4], ['sleep', 4]]
-      : [['sleep', 26], ['stare', 24], ['wander', 18], ['preen', 14], ['slide', 9], ['sulk', 9]];
-    let r = Math.random() * W.reduce((a, x) => a + x[1], 0), st = W[0][0];
-    for (const [k, w] of W) { if ((r -= w) <= 0) { st = k; break; } }
+    const W = playing ? [['dance', 30], ['bop', 14], ['hop', 10], ['spin', 8], ['clap', 10], ['wander', 10], ['slide', 6], ['moon', 4], ['sit', 4], ['preen', 4]]
+      : [['stand', 18], ['sleep', 15], ['wander', 18], ['moon', 12], ['preen', 10], ['sit', 10], ['slide', 7], ['shiver', 4], ['yawn', 6]];
+    let st = P.st;
+    for (let i = 0; i < 4 && st === P.st; i++) { let r = Math.random() * W.reduce((a, x) => a + x[1], 0); for (const [k, w] of W) { if ((r -= w) <= 0) { st = k; break; } } }
     if (st === 'wander') { P.tx = rnd(AREA.x0, AREA.x1); go('wander', now, 9000); }
-    else if (st === 'slide') { P.tx = rnd(RX - 120, RX + 60); P.back = rnd(AREA.x0, AREA.x1); go('slide', now, 7000); }
-    else if (st === 'peckfake') { P.tx = RX + BW / 2 + 26; P.real = null; go('topeck', now, 8000); }
-    else go(st, now, st === 'dance' ? rnd(6000, 12000) : st === 'sleep' ? rnd(7000, 14000) : rnd(3000, 7000));
+    else if (st === 'slide') { P.tx = rnd(RX - 150, RX + 40); P.back = rnd(AREA.x0, AREA.x1); go('slide', now, 9000); }
+    else { const [a, b] = DUR[st] || [3000, 5000]; go(st, now, rnd(a, b)); }
   }
-  const toward = (v, to, k) => v + (to - v) * Math.min(1, k);
-  function walk(dt, speed) {
+  function walkTo(T, dt, speed) {
     const d = P.tx - P.x; if (Math.abs(d) < 2) return true;
-    P.dir = Math.sign(d); P.x += Math.sign(d) * Math.min(Math.abs(d), speed * dt); P.ph += dt * 10;
-    P.rot = Math.sin(P.ph) * 0.2; P.lift = Math.abs(Math.sin(P.ph)) * 5; P.wing = 0.4 + Math.abs(Math.sin(P.ph)) * 0.25; return false;
+    P.dir = Math.sign(d); T.face = P.dir * 0.85; P.x += P.dir * Math.min(Math.abs(d), speed * dt); P.ph += dt * 8.5;
+    const s1 = Math.sin(P.ph); T.rot = s1 * 0.12; T.lift = Math.abs(s1) * 4; T.sqy = 1 - Math.abs(s1) * 0.03; T.sqx = 1 + Math.abs(s1) * 0.02;
+    T.wl = 0.6 + s1 * 0.22; T.wr = 0.6 - s1 * 0.22; P.fl = Math.max(0, s1) * 5; P.fr = Math.max(0, -s1) * 5; return false;
   }
-  const settle = (k) => { P.rot = toward(P.rot, 0, k); P.lift = toward(P.lift, 0, k); P.headA = toward(P.headA, 0, k); P.flip = toward(P.flip, 0, k); P.lie = toward(P.lie, 0, k); P.squash = toward(P.squash, 1, k); };
+  const RATE = { face: 6, rot: 9, lift: 16, sqx: 14, sqy: 14, wl: 11, wr: 11, lie: 6, blush: 4, puff: 8, look: 5, beak: 18 };
   function stepPeng(now, dt, t) {
-    const k = (now - P.t0) / P.dur; P.z = 0;
+    const k = (now - P.t0) / P.dur, e1 = Math.min(1, Math.max(0, k)), D = {};
+    const T = { face: P.face, rot: 0, lift: 0, sqx: 1, sqy: 1 + 0.016 * Math.sin(t * 2.2), wl: 0.18, wr: 0.18, lie: 0, blush: 0, puff: 1, look: 0, beak: 0 };
+    P.eye = 'open'; P.z = 0; P.fl = 0; P.fr = 0;
+    const once = (bit, fn) => { if (!(P.fired & bit)) { P.fired |= bit; fn(); } };
     switch (P.st) {
-      case 'dance': { const b = Math.sin(t * Math.PI * 1.9); settle(0.1); P.rot = b * 0.2; P.lift = Math.abs(b) * 10; P.headA = -0.1 + Math.abs(b) * 0.35; P.wing = 0.4 + Math.abs(Math.sin(t * Math.PI * 3.8)) * 0.9; if (Math.floor(t * 0.5) % 2) P.dir = Math.sign(Math.sin(t * 0.7)) || P.dir; break; }
-      case 'wander': if (walk(dt, 34) || k > 1) go('stare', now, rnd(1500, 3500)); break;
-      case 'stare': settle(0.08); P.dir = 1; P.headA = -0.15 + Math.sin(t * 0.4) * 0.08; P.wing = toward(P.wing, 0.1, 0.1); break;
-      case 'sulk': settle(0.08); P.dir = 1; P.headA = 0.55; P.rot = 0.05; P.wing = toward(P.wing, 0.02, 0.1); break;
-      case 'preen': { settle(0.1); const sw = Math.sin(t * 5); P.headA = 1.2 + sw * 0.15; P.wing = 0.9 + sw * 0.1; P.rot = Math.sin(t * 0.8) * 0.06; break; }
-      case 'sleep': settle(0.04); P.headA = toward(P.headA, 0.9 + Math.sin(t * 0.6) * 0.06, 0.05); P.squash = toward(P.squash, 0.94, 0.03); P.wing = toward(P.wing, 0.04, 0.05); P.z = k > 0.15 ? 1 : 0; if (playing && k > 0.3 && Math.random() < dt * 0.4) go('squawk', now, 1400); break;
-      case 'slide': {
-        P.lie = toward(P.lie, 1, 0.12); P.wing = toward(P.wing, 1.25, 0.15);
-        if (P.lie > 0.85) { const d = P.tx - P.x; P.dir = Math.sign(d) || P.dir; if (Math.abs(d) > 3) P.x += Math.sign(d) * Math.min(Math.abs(d), 120 * dt); else { P.tx = P.back; go('getup', now, 900); } }
+      case 'stand': T.face = Math.sin(t * 0.45 + 1) * 0.6; T.rot = Math.sin(t * 0.7) * 0.03; break;
+      case 'wander': if (walkTo(T, dt, 30) || k > 1) go('stand', now, rnd(1500, 3000)); break;
+      case 'moon': T.face = 0.45; T.look = 1; T.rot = -0.09 + Math.sin(t * 1.2) * 0.03; T.wl = T.wr = 0.35 + Math.sin(t * 2) * 0.12; P.eye = 'wide'; break;
+      case 'preen': T.face = 0.15; T.rot = Math.sin(t * 3) * 0.05; T.wl = -0.55 + Math.sin(t * 8) * 0.25; T.wr = 0.2; P.eye = 'happy'; T.blush = 0.4; break; // 지느러미로 배 쓰담쓰담
+      case 'sit': T.sqy = 0.86; T.sqx = 1.1; T.face = Math.sin(t * 0.4) * 0.4; P.fl = Math.max(0, Math.sin(t * 3)) * 4; P.fr = Math.max(0, Math.sin(t * 3 + 1.5)) * 4; T.wl = T.wr = 0.5; break; // 철퍼덕 앉아 발 까딱
+      case 'sleep':
+        T.sqy = 0.9 + 0.03 * Math.sin(t * 1.4); T.sqx = 1.07 - 0.015 * Math.sin(t * 1.4); T.rot = 0.07 + Math.sin(t * 0.7) * 0.02; T.wl = T.wr = 0.05; P.eye = 'closed'; P.z = k > 0.08 ? 1 : 0;
+        if (Math.floor(k * 5) !== P.hopN) { P.hopN = Math.floor(k * 5); if (P.hopN > 0) snd('snore'); }
+        if (playing && k > 0.3 && Math.random() < dt * 0.35) { go('boing', now, 900); }
+        break;
+      case 'shiver': T.rot = Math.sin(t * 55) * 0.035; T.sqx = 1 + Math.sin(t * 55) * 0.025; T.wl = T.wr = -0.15; P.eye = 'squeeze'; break;
+      case 'yawn': { const e = Math.sin(e1 * Math.PI); T.sqy = 1 + 0.14 * e; T.sqx = 1 - 0.06 * e; T.wl = T.wr = 0.2 + 2.1 * e; T.beak = e; P.eye = e > 0.3 ? 'closed' : 'open'; break; }
+      case 'dance': {
+        const ph = t * Math.PI * 1.6, b = Math.abs(Math.sin(ph));
+        T.lift = b * 12; T.sqy = 0.92 + b * 0.1; T.sqx = 1.08 - b * 0.08; T.rot = Math.sin(ph / 2) * 0.15;
+        T.wl = 0.5 + Math.max(0, Math.sin(ph)) * 1.5; T.wr = 0.5 + Math.max(0, -Math.sin(ph)) * 1.5; T.face = Math.sin(t * 0.9) * 0.7; P.eye = 'happy'; T.blush = 0.35; break;
+      }
+      case 'bop': { const b = Math.abs(Math.sin(t * Math.PI * 1.6)); T.sqy = 1 - b * 0.08; T.sqx = 1 + b * 0.05; T.rot = Math.sin(t * Math.PI * 0.8) * 0.06; T.wl = T.wr = 0.3 + b * 0.2; P.eye = 'happy'; break; }
+      case 'hop': {
+        const q = t * 2.1, n = Math.floor(q), p = q - n;
+        D.lift = Math.sin(p * Math.PI) * 24; T.sqy = p < 0.12 || p > 0.92 ? 0.84 : 1.07; T.sqx = 2 - T.sqy; T.wl = T.wr = 0.4 + Math.sin(p * Math.PI) * 1.3; P.eye = 'happy';
+        if (n !== P.hopN) { if (P.hopN >= 0 && Math.random() < 0.5) snd('peep'); P.hopN = n; }
         break;
       }
-      case 'getup': settle(0.12); if (k > 1) go('wander', now, 9000); break;
-      case 'topeck': if (walk(dt, 48) || k > 1) go('peck', now, 1500); break;
-      case 'peck': { P.dir = -1; const c = Math.max(0, Math.sin(k * Math.PI * 6)); P.rot = -(0.25 + c * 0.35); P.headA = 0.4 + c * 0.5; if (P.real && k > 0.5) { P.real(); P.real = null; } if (k > 1) { P.tx = rnd(AREA.x0 + 20, AREA.x1); go('wander', now, 6000); } break; }
-      case 'add': { const e = Math.min(1, k); P.lift = Math.sin(Math.PI * Math.min(1, e * 1.3)) * 70; P.flip = e < 0.77 ? (e / 0.77) * Math.PI * 2 * -P.dir : 0; P.wing = e < 0.85 ? 1.5 : 0.3; P.headA = -0.4; if (k > 1) { P.flip = 0; go('dance', now, 5000); } break; }
-      case 'squawk': { const e = Math.sin(Math.min(1, k) * Math.PI); settle(0.1); P.headA = -1.1 * e; P.rot = 0.1 * e * -P.dir; P.wing = 0.2 + 1.2 * e + Math.sin(t * 30) * 0.1 * e; if (k > 1) pick(now); break; }
-      case 'ignore': P.dir = 1; P.headA = -0.3; if (k > 1) go('sulk', now, 4000); break;
-      case 'flop': { const e = k < 0.5 ? k / 0.5 : 1 - (k - 0.5) / 0.5; P.lie = Math.min(1, e * 1.25); P.wing = 0.2 + e * 1.3; if (k > 1) pick(now); break; }
+      case 'spin': { T.face = Math.cos(e1 * Math.PI * 4); D.face = T.face; T.sqx = 0.9 + 0.1 * Math.abs(T.face); T.wl = T.wr = 1.3; T.lift = Math.sin(e1 * Math.PI) * 10; P.eye = 'happy'; if (k > 1) go('dance', now, rnd(4000, 7000)); break; }
+      case 'clap': { const c = 0.5 + 0.5 * Math.sin(t * Math.PI * 5); T.wl = T.wr = -0.95 + c * 0.9; T.lift = Math.abs(Math.sin(t * Math.PI * 2.5)) * 5; T.face = 0; P.eye = 'happy'; T.blush = 0.5; break; }
+      case 'slide': {
+        T.lie = 1; T.wl = T.wr = 1.5; T.face = P.dir; P.eye = 'happy';
+        const d = P.tx - P.x; P.dir = Math.sign(d) || P.dir;
+        if (P.lie > 0.85) { if (Math.abs(d) > 3) P.x += P.dir * Math.min(Math.abs(d), 110 * dt); else { P.tx = P.back; go('getup', now, 900); } }
+        break;
+      }
+      case 'getup': T.wl = T.wr = 0.8; if (k > 1) go('wander', now, 9000); break;
+      case 'topeck': if (walkTo(T, dt, 44) || k > 1) go('peck', now, 1700); break;
+      case 'peck': { // 라디오를 콕콕콕
+        T.face = -1; const c = Math.max(0, Math.sin(e1 * Math.PI * 6)); T.rot = -(0.16 + c * 0.3); T.wl = 0.9; T.wr = 0.4; P.eye = c > 0.5 ? 'squeeze' : 'open';
+        if (P.real && k > 0.5) { P.real(); P.real = null; }
+        if (k > 1) { P.tx = rnd(AREA.x0 + 20, AREA.x1); go('wander', now, 6000); }
+        break;
+      }
+      case 'add': { // 곡을 넣었다: 높이 뛰어 한 바퀴
+        once(1, () => snd('peep'));
+        D.lift = Math.sin(Math.PI * Math.min(1, e1 * 1.25)) * 80; D.spin = e1 < 0.8 ? (e1 / 0.8) * Math.PI * 2 * P.dir : 0;
+        T.wl = T.wr = e1 < 0.85 ? 2.2 : 0.4; P.eye = 'happy'; T.blush = 0.6;
+        if (e1 > 0.82) once(2, () => snd('call'));
+        if (k > 1) { P.spin = 0; go('hop', now, 2600); }
+        break;
+      }
+      case 'cheer': T.wl = T.wr = 2.0 + Math.sin(t * 12) * 0.3; T.lift = Math.abs(Math.sin(t * Math.PI * 3)) * 10; T.face = 0; P.eye = 'happy'; T.blush = 0.6; once(1, () => snd('peep')); if (k > 1) pick(now); break;
+      case 'squish': { // 눌렀더니 찌부 → 말랑하게 튕겨 돌아옴
+        once(1, () => snd('honk'));
+        const sq = e1 < 0.25 ? 1 - 0.36 * (e1 / 0.25) : 1 - 0.36 * Math.exp(-6 * (e1 - 0.25)) * Math.cos(16 * (e1 - 0.25));
+        D.sqy = sq; D.sqx = 2 - sq; T.wl = T.wr = 1 - sq + 0.3; P.eye = e1 < 0.45 ? 'squeeze' : 'happy'; T.blush = 0.7; if (k > 1) go('stand', now, 2000); break;
+      }
+      case 'shy': T.blush = 1; T.wl = T.wr = -2.3; T.face = 0.9 * (P.dir || 1); T.rot = 0.08; T.sqy = 0.95; P.eye = 'closed'; if (k > 1) pick(now); break; // 지느러미로 얼굴 가림
+      case 'boing': { once(1, () => snd('peep')); D.lift = Math.sin(Math.PI * e1) * 42; T.sqy = 1.12; T.sqx = 0.92; T.wl = T.wr = 2.4; P.eye = 'wide'; if (k > 1) go('stand', now, 1800); break; }
+      case 'flop': { // 뒤로 벌러덩, 발 버둥
+        once(1, () => { snd('honk'); P.dir = P.face >= 0 ? -1 : 1; });
+        T.lie = e1 < 0.72 ? 1 : 0; T.wl = T.wr = 1.6 + Math.sin(t * 18) * 0.4; P.fl = Math.abs(Math.sin(t * 20)) * 7; P.fr = Math.abs(Math.cos(t * 20)) * 7; P.eye = 'dizzy';
+        if (k > 1) go('stand', now, 2000); break;
+      }
+      case 'angry': { // 금지곡: 발 구르고 부풀고 지느러미 파닥
+        once(1, () => snd('bray'));
+        T.puff = 1.13; T.lift = Math.abs(Math.sin(t * Math.PI * 5)) * 6; T.rot = Math.sin(t * Math.PI * 5) * 0.07; T.face = 0;
+        T.wl = 1.3 + Math.sin(t * 30) * 0.5; T.wr = 1.3 - Math.sin(t * 30) * 0.5; P.fl = Math.max(0, Math.sin(t * Math.PI * 5)) * 7; P.fr = Math.max(0, -Math.sin(t * Math.PI * 5)) * 7; P.eye = 'angry';
+        if (k > 1) go('sulk', now, 4000); break;
+      }
+      case 'sulk': T.face = 1; T.rot = 0.06; T.sqy = 0.94; T.wl = T.wr = 0.02; P.eye = 'closed'; if (k > 1) pick(now); break;
       default: break;
     }
-    if (k > 1 && ['dance', 'stare', 'preen', 'sleep', 'sulk'].includes(P.st)) pick(now);
-    if (!playing && P.st === 'dance') go('stare', now, 2000);
-    if (playing && P.st === 'stare' && k > 0.5 && Math.random() < dt * 0.3) go('dance', now, rnd(6000, 10000));
+    if (k > 1 && DUR[P.st] && P.st !== 'spin') pick(now);
+    if (!playing && ['dance', 'bop', 'hop', 'clap', 'spin'].includes(P.st)) go('stand', now, 2000);
+    if (playing && ['stand', 'moon', 'sit'].includes(P.st) && k > 0.4 && Math.random() < dt * 0.35) go('dance', now, rnd(6000, 10000));
+    // 가끔 고개를 들고 운다(실제 황제펭귄처럼 길게 떨리는 소리)
+    if (now > P.callAt && !['sleep', 'slide', 'flop', 'peck', 'topeck'].includes(P.st)) { P.callAt = now + rnd(playing ? 50000 : 28000, playing ? 110000 : 70000); P.callK = now; snd('call'); }
+    const ck = (now - P.callK) / 1400; if (ck >= 0 && ck < 1) { const e = Math.sin(ck * Math.PI); T.rot += -0.16 * e; T.sqy += 0.06 * e; T.beak = Math.max(T.beak, e * (0.6 + 0.4 * Math.abs(Math.sin(ck * 30)))); T.look = Math.max(T.look, e); T.wl += 0.4 * e; T.wr += 0.4 * e; }
+    // 깜빡임
+    if (now > P.blinkAt) { P.blinkTo = now + 130; P.blinkAt = now + rnd(2200, 6000); }
+    if (P.eye === 'open' && now < P.blinkTo) P.eye = 'blink';
+    for (const key in RATE) P[key] += (T[key] - P[key]) * (1 - Math.exp(-dt * RATE[key]));
+    Object.assign(P, D);
+    if (!('spin' in D)) P.spin += (0 - P.spin) * (1 - Math.exp(-dt * 10));
   }
-  // 펭귄 그리기: 발 밑(0,0)이 기준, 높이 약 130, dir +1이면 오른쪽을 봄
-  function headPos() { // 장면 단위
-    const a = P.rot + P.flip + P.lie * (Math.PI / 2) * P.dir, sq = P.squash, hx = P.dir * 12, hy = -112 * sq;
-    return [P.x + Math.cos(a) * hx - Math.sin(a) * hy, DECK - P.lift - (P.lie * 30) + Math.sin(a) * hx + Math.cos(a) * hy];
-  }
+  function headPos() { return [P.x + Math.sin(P.rot) * 100, DECK - P.lift - 108 * P.sqy * P.puff]; }
   function drawPeng(t) {
-    g.save(); g.translate(P.x, DECK - P.lift - P.lie * 30);
+    const ink = look === 'night' ? K.ink : '#1b1a18', f = Math.max(-1, Math.min(1, P.face)), white = '#fffdf6';
     // 그림자
-    g.rotate(P.rot + P.flip + P.lie * (Math.PI / 2) * P.dir); g.scale(P.dir, P.squash);
+    const sh = 1 - Math.min(0.6, Math.max(0, P.lift) / 120); fill(ell(P.x, DECK + 3, 56 * sh * P.sqx, 8 * sh), look === 'night' ? 'rgba(0,0,0,.3)' : 'rgba(60,40,20,.16)', false);
+    g.save(); g.translate(P.x, DECK - P.lift - 54); g.rotate(P.rot + P.spin + P.lie * (Math.PI / 2) * P.dir); g.scale(P.sqx * P.puff, P.sqy * P.puff); g.translate(0, 54);
     // 발
-    for (const fx of [-6, 10]) { const f = ell(fx + 4, -2, 13, 5); fill(f, '#3a2f28', false); stroke(f, true, { w: 1.6 }); }
-    // 몸(서양배)
-    const body = [];
-    for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI * 2, y = -50 + Math.sin(a) * 50, w = 30 + 8 * Math.cos((y + 50) / 50 * 1.2) ; body.push([Math.cos(a) * (y > -40 ? w : w * (0.7 + 0.3 * (y + 100) / 60)), y - (Math.sin(a) < 0 ? -Math.sin(a) * 16 : 0)]); }
+    for (const sx of [-1, 1]) { const lf = sx < 0 ? P.fl : P.fr, ft = ell(sx * 21 + f * 5, -3 - lf, 15, 6.5); fill(ft, '#4b4540', false); stroke(ft, true, { w: 1.8, c: ink }); }
+    // 몸: 아래가 살짝 퍼진 공
+    const body = []; for (let i = 0; i < 44; i++) { const a = (i / 44) * Math.PI * 2, sy = Math.sin(a); body.push([Math.cos(a) * 63 * (1 + 0.08 * sy), -54 + sy * 53]); }
     fill(body, K.back);
-    const belly = []; for (let i = 0; i <= 16; i++) { const a = -Math.PI / 2 + (i / 16) * Math.PI; belly.push([4 + Math.cos(a) * 24, -50 + Math.sin(a) * 46]); }
-    belly.push([-2, -4], [-2, -96]);
-    fill(belly, K.belly, false); fill([[6, -92], [26, -78], [22, -66], [4, -70]], 'rgba(241,207,115,.9)', false);
-    if (look === 'paper') hatch(body.filter((p) => p[0] < 4), 'rgba(0,0,0,.25)', 8, 0.7);
-    stroke(body, true, { w: 2.4, c: look === 'night' ? K.ink : '#1b1a18' }); stroke(belly.slice(0, 17), false, { w: 1.3, c: K.soft });
-    // 날개
-    g.save(); g.translate(-6, -76); g.rotate(-P.wing); const wg = [[0, 0], [8, 16], [7, 40], [0, 56], [-6, 40], [-6, 14]]; fill(wg, K.back, false); stroke(wg, true, { w: 2, c: look === 'night' ? K.ink : '#1b1a18' }); g.restore();
-    // 머리
-    g.save(); g.translate(4, -104); g.rotate(P.headA);
-    const hd = ell(0, -10, 20, 18); fill(hd, K.back, false); stroke(hd, true, { w: 2.4, c: look === 'night' ? K.ink : '#1b1a18' });
-    fill(ell(6, -2, 6, 8), '#ee9a33', false); // 귀 무늬
-    const bk = [[14, -12], [44, -4], [14, -4]]; fill(bk, '#1b1a18', false); stroke(bk, true, { w: 1.6, c: look === 'night' ? K.ink : '#1b1a18' });
-    stroke([[16, -5], [36, -4]], false, { w: 2, c: '#e58a5c' });
+    const bx = f * 13;
+    g.save(); g.beginPath(); body.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
+    const belly = []; for (let i = 0; i < 36; i++) { const a = (i / 36) * Math.PI * 2, sy = Math.sin(a); belly.push([bx + Math.cos(a) * (40 - 6 * Math.max(0, -sy)), -40 + sy * (sy < 0 ? 31 : 36)]); }
+    fill(belly, white, false);
+    fill(ell(bx, -63, 27, 9), 'rgba(246,204,104,.8)', false); // 목 아래 노란 기
+    for (const sx of [-1, 1]) fill(ell(bx + sx * 41, -66, 9, 13), 'rgba(242,170,60,.95)', false); // 볼(귀) 무늬
+    if (P.blush > 0.02) { g.globalAlpha = Math.min(1, P.blush); for (const sx of [-1, 1]) fill(ell(bx + sx * 25, -52, 8, 4.5), 'rgba(255,128,140,.75)', false); g.globalAlpha = 1; }
     g.restore();
+    stroke(body, true, { w: 2.6, c: ink }); stroke(belly.slice(18, 36), false, { w: 1.1, c: 'rgba(0,0,0,.18)' });
+    // 눈(흰색)
+    const ey = -81 - P.look * 4, ex0 = bx + f * 3;
+    for (const sx of [-1, 1]) {
+      const ex = ex0 + sx * 15 * (1 - Math.abs(f) * 0.15), W2 = { c: white, w: 2.6 };
+      switch (P.eye) {
+        case 'blink': stroke([[ex - 5, ey], [ex + 5, ey]], false, W2); break;
+        case 'happy': stroke([[ex - 5.5, ey + 2], [ex, ey - 3.5], [ex + 5.5, ey + 2]], false, W2); break;
+        case 'closed': stroke([[ex - 5.5, ey - 1], [ex, ey + 3], [ex + 5.5, ey - 1]], false, W2); break;
+        case 'squeeze': stroke([[ex - 4 * sx, ey - 4], [ex + 4 * sx, ey], [ex - 4 * sx, ey + 4]], false, W2); break;
+        case 'dizzy': stroke(ell(ex, ey, 5).slice(0, 12), false, { c: white, w: 2 }); stroke(ell(ex, ey, 2.2).slice(0, 10), false, { c: white, w: 1.6 }); break;
+        case 'angry': fill([[ex - 6, ey - 3 + sx * 3], [ex + 6, ey - 3 - sx * 3], [ex + 5, ey + 4], [ex - 5, ey + 4]], white, false); stroke([[ex - 8 * -sx, ey - 13], [ex + 7 * -sx, ey - 7]], false, { c: white, w: 3 }); break;
+        case 'wide': fill(ell(ex, ey, 6.6, 8), white, false); break;
+        default: fill(ell(ex, ey, 5.3, 6.6), white, false);
+      }
+    }
+    // 부리(작게). 울 때·하품할 때 벌어짐
+    const bkx = bx + f * 7, bky = -71, op = P.beak * 5;
+    const up = [[bkx - 7, bky - 1 - op * 0.3], [bkx + 7, bky - 1 - op * 0.3], [bkx + f * 3, bky + 5 - op * 0.6]];
+    if (op > 0.6) { const lo = [[bkx - 5.5, bky + op * 0.5], [bkx + 5.5, bky + op * 0.5], [bkx + f * 3, bky + 6 + op]]; fill(lo, '#e8896b', false); stroke(lo, true, { w: 1.5, c: ink }); }
+    fill(up, '#2b2622', false); stroke(up, true, { w: 1.6, c: ink }); if (op <= 0.6) stroke([[bkx - 4, bky + 1.5], [bkx + 4, bky + 1.5]], false, { w: 1.6, c: '#ee9a33' });
+    // 지느러미: 0 = 옆구리에 붙음, + = 밖·위로 듦, - = 배·얼굴 쪽으로
+    for (const sx of [-1, 1]) {
+      const a = sx < 0 ? P.wl : P.wr; g.save(); g.translate(sx * 57, -64); g.rotate(-sx * a);
+      const wg = [[-7, 0], [7, 0], [9, 17], [4, 33], [-4, 33], [-9, 17]]; fill(wg, K.back, false); stroke(wg, true, { w: 2.2, c: ink }); g.restore();
+    }
     g.restore();
-    if (P.z) for (let i = 0; i < 3; i++) { const q = (t * 0.35 + i / 3) % 1, [hx, hy] = headPos(); g.globalAlpha = Math.sin(q * Math.PI) * 0.9; text('z', hx + 12 + q * 34, hy - 16 - q * 60, 16 + q * 18, { c: K.z, b: true }); g.globalAlpha = 1; }
-    const [hx, hy] = headPos(); hits = hits.filter((h) => h.k !== 'p'); hits.push({ k: 'p', x: Math.min(P.x, hx) - 40, y: Math.min(hy, DECK - 120) - 20, w: 90 + Math.abs(hx - P.x), h: DECK - Math.min(hy, DECK - 120) + 30 });
+    if (P.z) for (let i = 0; i < 3; i++) { const q = (t * 0.3 + i / 3) % 1, [hx, hy] = headPos(); g.globalAlpha = Math.sin(q * Math.PI) * 0.85; text('z', hx + 30 + q * 30, hy - 4 - q * 54, 16 + q * 16, { c: K.z, b: true }); g.globalAlpha = 1; }
+    hits = hits.filter((h) => h.k !== 'p'); hits.push({ k: 'p', x: P.x - 70, y: DECK - P.lift - 130, w: 140, h: 140 + P.lift });
   }
 
   // ---- 프레임 ----
@@ -375,7 +460,7 @@ export async function createBoombox(canvas, base) {
     g.globalAlpha = look === 'night' ? 0.05 : 0.07; g.fillStyle = g.createPattern(grain, 'repeat'); g.fillRect(0, 0, canvas.width, canvas.height); g.globalAlpha = 1;
     g.setTransform(dpr * S, 0, 0, dpr * S, dpr * ox, dpr * oy);
     drawWorld(t); drawProps(t);
-    const slideFront = P.lie > 0.5 && P.x < RX + BW / 2;
+    const slideFront = P.x < RX + BW / 2 + 40; // 라디오 앞(상자 앞)에 있으면 앞에 그림
     if (!slideFront) drawPeng(t);
     drawRadio(t);
     if (slideFront) drawPeng(t);
@@ -387,7 +472,7 @@ export async function createBoombox(canvas, base) {
     requestAnimationFrame(frame);
     if (document.hidden || !window.MusicJamOn) { last = now; return; }
     for (const tw of [...tweens]) { const t = Math.min(1, (now - tw.t0) / tw.ms); tw.fn(t); if (t >= 1) { tweens.delete(tw); tw.ok(); } }
-    const busy = tweens.size > 0, gap = busy || playing ? 1000 / 24 : 1000 / 15;
+    const busy = tweens.size > 0, gap = busy || playing || P.st !== 'sleep' ? 1000 / 30 : 1000 / 20; // 펭귄이 부드럽게 움직이도록 30fps
     if (now - last < gap && !dirty) return;
     const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now; dirty = false;
     boil = 0;
@@ -424,7 +509,7 @@ export async function createBoombox(canvas, base) {
   function setProgress(f) { prog = Math.max(0, Math.min(1, f || 0)); }
   function setPlaying(on) { if (playing !== !!on) dirty = true; playing = !!on; }
 
-  const api = { onKey: null, onDoor: null, onPenguin: null };
+  const api = { onKey: null, onDoor: null, onPenguin: null, onSfx: null };
   function hit(ev) {
     const b = canvas.getBoundingClientRect(), x = (ev.clientX - b.left - ox) * U, y = (ev.clientY - b.top - oy) * U;
     for (let i = hits.length - 1; i >= 0; i--) { const h = hits[i]; if (x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h.k; }
@@ -444,11 +529,15 @@ export async function createBoombox(canvas, base) {
   });
   return Object.assign(api, {
     setTape, insert, eject, setDoor, setPlaying, setProgress, press, tap, latch, resize, setFrame, setLook,
+    // 'add' 곡 넣음 · 'peck' 라디오 쪼기(쪼는 순간 풀림) · 'poke' 눌림(찌부·부끄·깜짝·벌러덩 중 하나) · 'angry' 금지곡 · 'cheer' 새 곡
     penguinAct(kind = 'add') {
       const now = performance.now();
       if (kind === 'add') { go('add', now, 1900); return Promise.resolve(); }
-      if (kind === 'peck') return new Promise((ok) => { P.tx = RX + BW / 2 + 26; P.real = ok; go('topeck', now, 9000); });
-      const r = ['ignore', 'squawk', 'flop'][(Math.random() * 3) | 0]; go(r, now, r === 'flop' ? 2600 : 1800); return r;
+      if (kind === 'peck') return new Promise((ok) => { P.tx = RX + BW / 2 + 64; P.real = ok; go('topeck', now, 9000); });
+      if (kind === 'angry') { go('angry', now, 2600); return 'angry'; }
+      if (kind === 'cheer') { if (!['peck', 'topeck', 'add', 'angry', 'slide'].includes(P.st)) go(P.st === 'sleep' ? 'boing' : 'cheer', now, P.st === 'sleep' ? 900 : 1500); return 'cheer'; }
+      if (['peck', 'topeck', 'add', 'angry'].includes(P.st)) return 'busy';
+      const r = ['squish', 'squish', 'shy', 'boing', 'flop'][(Math.random() * 5) | 0]; go(r, now, { squish: 1300, shy: 1800, boing: 900, flop: 2600 }[r]); return r;
     },
     penguinAt() { const [x, y] = headPos(); const px = ox + x * S, py = oy + y * S; return { x: px, y: py, on: px > 0 && px < cw && py > 0 && py < ch }; },
     dispose() { alive = false; removeEventListener('resize', resize); },

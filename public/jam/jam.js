@@ -42,14 +42,8 @@ const CSS = `
 .jam-help, .jam-k { font-family: 'Gaegu', cursive; }
 .jam-k { font-size: 16px; letter-spacing: .04em; }
 .jam-help { font: 700 18px 'Gaegu', cursive; border-radius: 48% 52% 45% 55%; }
-.jam-bub { position: fixed; z-index: 3; max-width: min(260px, 70vw); padding: 10px 14px 12px; background: #f4efe3; color: #2a2622; border-radius: 14px 14px 14px 3px; font-family: 'Gaegu', cursive; font-size: 18px; line-height: 1.1;
   box-shadow: 0 10px 22px rgba(0,0,0,.55); transform-origin: 0 100%; animation: jbub .45s cubic-bezier(.2,.9,.25,1.3) both; pointer-events: none; }
-.jam-bub small { display: block; font-size: 14px; color: rgba(42,38,34,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jam-bub.out { animation: jbubo .35s ease both; }
-@keyframes jbub { from { transform: translate(0, -100%) scale(.3); opacity: 0; } to { transform: translate(0, -100%); opacity: 1; } }
-@keyframes jbubo { from { transform: translate(0, -100%); opacity: 1; } to { transform: translate(0, -110%) scale(.9); opacity: 0; } }
 .jlist li .by.peng { color: #1f5d78; font-size: 16px; font-weight: 700; }
-.jam-bub .pn { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: #12161d; color: #f1cf73; padding: 1px 6px 2px; border-radius: 4px; margin-right: 4px; vertical-align: 3px; }
 body.jamming .toast { z-index: 95; }
 .jam-k, .jam-pola { z-index: 1; } .jcard { z-index: 2; } .jam-help, .jam-notes { z-index: 3; }
 .jam-k { position: absolute; left: 4px; top: 2px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .22em; color: rgba(239,233,220,.55); display: flex; align-items: center; gap: 8px; }
@@ -184,6 +178,15 @@ const sfx = (() => {
     const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime + t0); g.gain.exponentialRampToValueAtTime(gain, c.currentTime + t0 + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur);
     o.connect(g); g.connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + 0.05);
   }
+  // 떨리는 두 목소리(펭귄 울음)
+  function voice(t0, dur, f0, f1, gain, am, bp) {
+    const c = get(); if (!c) return; const T0 = c.currentTime + t0;
+    const env = c.createGain(); env.gain.setValueAtTime(0.0001, T0); env.gain.exponentialRampToValueAtTime(gain, T0 + 0.04); env.gain.setValueAtTime(gain, T0 + dur * 0.7); env.gain.exponentialRampToValueAtTime(0.0001, T0 + dur);
+    const amg = c.createGain(); amg.gain.value = 0.55; const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = am; lg.gain.value = 0.45; lfo.connect(lg); lg.connect(amg.gain);
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = bp; f.Q.value = 1.3; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    for (const m of [1, 1.07]) { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f0 * m, T0); o.frequency.linearRampToValueAtTime(f1 * m, T0 + dur); o.connect(f); o.start(T0); o.stop(T0 + dur + 0.05); }
+    f.connect(lp); lp.connect(amg); amg.connect(env); env.connect(c.destination); lfo.start(T0); lfo.stop(T0 + dur + 0.05);
+  }
   return {
     unlock: get,
     key() { noise(0, 0.05, 'bandpass', 2400, 900, 0.5, 2); tone(0, 0.09, 180, 70, 0.35); noise(0.05, 0.04, 'highpass', 3000, 2000, 0.12); },
@@ -196,7 +199,12 @@ const sfx = (() => {
     whirr() { tone(0, 0.5, 300, 900, 0.05, 'sawtooth'); noise(0, 0.5, 'bandpass', 1200, 3500, 0.06, 4); },
     pen(n = 1) { for (let i = 0; i < n * 5; i++) noise(i * 0.075 + Math.random() * 0.02, 0.06, 'bandpass', 3800 + Math.random() * 2000, 2500, 0.05 + Math.random() * 0.03, 3); },
     tape() { noise(0, 0.12, 'lowpass', 700, 200, 0.25); },
-    squawk() { tone(0, 0.16, 520, 760, 0.12, 'sawtooth'); tone(0.17, 0.22, 700, 430, 0.12, 'sawtooth'); noise(0, 0.38, 'bandpass', 1500, 900, 0.05, 6); },
+    // 펭귄 소리(2026-11-22): 실제 황제펭귄 울음은 두 목소리가 동시에 나며(맥놀이) 빠르게 떨리는 나팔 소리 → 톱니파 두 개(7% 차이) + 28Hz 떨림 + 목 울림(대역 통과)
+    call() { [[0, 0.34, 430, 560], [0.4, 0.3, 470, 600], [0.76, 0.42, 520, 430]].forEach(([t, d, a, b]) => voice(t, d, a, b, 0.11, 28, 1150)); },
+    peep() { tone(0, 0.09, 2500, 3300, 0.05); tone(0.1, 0.12, 3100, 2700, 0.05); }, // 새끼 펭귄 삐약
+    honk() { voice(0, 0.2, 390, 540, 0.12, 32, 950); },                             // 깜짝 꽉
+    bray() { [[0, 0.16, 300, 260, 600], [0.2, 0.34, 640, 720, 1400], [0.6, 0.16, 300, 260, 600], [0.8, 0.5, 660, 600, 1400]].forEach(([t, d, a, b, bp]) => voice(t, d, a, b, 0.12, 24, bp)); noise(0.2, 0.3, 'bandpass', 1800, 1200, 0.03, 3); }, // 화남: 들숨·날숨 히호
+    snore() { noise(0, 0.9, 'lowpass', 420, 160, 0.035, 1); },
   };
 })();
 
@@ -212,7 +220,7 @@ const save = () => C.LS.set('music.jam', J.cur);
 async function deck() {
   if (J.deck) return J.deck;
   J.deck = await createBoombox($('jamCv'), BASE);
-  J.deck.onKey = onKey; J.deck.onPenguin = poke;
+  J.deck.onKey = onKey; J.deck.onPenguin = poke; J.deck.onSfx = (k) => sfx[k] && sfx[k]();
   const setLook = () => { $('jam').dataset.look = J.deck.look; };
   $('jamCv').addEventListener('look', () => { setLook(); sfx.light(); }); setLook();
   const fit = () => { const b = $('jamStage').getBoundingClientRect(), W = innerWidth, H = innerHeight; J.deck.setFrame(b.left / W, b.top / H, b.width / W, b.height / H); };
@@ -546,9 +554,9 @@ async function checkBan() {
     const why = await banReason(it); if (!why || !J.on || J.busy) return;
     const s2 = C.state(); if (!s2 || !s2.item || s2.item.uri !== it.uri) return;
     C.api('/me/player/pause', { method: 'PUT' }).catch(() => {}); C.poll(600);
-    sfx.squawk(); try { bubble('이건 못 참지. 잼 끝', `${it.name} — ${(it.artists || []).map((a) => a.name).join(', ')}`); } catch {}
+    J.deck.penguinAct('angry'); // 펭귄이 발을 구르며 화냄(소리는 펭귄이 냄)
     C.toast(`${why}가 나와서 잼을 끝냈습니다`, 5000);
-    await sleep(1400);
+    await sleep(2200);
     if (J.cur && J.cur.guest) leave(); else end();
   } finally { J.banBusy = false; }
 }
@@ -580,7 +588,7 @@ function tick() {
     let pos = s.progress_ms || 0; if (s.is_playing) pos += Date.now() - s.at;
     const before = J.items.slice(0, i).reduce((a, x) => a + x.ms, 0);
     J.deck.setProgress((before + Math.min(pos, J.items[i].ms)) / total);
-    if (J.items[i].uri !== J.lastUri) { J.lastUri = J.items[i].uri; pola(J.items[i]); renderList(); publish(); }
+    if (J.items[i].uri !== J.lastUri) { if (J.lastUri) J.deck.penguinAct('cheer'); J.lastUri = J.items[i].uri; pola(J.items[i]); renderList(); publish(); }
   }
   if (now0() - (J.pengT || 0) > 2000) { J.pengT = now0(); penguin(); penguinSkip(); }
   const tot = J.items.reduce((a, x) => a + x.ms, 0);
@@ -653,10 +661,7 @@ async function post(uris) {
 
 // ---------- 황제펭귄: 혼자 있을 때(5분 넘게 친구가 안 넣음) 곡이 다 떨어져 가면 하나 골라 넣는다 ----------
 // 고르는 법: 잼에 있는 아티스트(없으면 잼 시작 전에 듣던 아티스트) 중 하나로 곡 찾기 → 아직 없는 곡 하나. 곡마다 한 번만
-const PENG_LINES = ['됐고 이거 들어', '내 맘대로 넣음', '거절은 안 받아', 'p 선곡이다', '이게 낫지', '조용히 들어'];
-const SKIP_LINES = ['별로. 넘김', '이건 아니야', '패스', '내 취향 아님', '다음'];
-const POKE_LINES = { ignore: ['...', '바쁨', '(못 들은 척)'], squawk: ['꽥!!', '왜!!', '건드리지 마'], flop: ['(벌러덩)', '아 미끄러워', '...안 넘어졌음'] };
-const pickL = (L) => L[(Math.random() * L.length) | 0];
+// 펭귄은 말하지 않는다(2026-11-22 사용자 요청: 대사 지우고 몸짓으로). 넣기 = 높이 뛰어 한 바퀴, 넘기기 = 라디오를 콕콕, 눌림 = 찌부·부끄·깜짝·벌러덩
 async function penguinSkip() {
   if (!J.on || !J.cur || J.cur.guest || J.cur.replay || J.pengBusy || J.busy) return;
   const s = C.state(), ours = s && s.context && s.context.uri === ctxUri(); if (!ours || !s.is_playing) return;
@@ -667,15 +672,11 @@ async function penguinSkip() {
   J.pengBusy = true;
   try {
     await J.deck.penguinAct('peck'); // 라디오까지 뒤뚱뒤뚱 걸어가 쪼는 순간
-    J.deck.tap('FF'); sfx.key(); sfx.whirr(); bubble(pickL(SKIP_LINES), '');
+    J.deck.tap('FF'); sfx.key(); sfx.whirr();
     await cmd('/me/player/next');
   } catch {} finally { J.pengBusy = false; }
 }
-function poke() {
-  const r = J.deck.penguinAct('poke'); if (typeof r !== 'string') return;
-  if (r !== 'ignore') sfx.squawk();
-  bubble(pickL(POKE_LINES[r] || ['...']), '');
-}
+function poke() { J.deck.penguinAct('poke'); }
 
 async function penguin() {
   if (!J.on || !J.cur || J.cur.guest || J.cur.replay || J.pengBusy || J.busy) return;
@@ -696,21 +697,12 @@ async function penguin() {
       pick = L[(Math.random() * L.length) | 0] || null;
     }
     if (!pick) return;
-    J.deck.penguinAct('add'); sfx.squawk();
-    bubble(pickL(PENG_LINES), `${pick.name} — ${(pick.artists || []).map((a) => a.name).join(', ')}`);
+    J.deck.penguinAct('add');
     await sleep(900);
     J.cur.peng = [...(J.cur.peng || []), pick.uri]; save();
     await post([pick.uri]);
     await refresh(false);
   } catch {} finally { J.pengBusy = false; }
-}
-function bubble(t, sub) {
-  document.querySelectorAll('.jam-bub').forEach((b) => b.remove());
-  const at = J.deck.penguinAt(); if (!at.on) { C.toast('p: ' + t + (sub ? ' ' + sub : ''), 3500); return; }
-  const b = document.createElement('div'); b.className = 'jam-bub'; b.innerHTML = `<b class="pn">p</b> ${esc(t)}${sub ? `<small>♪ ${esc(sub)}</small>` : ''}`;
-  b.style.left = Math.min(innerWidth - 270, at.x + 12) + 'px'; b.style.top = Math.max(70, at.y - 10) + 'px';
-  $('jam').appendChild(b);
-  setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 400); }, 3800);
 }
 
 async function add(x, t) {
@@ -798,7 +790,7 @@ const NOTES = [
   ['PLAY 재생 · PAUSE 잠깐 · FF 다음 곡 · REW 이전 곡', '8%', '14%', 2.5, 0.16],
   ['STOP/EJ로 멈춘 뒤 한 번 더 = 잼 끝. 테이프는 JAM 크레이트에 꽂혀요', '36%', '10%', -2, 0.24],
   ['J카드의 곡을 누르면 그 곡부터 다시', '62%', '74%', 3, 0.32],
-  ['p는 펭귄이에요. 지 맘대로 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보면 반응함', '40%', '38%', -1.5, 0.4],
+  ['p는 펭귄이에요. 말은 안 하고 몸으로 다 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보세요', '40%', '38%', -1.5, 0.4],
   ['달을 누르면 흰 종이 · 검은 종이가 바뀌어요', '60%', '20%', 2, 0.48],
   ['금지곡: 2020년 이후 발라드 · 아이브 · 에스파 · 아일릿이 나오면 잼이 바로 끝나요', '6%', '36%', -2, 0.56],
 ];
