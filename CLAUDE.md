@@ -95,12 +95,15 @@ public/       음악 (MUS-09, 2026-11-11). Spotify 플레이어. Stitch 시안 "
                       카세트 디자인 18종(jam/tapes/*.webp = Stitch "Cassette Front Cover Designs" 마지막 판에서 잘라냄, shell.json = 옆면 색; 투명 아크릴만 코드로). 잼 id로 고르고 바로 전 잼(music.jamTape)과 겹치지 않게(tapeFor)
                       JAM 크레이트 항목은 k 'pl' + t(카세트 키, merge.js가 남김). 크레이트에서 누르면 턴테이블 대신 카세트로 다시 듣기(replay). 진행 중 잼은 music.jam에 저장 → 새로고침해도 이어 함. 잼 중엔 숨은 턴테이블의 판 갈기 모션을 하지 않음(window.MusicJamOn)
                       두들 2D(2026-11-22 사용자 요청 '잼을 3D에서 두들스타일 2D로', v1.19.0): boombox.js·sea.js(three)를 지우고 jam/doodle.js(캔버스 2D) 하나로. createBoombox 모양은 그대로라 jam.js는 import만 바꿈
-                        낙서 붓: 선 굵기는 화면에서 늘 2.3px(장면 단위 U = 1/S), 130ms마다 떨림(boil, 좌표 해시), 마커 칠은 선에서 어긋남, 빗금 칠. 손글씨 Nanum Pen Script. 그리기 재생·움직임 중 24fps, 아니면 15fps
+                        낙서 붓: 선 굵기는 화면에서 늘 2.3px(장면 단위 U = 1/S), 손 떨림은 좌표 해시(처음엔 130ms마다 떨렸으나 v1.20.0부터 고정), 마커 칠은 선에서 어긋남, 빗금 칠. 그리기 재생·움직임 중 24fps, 아니면 15fps
                         장면(단위, 무대 가운데 0,0 · 720x540): 라디오 (-70,20) 440x280(건반 6개는 위에 꽂힘, 스피커 둘, 가운데 문 = 아래 경첩으로 열림, 카세트는 문 안), 생선 상자 No.7, 왼쪽 장대 등불, 오른쪽 밧줄 사리, 뱃전·갑판, 뒤 하늘·별·달·달빛 길·물결(배 흔들림 = 바다만 기울임)
                         카세트 18종은 그림 파일 대신 낙서 라벨(TCOL·labelArt, 껍데기 색은 tapes/shell.json). tapes/*.webp는 이제 안 씀
                         p: 옆모습 낙서(눈 없음), 상태 기계는 sea.js 그대로 2D로 옮김(dance·wander·slide·stare·preen·sleep·sulk·topeck/peck·add·squawk·ignore·flop)
                         종이 두 가지: paper(흰 스케치북·검은 펜, 기본) · night(검은 종이·흰 젤펜). 달을 누르면 바뀜(LS music.jamLook, .jam[data-look])
                         확인: 로컬 Playwright(가짜 MusicCore로 replay, 1180x820 · 390x844), 건반 PLAY 누름·펭귄 쪼기·꺼내기·달. 실제 폰은 미확인
+                        안정되게(2026-11-22 사용자 '글꼴과 전체 디자인 좀 더 안정되게', v1.20.0): 글꼴 Nanum Pen Script → Gaegu(jam.js 크기 0.8배, doodle text 0.82배), 선 떨림 boil 끔(boil = 0, JA 0.75), 마커 어긋남 줄임, 스피커 빗금 → 동심원, 별 28개
+                      금지곡(2026-11-22 사용자 요청 '20년대 이후 발라드나 아이브·에스파·아일릿 노래가 들리면 강제로 잼 종료', v1.20.0): jam.js checkBan(tick마다, 곡마다 한 번). 잼 중 재생되는 곡(잼 플레이리스트 밖이어도)이
+                        아티스트에 IVE·에스파·아일릿(참여 포함, 이름 정규화 nm) → 또는 앨범 발매 2020년 이상 + (발라드 가수 목록 BALLAD 또는 /artists 장르에 ballad·발라드) → 멈춤 + 펭귄 말풍선 + 토스트 → 1.4초 뒤 end()(참가자는 leave). 개발 모드 앱은 장르가 비어 올 수 있어 목록을 같이 씀. 확인: 가짜 MusicCore로 7가지(IVE·에스파 피처링·장르 발라드·목록 발라드 → 끝남, 2008 발라드·2024 록 → 계속)
                       (아래 3D 시절 메모는 기록으로 남김)
                       배경(2026-11-12 사용자 요청, jam/sea.js): 어둑한 망망대해 위 낚싯배. 라디오는 갑판 위 생선 상자(No.7)에, 왼쪽 등불(따뜻한 점광원·깜빡임), 밧줄 사리, 뱃전. 하늘·별·흐린 달, 물결 셰이더(사인파 4개, 해석적 법선, 달빛 길, 안개). 바다·하늘이 천천히 기울어 배가 흔들리는 느낌. 캔버스는 화면 전체, 라디오는 setFrame(왼쪽 칸)에 setViewOffset으로 맞춤
                       'Loan Shark 느낌'(사용자 요청, 분위기만): 탁한 초록빛 밤바다·짙은 안개, 세로 340px로 그려 CSS pixelated로 키움(LOWRES) + 4x4 바이어 디더 겹침(.jam-dith). 재생 중 스피커에서 음표(♪♫♬♩ 스프라이트)가 피어오름

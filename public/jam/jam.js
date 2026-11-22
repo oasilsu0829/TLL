@@ -39,16 +39,16 @@ const CSS = `
 .jam[data-look="paper"] .jam-help[aria-pressed="true"] { background: #23211e; color: #f4f0e6; }
 .jam[data-look="paper"] .jcard { box-shadow: 0 14px 30px rgba(60,40,20,.25), 0 2px 4px rgba(60,40,20,.2), inset 0 0 60px rgba(160,130,80,.12); }
 .jcard::after { content: ''; position: absolute; left: 50%; top: -10px; width: 96px; height: 22px; margin-left: -48px; background: rgba(230,220,190,.78); transform: rotate(-2deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); pointer-events: none; }
-.jam-help, .jam-k { font-family: 'Nanum Pen Script', cursive; }
-.jam-k { font-size: 20px; letter-spacing: .04em; }
-.jam-help { font: 400 22px 'Nanum Pen Script', cursive; border-radius: 48% 52% 45% 55%; }
-.jam-bub { position: fixed; z-index: 3; max-width: min(260px, 70vw); padding: 10px 14px 12px; background: #f4efe3; color: #2a2622; border-radius: 14px 14px 14px 3px; font-family: 'Nanum Pen Script', cursive; font-size: 22px; line-height: 1.1;
+.jam-help, .jam-k { font-family: 'Gaegu', cursive; }
+.jam-k { font-size: 16px; letter-spacing: .04em; }
+.jam-help { font: 700 18px 'Gaegu', cursive; border-radius: 48% 52% 45% 55%; }
+.jam-bub { position: fixed; z-index: 3; max-width: min(260px, 70vw); padding: 10px 14px 12px; background: #f4efe3; color: #2a2622; border-radius: 14px 14px 14px 3px; font-family: 'Gaegu', cursive; font-size: 18px; line-height: 1.1;
   box-shadow: 0 10px 22px rgba(0,0,0,.55); transform-origin: 0 100%; animation: jbub .45s cubic-bezier(.2,.9,.25,1.3) both; pointer-events: none; }
-.jam-bub small { display: block; font-size: 17px; color: rgba(42,38,34,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jam-bub small { display: block; font-size: 14px; color: rgba(42,38,34,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .jam-bub.out { animation: jbubo .35s ease both; }
 @keyframes jbub { from { transform: translate(0, -100%) scale(.3); opacity: 0; } to { transform: translate(0, -100%); opacity: 1; } }
 @keyframes jbubo { from { transform: translate(0, -100%); opacity: 1; } to { transform: translate(0, -110%) scale(.9); opacity: 0; } }
-.jlist li .by.peng { color: #1f5d78; font-size: 20px; }
+.jlist li .by.peng { color: #1f5d78; font-size: 16px; font-weight: 700; }
 .jam-bub .pn { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: #12161d; color: #f1cf73; padding: 1px 6px 2px; border-radius: 4px; margin-right: 4px; vertical-align: 3px; }
 body.jamming .toast { z-index: 95; }
 .jam-k, .jam-pola { z-index: 1; } .jcard { z-index: 2; } .jam-help, .jam-notes { z-index: 3; }
@@ -61,7 +61,7 @@ body.jamming .toast { z-index: 95; }
 .pola { position: absolute; inset: 0; background: #f6f3ec; padding: 7% 7% 22%; border-radius: 2px; box-shadow: 0 14px 28px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); transform-origin: 50% 0;
   animation: pdrop .9s cubic-bezier(.2,.9,.25,1.15) both; transition: transform .6s ease, opacity .6s ease, filter .6s; }
 .pola i { display: block; width: 100%; aspect-ratio: 1; background: #222 center/cover; }
-.pola b { position: absolute; left: 7%; right: 7%; bottom: 5%; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: clamp(15px, 1.6vw, 21px); color: #2a2622; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.pola b { position: absolute; left: 7%; right: 7%; bottom: 5%; font-family: 'Gaegu', cursive; font-weight: 700; font-size: clamp(13px, 1.3vw, 17px); color: #2a2622; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
 .pola::after { content: ''; position: absolute; left: 50%; top: -9px; width: 44px; height: 18px; margin-left: -22px; background: rgba(230,220,190,.75); transform: rotate(-3deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .pola.old { opacity: .0; filter: brightness(.5); }
 @keyframes pdrop { 0% { transform: translateY(-140%) rotate(var(--r0)); opacity: 0; } 55% { opacity: 1; } 100% { transform: rotate(var(--r)); } }
@@ -72,28 +72,28 @@ body.jamming .toast { z-index: 95; }
 .jam.lit .jcard { opacity: 1; transform: rotate(-.6deg); }
 .jcard .band { height: 12px; background: var(--tape, #c8402e); border-radius: 3px 3px 0 0; }
 .jcard header { padding: 14px 150px 8px 46px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border-bottom: 1.5px solid rgba(40,30,20,.55); }
-.jcard h2 { margin: 0; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: .02em; }
+.jcard h2 { margin: 0; font-family: 'Gaegu', cursive; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: .02em; }
 .jcard header small { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; color: rgba(42,38,34,.6); white-space: nowrap; }
 .jlist { list-style: none; margin: 0; padding: 4px 0 8px; overflow-y: auto; flex: 1; min-height: 120px; scrollbar-width: thin;
   background: linear-gradient(90deg, transparent 37px, rgba(200,60,50,.5) 37px, rgba(200,60,50,.5) 38.5px, transparent 38.5px), repeating-linear-gradient(180deg, transparent 0 39px, rgba(70,110,170,.22) 39px 40px); background-attachment: local; }
-.jlist li { position: relative; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px 0 46px; font-family: 'Nanum Pen Script', cursive; font-size: 24px; line-height: 1; cursor: pointer; }
-.jlist li .no { position: absolute; left: 10px; width: 22px; text-align: right; font-size: 18px; color: rgba(42,38,34,.55); }
+.jlist li { position: relative; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px 0 46px; font-family: 'Gaegu', cursive; font-size: 19px; line-height: 1; cursor: pointer; }
+.jlist li .no { position: absolute; left: 10px; width: 22px; text-align: right; font-size: 15px; color: rgba(42,38,34,.55); }
 .jlist li .w { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
-.jlist li .w em { font-style: normal; font-size: 19px; color: rgba(42,38,34,.62); }
-.jlist li .by { font-size: 16px; color: #6a5a9a; white-space: nowrap; }
-.jlist li .d { font-size: 17px; color: rgba(42,38,34,.5); }
+.jlist li .w em { font-style: normal; font-size: 15px; color: rgba(42,38,34,.62); }
+.jlist li .by { font-size: 14px; color: #6a5a9a; white-space: nowrap; }
+.jlist li .d { font-size: 14px; color: rgba(42,38,34,.5); }
 .jlist li.new .w { animation: jwrite 1s steps(14) both; }
 @keyframes jwrite { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .jlist li.done .w::after { content: ''; position: absolute; left: 0; right: 0; top: 52%; height: 2px; background: rgba(42,38,34,.7); border-radius: 2px; transform: rotate(-.4deg); animation: jstrike .5s ease both; }
 @keyframes jstrike { from { right: 100%; } }
 .jlist li.done { color: rgba(42,38,34,.55); }
 .jlist li.cur .w { background: linear-gradient(transparent 46%, rgba(255,214,0,.55) 46%, rgba(255,214,0,.55) 88%, transparent 88%); }
-.jlist li.cur::before { content: '▶'; position: absolute; left: -2px; font-size: 16px; color: #c8402e; }
+.jlist li.cur::before { content: '▶'; position: absolute; left: -2px; font-size: 13px; color: #c8402e; }
 .jlist li.pend { color: rgba(42,38,34,.45); }
 .jlist li.add { color: rgba(42,38,34,.42); }
 .jlist li.add:hover, .jlist li.add:focus-visible { color: #c8402e; outline: none; }
 .jcard footer { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 1px dashed rgba(42,38,34,.3); flex-wrap: wrap; align-items: center; }
-.jbtn { appearance: none; border: 1.5px solid rgba(42,38,34,.75); background: transparent; color: #2a2622; font-family: 'Nanum Pen Script', cursive; font-size: 21px; line-height: 1; padding: 6px 12px 5px; border-radius: 6px 4px 7px 3px; cursor: pointer; }
+.jbtn { appearance: none; border: 1.5px solid rgba(42,38,34,.75); background: transparent; color: #2a2622; font-family: 'Gaegu', cursive; font-size: 17px; line-height: 1; padding: 6px 12px 5px; border-radius: 6px 4px 7px 3px; cursor: pointer; }
 .jbtn:hover { background: rgba(42,38,34,.07); }
 .jbtn.k { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; border: 0; color: rgba(42,38,34,.55); padding: 6px 4px; }
 .jcard .sum { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; color: rgba(42,38,34,.55); }
@@ -101,24 +101,24 @@ body.jamming .toast { z-index: 95; }
 .jam-help { position: absolute; right: max(14px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); z-index: 3; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(239,233,220,.45); background: rgba(0,0,0,.2); color: #efe9dc; font: 700 15px 'Space Grotesk', sans-serif; cursor: pointer; }
 .jam-help[aria-pressed="true"] { background: #efe9dc; color: #121110; }
 .jam-notes { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.jam-notes p { position: absolute; margin: 0; width: min(240px, 60vw); padding: 12px 14px 14px; background: #fff27a; color: #2a2622; font-family: 'Nanum Pen Script', cursive; font-size: 22px; line-height: 1.12; box-shadow: 0 10px 18px rgba(0,0,0,.45); transform: rotate(var(--r)); animation: pdrop .55s cubic-bezier(.2,.9,.25,1.2) both; animation-delay: var(--d); pointer-events: auto; }
+.jam-notes p { position: absolute; margin: 0; width: min(240px, 60vw); padding: 12px 14px 14px; background: #fff27a; color: #2a2622; font-family: 'Gaegu', cursive; font-size: 18px; line-height: 1.12; box-shadow: 0 10px 18px rgba(0,0,0,.45); transform: rotate(var(--r)); animation: pdrop .55s cubic-bezier(.2,.9,.25,1.2) both; animation-delay: var(--d); pointer-events: auto; }
 /* 곡 찾기 */
 .jfind { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(0,0,0,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .jfind .box { width: min(520px, calc(100vw - 28px)); max-height: min(640px, calc(100dvh - 40px)); display: flex; flex-direction: column; background: #f4efe3; color: #2a2622; border-radius: 4px; box-shadow: 0 30px 60px rgba(0,0,0,.6); overflow: hidden; animation: pdrop .45s cubic-bezier(.2,.9,.25,1.1) both; --r: -.5deg; --r0: -4deg; }
 .jfind .row { display: flex; gap: 8px; padding: 14px; border-bottom: 1.5px solid rgba(42,38,34,.4); align-items: center; }
-.jfind input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: 'Nanum Pen Script', cursive; font-size: 28px; color: #2a2622; outline: none; }
+.jfind input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: 'Gaegu', cursive; font-size: 22px; color: #2a2622; outline: none; }
 .jfind .tabs { display: flex; gap: 4px; }
-.jfind .tabs button { appearance: none; border: 0; background: none; font-family: 'Nanum Pen Script', cursive; font-size: 22px; color: rgba(42,38,34,.5); cursor: pointer; padding: 2px 6px; }
+.jfind .tabs button { appearance: none; border: 0; background: none; font-family: 'Gaegu', cursive; font-size: 18px; color: rgba(42,38,34,.5); cursor: pointer; padding: 2px 6px; }
 .jfind .tabs button[aria-pressed="true"] { color: #2a2622; text-decoration: underline 2px; text-underline-offset: 4px; }
 .jfind ul { list-style: none; margin: 0; padding: 6px 0; overflow-y: auto; }
 .jfind li { display: flex; gap: 12px; align-items: center; padding: 8px 14px; cursor: pointer; }
 .jfind li:hover, .jfind li:focus-visible { background: rgba(42,38,34,.07); outline: none; }
 .jfind li i { width: 44px; height: 44px; flex: none; background: #ccc center/cover; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
 .jfind li div { min-width: 0; flex: 1; }
-.jfind li b { display: block; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: 24px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jfind li b { display: block; font-family: 'Gaegu', cursive; font-weight: 400; font-size: 19px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .jfind li small { display: block; font-size: 12px; color: rgba(42,38,34,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jfind li .plus { font-family: 'Nanum Pen Script', cursive; font-size: 26px; color: #c8402e; }
-.jfind .empty { padding: 26px 16px; text-align: center; font-family: 'Nanum Pen Script', cursive; font-size: 22px; color: rgba(42,38,34,.55); }
+.jfind li .plus { font-family: 'Gaegu', cursive; font-size: 21px; color: #c8402e; }
+.jfind .empty { padding: 26px 16px; text-align: center; font-family: 'Gaegu', cursive; font-size: 18px; color: rgba(42,38,34,.55); }
 .jfind .x { appearance: none; border: 0; background: none; font-size: 22px; cursor: pointer; color: rgba(42,38,34,.6); }
 /* 세로 화면 · 폰: 데크 위, J카드 아래 */
 @media (max-aspect-ratio: 5/4) {
@@ -135,7 +135,7 @@ function mount() {
   if ($('jam')) return;
   if (!document.querySelector('link[data-jam-font]')) {
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.jamFont = '1';
-    l.href = 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap'; document.head.appendChild(l);
+    l.href = 'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap'; document.head.appendChild(l);
   }
   const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
   const el = document.createElement('div');
@@ -518,6 +518,41 @@ async function end() {
   } finally { J.busy = false; }
 }
 
+// ---------- 금지곡: 잼 중에 들리면 바로 잼을 끝낸다 (2026-11-22 사용자 요청) ----------
+// 아이브 · 에스파 · 아일릿(참여한 곡 포함) + 2020년 이후 나온 발라드
+// 발라드 판단: 앨범 발매 연도 2020 이상이고, 아티스트 장르(/artists)에 ballad·발라드가 있거나 아래 발라드 가수 목록에 있으면
+// (개발 모드 앱은 장르가 비어 올 수 있어 목록을 같이 쓴다). 참가자 화면이면 나가기. 곡마다 한 번만 검사
+const nm = (x) => String(x || '').toLowerCase().replace(/[\s.\-_'’()]/g, '');
+const BAN_ART = new Set(['IVE', '아이브', 'aespa', '에스파', 'ILLIT', '아일릿'].map(nm));
+const BALLAD = new Set(['성시경', 'Sung Si Kyung', '폴킴', 'Paul Kim', '멜로망스', 'MeloMance', '이무진', 'Lee Mujin', '정승환', 'Jung Seung Hwan', '임재현', 'Lim Jae Hyun', '박재정', 'Parc Jae Jung',
+  '김나영', 'Kim Na Young', '거미', 'Gummy', '백지영', 'Baek Z Young', '케이윌', 'K.will', '허각', 'Huh Gak', '다비치', 'Davichi', '벤', 'BEN', '경서', 'Kyoung Seo', '송하예', 'Song Ha Ye',
+  '임한별', 'Onestar', '먼데이 키즈', 'MONDAY KIZ', '엠씨더맥스', 'M.C the MAX', '나윤권', 'Na Yoon Kwon', '황가람', '임영웅', 'Lim Young Woong', '에일리', 'Ailee', '이창섭', 'LEE CHANGSUB'].map(nm));
+async function banReason(it) {
+  const arts = it.artists || [];
+  const hit = arts.find((a) => BAN_ART.has(nm(a.name))); if (hit) return hit.name + ' 노래';
+  const y = parseInt((it.album && it.album.release_date) || '', 10); if (!(y >= 2020)) return '';
+  const bal = arts.find((a) => BALLAD.has(nm(a.name))); if (bal) return `${bal.name}의 ${y}년 발라드`;
+  J.genres = J.genres || new Map();
+  const ids = arts.map((a) => a.id).filter((id) => id && !J.genres.has(id));
+  if (ids.length) { try { const j = await C.api('/artists?ids=' + ids.slice(0, 50).join(',')); for (const a of (j && j.artists) || []) if (a) J.genres.set(a.id, a.genres || []); } catch {} }
+  const g = arts.find((a) => (J.genres.get(a.id) || []).some((x) => /ballad|발라드/i.test(x)));
+  return g ? `${g.name}의 ${y}년 발라드` : '';
+}
+async function checkBan() {
+  if (!J.on || J.busy || !J.cur || J.banBusy) return;
+  const s = C.state(), it = s && s.item; if (!it || !it.uri || !s.is_playing || J.banFor === it.uri) return;
+  J.banFor = it.uri; J.banBusy = true;
+  try {
+    const why = await banReason(it); if (!why || !J.on || J.busy) return;
+    const s2 = C.state(); if (!s2 || !s2.item || s2.item.uri !== it.uri) return;
+    C.api('/me/player/pause', { method: 'PUT' }).catch(() => {}); C.poll(600);
+    sfx.squawk(); try { bubble('이건 못 참지. 잼 끝', `${it.name} — ${(it.artists || []).map((a) => a.name).join(', ')}`); } catch {}
+    C.toast(`${why}가 나와서 잼을 끝냈습니다`, 5000);
+    await sleep(1400);
+    if (J.cur && J.cur.guest) leave(); else end();
+  } finally { J.banBusy = false; }
+}
+
 // ---------- 지금 곡 · 릴 · 폴라로이드 ----------
 function loop() {
   clearTimeout(J.pollT); clearInterval(J.tickT);
@@ -531,6 +566,7 @@ function loop() {
 }
 function tick() {
   if (!J.on || !J.cur || !J.deck) return;
+  checkBan();
   if (J.cur.guest) return tickGuest();
   const s = C.state(), ours = !!(s && s.context && s.context.uri === ctxUri());
   const on = ours && s.is_playing;
@@ -764,6 +800,7 @@ const NOTES = [
   ['J카드의 곡을 누르면 그 곡부터 다시', '62%', '74%', 3, 0.32],
   ['p는 펭귄이에요. 지 맘대로 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보면 반응함', '40%', '38%', -1.5, 0.4],
   ['달을 누르면 흰 종이 · 검은 종이가 바뀌어요', '60%', '20%', 2, 0.48],
+  ['금지곡: 2020년 이후 발라드 · 아이브 · 에스파 · 아일릿이 나오면 잼이 바로 끝나요', '6%', '36%', -2, 0.56],
 ];
 function toggleHelp(on) {
   const b = $('jamHelp'), box = $('jamNotes'); if (!b) return;

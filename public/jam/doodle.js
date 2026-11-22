@@ -1,6 +1,6 @@
 // 잼 모드 카세트 라디오 — 두들(손 낙서) 2D (2026-11-22, 3D boombox.js·sea.js를 대신함)
 // 캔버스 2D 하나에 다 그린다: 낚싯배 갑판 위 생선 상자(No.7)에 올린 라디오, 등불, 밧줄 사리, 뒤로 밤바다·달·별, 펭귄 p
-// 낙서 느낌: 선은 펜 굵기가 화면에서 늘 같고(약 2.3px), 130ms마다 선이 살짝 떨린다(line boil). 색은 선에서 조금 어긋난 마커 칠
+// 낙서 느낌: 선은 펜 굵기가 화면에서 늘 같고(약 2.3px), 손으로 그은 듯 살짝 휜다(그림마다 고정, 떨리지 않음). 색은 선에서 조금 어긋난 마커 칠. 글꼴 Gaegu
 // 종이 두 가지: 'paper'(흰 스케치북 + 검은 펜) · 'night'(검은 종이 + 흰 젤펜). 달을 누르면 바뀜, LS music.jamLook
 // createBoombox(canvas, base) → 3D 때와 같은 모양:
 //   { setTape(key), insert(key, snd), eject(snd), setDoor(open), setPlaying(on), setProgress(0~1), press(k, down), tap(k), latch(k, on),
@@ -24,10 +24,10 @@ const LOOKS = {
 };
 
 export async function createBoombox(canvas, base) {
-  await Promise.race([document.fonts.load('30px "Nanum Pen Script"'), new Promise((r) => setTimeout(r, 2500))]).catch(() => {});
+  await Promise.race([Promise.all([document.fonts.load('30px "Gaegu"'), document.fonts.load('700 30px "Gaegu"')]), new Promise((r) => setTimeout(r, 2500))]).catch(() => {});
   let SHELLS = {}; try { SHELLS = await (await fetch(base + 'tapes/shell.json')).json(); } catch {}
   const g = canvas.getContext('2d');
-  const FONT = '"Nanum Pen Script", "Gaegu", cursive';
+  const FONT = '"Gaegu", "Nanum Pen Script", cursive';
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   const LS = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
   let look = LOOKS[LS.get('music.jamLook')] ? LS.get('music.jamLook') : 'paper', K = LOOKS[look];
@@ -51,7 +51,7 @@ export async function createBoombox(canvas, base) {
   // ---- 낙서 붓 ----
   let boil = 0;
   const hn = (a, b, c) => { let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263) + Math.imul(c | 0, 1442695041)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return ((h & 0xffff) / 32768) - 1; };
-  const JA = 1.25; // 떨림(px)
+  const JA = 0.75; // 손 떨림(px). 2026-11-22 '더 안정되게': 줄였고 선이 계속 떨리던 boil도 끔(그림마다 고정)
   function jit(x, y, amp = 1) { const qx = Math.round(x * S / 4), qy = Math.round(y * S / 4); return [x + hn(qx, qy, boil) * JA * U * amp, y + hn(qy + 911, qx, boil + 7) * JA * U * amp]; }
   // 점 목록을 따라 촘촘히 나눠 떨리게 그린다
   function dense(pts, closed) {
@@ -72,7 +72,7 @@ export async function createBoombox(canvas, base) {
   }
   function stroke(pts, closed, o = {}) { trace(pts, closed, o.amp ?? 1); g.strokeStyle = o.c || K.ink; g.lineWidth = (o.w || 2.3) * U; g.lineCap = g.lineJoin = 'round'; g.stroke(); }
   function fill(pts, color, off = true) { // 마커 칠: 선에서 살짝 어긋남
-    if (!color) return; const dx = off ? 2.2 * U : 0, dy = off ? 1.6 * U : 0;
+    if (!color) return; const dx = off ? 1.2 * U : 0, dy = off ? 0.9 * U : 0;
     g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); g.closePath(); g.fillStyle = color; g.fill();
   }
   function hatch(pts, color, gap = 7, ang = -0.8) { // 빗금 칠
@@ -85,7 +85,7 @@ export async function createBoombox(canvas, base) {
   }
   const rr = (x, y, w, h, r) => { const P = [], q = 5; r = Math.min(r, w / 2, h / 2); const C = [[x + w - r, y + r, -Math.PI / 2], [x + w - r, y + h - r, 0], [x + r, y + h - r, Math.PI / 2], [x + r, y + r, Math.PI]]; for (const [cx, cy, a0] of C) for (let i = 0; i <= q; i++) { const a = a0 + (i / q) * Math.PI / 2; P.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return P; };
   const ell = (cx, cy, rx, ry = rx, n = 0) => { n = n || Math.max(14, Math.min(48, Math.round(Math.max(rx, ry) * S / 3))); const P = []; const w = hn(Math.round(cx), Math.round(cy), 3) * 0.04; for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, k = 1 + w * Math.sin(a * 2 + 1); P.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]); } return P; };
-  function text(t, x, y, size, o = {}) { g.save(); g.translate(x, y); g.rotate((o.r || 0) + hn(Math.round(x), Math.round(y), boil) * 0.015); g.font = `${o.b ? 700 : 400} ${size}px ${o.f || FONT}`; g.fillStyle = o.c || K.ink; g.textAlign = o.a || 'center'; g.textBaseline = 'middle'; g.fillText(t, 0, 0); g.restore(); }
+  function text(t, x, y, size, o = {}) { g.save(); g.translate(x, y); g.rotate((o.r || 0) + hn(Math.round(x), Math.round(y), boil) * 0.015); g.font = `${o.b ? 700 : 400} ${size * 0.82}px ${o.f || FONT}`; g.fillStyle = o.c || K.ink; g.textAlign = o.a || 'center'; g.textBaseline = 'middle'; g.fillText(t, 0, 0); g.restore(); }
 
   // 종이 결
   const grain = (() => { const c = document.createElement('canvas'); c.width = c.height = 160; const x = c.getContext('2d'); for (let i = 0; i < 1400; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,1)' : 'rgba(255,255,255,1)'; x.globalAlpha = Math.random() * 0.5; x.fillRect(Math.random() * 160, Math.random() * 160, 1 + Math.random(), 1 + Math.random()); } return c; })();
@@ -187,7 +187,7 @@ export async function createBoombox(canvas, base) {
     for (const sx of [-1, 1]) {
       const cx = RX + sx * 140, cy = RY + 34, R = 70 * (1 + beat * 0.035);
       const o = ell(cx, cy, 76); fill(o, look === 'night' ? 'rgba(0,0,0,.35)' : 'rgba(60,60,60,.12)', false); stroke(o, true, { w: 2.6 });
-      hatch(ell(cx, cy, R - 8), K.hatch, 9, sx * 0.8);
+      stroke(ell(cx, cy, R - 10), true, { w: 1.2, c: K.soft }); stroke(ell(cx, cy, R * 0.8), true, { w: 1.2, c: K.soft });
       stroke(ell(cx, cy, R * 0.62), true, { w: 1.8 }); stroke(ell(cx, cy, R * 0.25), true, { w: 2.2 }); fill(ell(cx, cy, R * 0.25), K.body, false);
       if (beat > 0.25) for (const s of [1, 1.18]) { const a0 = sx > 0 ? -0.6 : Math.PI - 0.6; stroke(Array.from({ length: 6 }, (_, i) => { const a = a0 + i * 0.24; return [cx + Math.cos(a) * 88 * s, cy + Math.sin(a) * 88 * s]; }), false, { w: 1.6, c: K.soft }); }
     }
@@ -206,7 +206,7 @@ export async function createBoombox(canvas, base) {
   }
 
   // ---- 배경: 하늘 · 바다 · 뱃전 · 갑판 ----
-  const stars = Array.from({ length: 46 }, (_, i) => [hn(i, 1, 99), hn(i, 2, 99), hn(i, 3, 99)]);
+  const stars = Array.from({ length: 28 }, (_, i) => [hn(i, 1, 99), hn(i, 2, 99), hn(i, 3, 99)]);
   function drawWorld(t) {
     const L = -ox * U, R = (cw - ox) * U, T = -oy * U, B = (ch - oy) * U; // 화면 끝(단위)
     const rock = still.matches ? 0 : Math.sin(t * 0.55) * 0.012, bob = still.matches ? 0 : Math.sin(t * 0.8) * 4;
@@ -390,7 +390,7 @@ export async function createBoombox(canvas, base) {
     const busy = tweens.size > 0, gap = busy || playing ? 1000 / 24 : 1000 / 15;
     if (now - last < gap && !dirty) return;
     const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now; dirty = false;
-    boil = still.matches ? 0 : Math.floor(now / 130) % 6;
+    boil = 0;
     if (playing && tapeKey) { const v = 0.9 * dt; reel[0] -= v / (0.4 + 0.6 * Math.sqrt(1 - prog)); reel[1] -= v / (0.4 + 0.6 * Math.sqrt(prog)); }
     stepPeng(now, dt, now / 1000); stepNotes(dt, now / 1000);
     draw(now);
