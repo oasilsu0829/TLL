@@ -1,4 +1,4 @@
-// 잼 모드 (2026-11-12). 음악 앱 위에 화면 전체를 덮는다: 불이 꺼지고 카세트 라디오(3D)와 J카드(손글씨 셋리스트)만 남는다
+// 잼 모드 (2026-11-12). 음악 앱 위에 화면 전체를 덮는다: 카세트 라디오(낙서 2D, doodle.js — 2026-11-22 3D에서 바꿈)와 J카드(손글씨 셋리스트)만 남는다
 // - 잼 하나 = Spotify 공동 작업 플레이리스트 하나("JAM 11.12"). 나는 J카드 빈 줄을 눌러 곡·앨범을 넣는다
 // - 친구는 이 앱(/#jam)을 열면 손님 창(guest.js)에서 곡을 보낸다(Spotify 로그인·공동 작업자 초대 필요 없음).
 //   서버 대기열(/api/music/jam/add)에 쌓이면 이 화면이 4초마다 가져가 내 토큰으로 넣는다(pullGuests). 셋리스트·지금 곡은 서버에 올려 손님 창이 읽는다(publish)
@@ -10,7 +10,7 @@
 // - 건반: PLAY 재생 · PAUSE 잠깐 · FF/REW 다음/이전 · REC 장식(녹음 중 표시) · STOP/EJ 멈춤, 멈춘 채 두 번 = 잼 끝(테이프가 튀어나와 JAM 크레이트로)
 // - 저장 music.jam = { id, tape, at, name, replay } (새로고침해도 잼이 이어진다), music.jamTape = 바로 전 잼 테이프(겹치지 않게)
 // - 음악 앱(index.html)이 window.MusicCore로 api·토큰·기기·크레이트 저장을 넘겨준다
-import { createBoombox, tapeFor } from './boombox.js';
+import { createBoombox, tapeFor } from './doodle.js';
 
 const C = window.MusicCore;
 const $ = (id) => document.getElementById(id);
@@ -32,16 +32,18 @@ const CSS = `
 .jam-stage { position: relative; min-height: 0; }
 .jam-cv { position: fixed; inset: 0; width: 100vw; height: 100dvh; display: block; touch-action: none; z-index: 0; opacity: 0; transition: opacity 1.1s ease; }
 .jam.lit .jam-cv { opacity: 1; }
-.jam-cv { image-rendering: pixelated; image-rendering: crisp-edges; }
-.jam-dith { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .1; mix-blend-mode: soft-light; image-rendering: pixelated; }
-.jam-bub { position: fixed; z-index: 3; max-width: min(260px, 70vw); padding: 10px 14px 12px; background: #f4efe3; color: #2a2622; border-radius: 14px 14px 14px 3px; font-family: 'Nanum Pen Script', cursive; font-size: 22px; line-height: 1.1;
+.jam[data-look="paper"] { background: #f4f0e6; color: #23211e; }
+.jam[data-look="paper"]::before { display: none; }
+.jam[data-look="paper"] .jam-k { color: rgba(35,33,30,.6); }
+.jam[data-look="paper"] .jam-help { border-color: rgba(35,33,30,.5); background: #fffdf6; color: #23211e; }
+.jam[data-look="paper"] .jam-help[aria-pressed="true"] { background: #23211e; color: #f4f0e6; }
+.jam[data-look="paper"] .jcard { box-shadow: 0 14px 30px rgba(60,40,20,.25), 0 2px 4px rgba(60,40,20,.2), inset 0 0 60px rgba(160,130,80,.12); }
+.jcard::after { content: ''; position: absolute; left: 50%; top: -10px; width: 96px; height: 22px; margin-left: -48px; background: rgba(230,220,190,.78); transform: rotate(-2deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); pointer-events: none; }
+.jam-help, .jam-k { font-family: 'Gaegu', cursive; }
+.jam-k { font-size: 16px; letter-spacing: .04em; }
+.jam-help { font: 700 18px 'Gaegu', cursive; border-radius: 48% 52% 45% 55%; }
   box-shadow: 0 10px 22px rgba(0,0,0,.55); transform-origin: 0 100%; animation: jbub .45s cubic-bezier(.2,.9,.25,1.3) both; pointer-events: none; }
-.jam-bub small { display: block; font-size: 17px; color: rgba(42,38,34,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jam-bub.out { animation: jbubo .35s ease both; }
-@keyframes jbub { from { transform: translate(0, -100%) scale(.3); opacity: 0; } to { transform: translate(0, -100%); opacity: 1; } }
-@keyframes jbubo { from { transform: translate(0, -100%); opacity: 1; } to { transform: translate(0, -110%) scale(.9); opacity: 0; } }
-.jlist li .by.peng { color: #1f5d78; font-size: 20px; }
-.jam-bub .pn { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: #12161d; color: #f1cf73; padding: 1px 6px 2px; border-radius: 4px; margin-right: 4px; vertical-align: 3px; }
+.jlist li .by.peng { color: #1f5d78; font-size: 16px; font-weight: 700; }
 body.jamming .toast { z-index: 95; }
 .jam-k, .jam-pola { z-index: 1; } .jcard { z-index: 2; } .jam-help, .jam-notes { z-index: 3; }
 .jam-k { position: absolute; left: 4px; top: 2px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .22em; color: rgba(239,233,220,.55); display: flex; align-items: center; gap: 8px; }
@@ -53,7 +55,7 @@ body.jamming .toast { z-index: 95; }
 .pola { position: absolute; inset: 0; background: #f6f3ec; padding: 7% 7% 22%; border-radius: 2px; box-shadow: 0 14px 28px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); transform-origin: 50% 0;
   animation: pdrop .9s cubic-bezier(.2,.9,.25,1.15) both; transition: transform .6s ease, opacity .6s ease, filter .6s; }
 .pola i { display: block; width: 100%; aspect-ratio: 1; background: #222 center/cover; }
-.pola b { position: absolute; left: 7%; right: 7%; bottom: 5%; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: clamp(15px, 1.6vw, 21px); color: #2a2622; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.pola b { position: absolute; left: 7%; right: 7%; bottom: 5%; font-family: 'Gaegu', cursive; font-weight: 700; font-size: clamp(13px, 1.3vw, 17px); color: #2a2622; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
 .pola::after { content: ''; position: absolute; left: 50%; top: -9px; width: 44px; height: 18px; margin-left: -22px; background: rgba(230,220,190,.75); transform: rotate(-3deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .pola.old { opacity: .0; filter: brightness(.5); }
 @keyframes pdrop { 0% { transform: translateY(-140%) rotate(var(--r0)); opacity: 0; } 55% { opacity: 1; } 100% { transform: rotate(var(--r)); } }
@@ -64,28 +66,28 @@ body.jamming .toast { z-index: 95; }
 .jam.lit .jcard { opacity: 1; transform: rotate(-.6deg); }
 .jcard .band { height: 12px; background: var(--tape, #c8402e); border-radius: 3px 3px 0 0; }
 .jcard header { padding: 14px 150px 8px 46px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border-bottom: 1.5px solid rgba(40,30,20,.55); }
-.jcard h2 { margin: 0; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: .02em; }
+.jcard h2 { margin: 0; font-family: 'Gaegu', cursive; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: .02em; }
 .jcard header small { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; color: rgba(42,38,34,.6); white-space: nowrap; }
 .jlist { list-style: none; margin: 0; padding: 4px 0 8px; overflow-y: auto; flex: 1; min-height: 120px; scrollbar-width: thin;
   background: linear-gradient(90deg, transparent 37px, rgba(200,60,50,.5) 37px, rgba(200,60,50,.5) 38.5px, transparent 38.5px), repeating-linear-gradient(180deg, transparent 0 39px, rgba(70,110,170,.22) 39px 40px); background-attachment: local; }
-.jlist li { position: relative; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px 0 46px; font-family: 'Nanum Pen Script', cursive; font-size: 24px; line-height: 1; cursor: pointer; }
-.jlist li .no { position: absolute; left: 10px; width: 22px; text-align: right; font-size: 18px; color: rgba(42,38,34,.55); }
+.jlist li { position: relative; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px 0 46px; font-family: 'Gaegu', cursive; font-size: 19px; line-height: 1; cursor: pointer; }
+.jlist li .no { position: absolute; left: 10px; width: 22px; text-align: right; font-size: 15px; color: rgba(42,38,34,.55); }
 .jlist li .w { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
-.jlist li .w em { font-style: normal; font-size: 19px; color: rgba(42,38,34,.62); }
-.jlist li .by { font-size: 16px; color: #6a5a9a; white-space: nowrap; }
-.jlist li .d { font-size: 17px; color: rgba(42,38,34,.5); }
+.jlist li .w em { font-style: normal; font-size: 15px; color: rgba(42,38,34,.62); }
+.jlist li .by { font-size: 14px; color: #6a5a9a; white-space: nowrap; }
+.jlist li .d { font-size: 14px; color: rgba(42,38,34,.5); }
 .jlist li.new .w { animation: jwrite 1s steps(14) both; }
 @keyframes jwrite { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .jlist li.done .w::after { content: ''; position: absolute; left: 0; right: 0; top: 52%; height: 2px; background: rgba(42,38,34,.7); border-radius: 2px; transform: rotate(-.4deg); animation: jstrike .5s ease both; }
 @keyframes jstrike { from { right: 100%; } }
 .jlist li.done { color: rgba(42,38,34,.55); }
 .jlist li.cur .w { background: linear-gradient(transparent 46%, rgba(255,214,0,.55) 46%, rgba(255,214,0,.55) 88%, transparent 88%); }
-.jlist li.cur::before { content: '▶'; position: absolute; left: -2px; font-size: 16px; color: #c8402e; }
+.jlist li.cur::before { content: '▶'; position: absolute; left: -2px; font-size: 13px; color: #c8402e; }
 .jlist li.pend { color: rgba(42,38,34,.45); }
 .jlist li.add { color: rgba(42,38,34,.42); }
 .jlist li.add:hover, .jlist li.add:focus-visible { color: #c8402e; outline: none; }
 .jcard footer { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 1px dashed rgba(42,38,34,.3); flex-wrap: wrap; align-items: center; }
-.jbtn { appearance: none; border: 1.5px solid rgba(42,38,34,.75); background: transparent; color: #2a2622; font-family: 'Nanum Pen Script', cursive; font-size: 21px; line-height: 1; padding: 6px 12px 5px; border-radius: 6px 4px 7px 3px; cursor: pointer; }
+.jbtn { appearance: none; border: 1.5px solid rgba(42,38,34,.75); background: transparent; color: #2a2622; font-family: 'Gaegu', cursive; font-size: 17px; line-height: 1; padding: 6px 12px 5px; border-radius: 6px 4px 7px 3px; cursor: pointer; }
 .jbtn:hover { background: rgba(42,38,34,.07); }
 .jbtn.k { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; border: 0; color: rgba(42,38,34,.55); padding: 6px 4px; }
 .jcard .sum { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; color: rgba(42,38,34,.55); }
@@ -93,24 +95,24 @@ body.jamming .toast { z-index: 95; }
 .jam-help { position: absolute; right: max(14px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); z-index: 3; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(239,233,220,.45); background: rgba(0,0,0,.2); color: #efe9dc; font: 700 15px 'Space Grotesk', sans-serif; cursor: pointer; }
 .jam-help[aria-pressed="true"] { background: #efe9dc; color: #121110; }
 .jam-notes { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.jam-notes p { position: absolute; margin: 0; width: min(240px, 60vw); padding: 12px 14px 14px; background: #fff27a; color: #2a2622; font-family: 'Nanum Pen Script', cursive; font-size: 22px; line-height: 1.12; box-shadow: 0 10px 18px rgba(0,0,0,.45); transform: rotate(var(--r)); animation: pdrop .55s cubic-bezier(.2,.9,.25,1.2) both; animation-delay: var(--d); pointer-events: auto; }
+.jam-notes p { position: absolute; margin: 0; width: min(240px, 60vw); padding: 12px 14px 14px; background: #fff27a; color: #2a2622; font-family: 'Gaegu', cursive; font-size: 18px; line-height: 1.12; box-shadow: 0 10px 18px rgba(0,0,0,.45); transform: rotate(var(--r)); animation: pdrop .55s cubic-bezier(.2,.9,.25,1.2) both; animation-delay: var(--d); pointer-events: auto; }
 /* 곡 찾기 */
 .jfind { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(0,0,0,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .jfind .box { width: min(520px, calc(100vw - 28px)); max-height: min(640px, calc(100dvh - 40px)); display: flex; flex-direction: column; background: #f4efe3; color: #2a2622; border-radius: 4px; box-shadow: 0 30px 60px rgba(0,0,0,.6); overflow: hidden; animation: pdrop .45s cubic-bezier(.2,.9,.25,1.1) both; --r: -.5deg; --r0: -4deg; }
 .jfind .row { display: flex; gap: 8px; padding: 14px; border-bottom: 1.5px solid rgba(42,38,34,.4); align-items: center; }
-.jfind input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: 'Nanum Pen Script', cursive; font-size: 28px; color: #2a2622; outline: none; }
+.jfind input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: 'Gaegu', cursive; font-size: 22px; color: #2a2622; outline: none; }
 .jfind .tabs { display: flex; gap: 4px; }
-.jfind .tabs button { appearance: none; border: 0; background: none; font-family: 'Nanum Pen Script', cursive; font-size: 22px; color: rgba(42,38,34,.5); cursor: pointer; padding: 2px 6px; }
+.jfind .tabs button { appearance: none; border: 0; background: none; font-family: 'Gaegu', cursive; font-size: 18px; color: rgba(42,38,34,.5); cursor: pointer; padding: 2px 6px; }
 .jfind .tabs button[aria-pressed="true"] { color: #2a2622; text-decoration: underline 2px; text-underline-offset: 4px; }
 .jfind ul { list-style: none; margin: 0; padding: 6px 0; overflow-y: auto; }
 .jfind li { display: flex; gap: 12px; align-items: center; padding: 8px 14px; cursor: pointer; }
 .jfind li:hover, .jfind li:focus-visible { background: rgba(42,38,34,.07); outline: none; }
 .jfind li i { width: 44px; height: 44px; flex: none; background: #ccc center/cover; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
 .jfind li div { min-width: 0; flex: 1; }
-.jfind li b { display: block; font-family: 'Nanum Pen Script', cursive; font-weight: 400; font-size: 24px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jfind li b { display: block; font-family: 'Gaegu', cursive; font-weight: 400; font-size: 19px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .jfind li small { display: block; font-size: 12px; color: rgba(42,38,34,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jfind li .plus { font-family: 'Nanum Pen Script', cursive; font-size: 26px; color: #c8402e; }
-.jfind .empty { padding: 26px 16px; text-align: center; font-family: 'Nanum Pen Script', cursive; font-size: 22px; color: rgba(42,38,34,.55); }
+.jfind li .plus { font-family: 'Gaegu', cursive; font-size: 21px; color: #c8402e; }
+.jfind .empty { padding: 26px 16px; text-align: center; font-family: 'Gaegu', cursive; font-size: 18px; color: rgba(42,38,34,.55); }
 .jfind .x { appearance: none; border: 0; background: none; font-size: 22px; cursor: pointer; color: rgba(42,38,34,.6); }
 /* 세로 화면 · 폰: 데크 위, J카드 아래 */
 @media (max-aspect-ratio: 5/4) {
@@ -127,13 +129,13 @@ function mount() {
   if ($('jam')) return;
   if (!document.querySelector('link[data-jam-font]')) {
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.jamFont = '1';
-    l.href = 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap'; document.head.appendChild(l);
+    l.href = 'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap'; document.head.appendChild(l);
   }
   const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
   const el = document.createElement('div');
   el.id = 'jam'; el.className = 'jam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '잼 모드');
   el.innerHTML = `
-    <div class="jam-stage" id="jamStage"><canvas id="jamCv" class="jam-cv" aria-label="카세트 라디오: 건반을 눌러 조작"></canvas><div class="jam-dith" id="jamDith"></div>
+    <div class="jam-stage" id="jamStage"><canvas id="jamCv" class="jam-cv" aria-label="카세트 라디오: 건반을 눌러 조작"></canvas>
       <div class="jam-k"><span class="rec"></span><span id="jamK">JAM SESSION</span></div>
 </div>
     <aside class="jcard" aria-label="셋리스트">
@@ -176,6 +178,15 @@ const sfx = (() => {
     const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime + t0); g.gain.exponentialRampToValueAtTime(gain, c.currentTime + t0 + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur);
     o.connect(g); g.connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + 0.05);
   }
+  // 떨리는 두 목소리(펭귄 울음)
+  function voice(t0, dur, f0, f1, gain, am, bp) {
+    const c = get(); if (!c) return; const T0 = c.currentTime + t0;
+    const env = c.createGain(); env.gain.setValueAtTime(0.0001, T0); env.gain.exponentialRampToValueAtTime(gain, T0 + 0.04); env.gain.setValueAtTime(gain, T0 + dur * 0.7); env.gain.exponentialRampToValueAtTime(0.0001, T0 + dur);
+    const amg = c.createGain(); amg.gain.value = 0.55; const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = am; lg.gain.value = 0.45; lfo.connect(lg); lg.connect(amg.gain);
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = bp; f.Q.value = 1.3; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    for (const m of [1, 1.07]) { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f0 * m, T0); o.frequency.linearRampToValueAtTime(f1 * m, T0 + dur); o.connect(f); o.start(T0); o.stop(T0 + dur + 0.05); }
+    f.connect(lp); lp.connect(amg); amg.connect(env); env.connect(c.destination); lfo.start(T0); lfo.stop(T0 + dur + 0.05);
+  }
   return {
     unlock: get,
     key() { noise(0, 0.05, 'bandpass', 2400, 900, 0.5, 2); tone(0, 0.09, 180, 70, 0.35); noise(0.05, 0.04, 'highpass', 3000, 2000, 0.12); },
@@ -188,7 +199,12 @@ const sfx = (() => {
     whirr() { tone(0, 0.5, 300, 900, 0.05, 'sawtooth'); noise(0, 0.5, 'bandpass', 1200, 3500, 0.06, 4); },
     pen(n = 1) { for (let i = 0; i < n * 5; i++) noise(i * 0.075 + Math.random() * 0.02, 0.06, 'bandpass', 3800 + Math.random() * 2000, 2500, 0.05 + Math.random() * 0.03, 3); },
     tape() { noise(0, 0.12, 'lowpass', 700, 200, 0.25); },
-    squawk() { tone(0, 0.16, 520, 760, 0.12, 'sawtooth'); tone(0.17, 0.22, 700, 430, 0.12, 'sawtooth'); noise(0, 0.38, 'bandpass', 1500, 900, 0.05, 6); },
+    // 펭귄 소리(2026-11-22): 실제 황제펭귄 울음은 두 목소리가 동시에 나며(맥놀이) 빠르게 떨리는 나팔 소리 → 톱니파 두 개(7% 차이) + 28Hz 떨림 + 목 울림(대역 통과)
+    call() { [[0, 0.34, 430, 560], [0.4, 0.3, 470, 600], [0.76, 0.42, 520, 430]].forEach(([t, d, a, b]) => voice(t, d, a, b, 0.11, 28, 1150)); },
+    peep() { tone(0, 0.09, 2500, 3300, 0.05); tone(0.1, 0.12, 3100, 2700, 0.05); }, // 새끼 펭귄 삐약
+    honk() { voice(0, 0.2, 390, 540, 0.12, 32, 950); },                             // 깜짝 꽉
+    bray() { [[0, 0.16, 300, 260, 600], [0.2, 0.34, 640, 720, 1400], [0.6, 0.16, 300, 260, 600], [0.8, 0.5, 660, 600, 1400]].forEach(([t, d, a, b, bp]) => voice(t, d, a, b, 0.12, 24, bp)); noise(0.2, 0.3, 'bandpass', 1800, 1200, 0.03, 3); }, // 화남: 들숨·날숨 히호
+    snore() { noise(0, 0.9, 'lowpass', 420, 160, 0.035, 1); },
   };
 })();
 
@@ -204,14 +220,10 @@ const save = () => C.LS.set('music.jam', J.cur);
 async function deck() {
   if (J.deck) return J.deck;
   J.deck = await createBoombox($('jamCv'), BASE);
-  J.deck.onKey = onKey; J.deck.onPenguin = poke;
-  const dith = $('jamDith');
-  if (!dith.style.backgroundImage) { // 4x4 바이어 디더(PS1 느낌)
-    const c = document.createElement('canvas'); c.width = c.height = 4; const g = c.getContext('2d'), B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-    B.forEach((v, i) => { const l = Math.round(v / 15 * 255); g.fillStyle = `rgb(${l},${l},${l})`; g.fillRect(i % 4, (i / 4) | 0, 1, 1); });
-    dith.style.backgroundImage = `url(${c.toDataURL()})`;
-  }
-  const fit = () => { const b = $('jamStage').getBoundingClientRect(), W = innerWidth, H = innerHeight; J.deck.setFrame(b.left / W, b.top / H, b.width / W, b.height / H); dith.style.backgroundSize = `${(H / 340) * 4}px`; };
+  J.deck.onKey = onKey; J.deck.onPenguin = poke; J.deck.onSfx = (k) => sfx[k] && sfx[k]();
+  const setLook = () => { $('jam').dataset.look = J.deck.look; };
+  $('jamCv').addEventListener('look', () => { setLook(); sfx.light(); }); setLook();
+  const fit = () => { const b = $('jamStage').getBoundingClientRect(), W = innerWidth, H = innerHeight; J.deck.setFrame(b.left / W, b.top / H, b.width / W, b.height / H); };
   new ResizeObserver(fit).observe($('jamStage')); addEventListener('resize', fit); fit();
   J.deck.onDoor = () => note('문은 STOP/EJ로 열립니다 — 멈춘 채 두 번 누르면 잼 끝', 2600);
   return J.deck;
@@ -514,6 +526,41 @@ async function end() {
   } finally { J.busy = false; }
 }
 
+// ---------- 금지곡: 잼 중에 들리면 바로 잼을 끝낸다 (2026-11-22 사용자 요청) ----------
+// 아이브 · 에스파 · 아일릿(참여한 곡 포함) + 2020년 이후 나온 발라드
+// 발라드 판단: 앨범 발매 연도 2020 이상이고, 아티스트 장르(/artists)에 ballad·발라드가 있거나 아래 발라드 가수 목록에 있으면
+// (개발 모드 앱은 장르가 비어 올 수 있어 목록을 같이 쓴다). 참가자 화면이면 나가기. 곡마다 한 번만 검사
+const nm = (x) => String(x || '').toLowerCase().replace(/[\s.\-_'’()]/g, '');
+const BAN_ART = new Set(['IVE', '아이브', 'aespa', '에스파', 'ILLIT', '아일릿'].map(nm));
+const BALLAD = new Set(['성시경', 'Sung Si Kyung', '폴킴', 'Paul Kim', '멜로망스', 'MeloMance', '이무진', 'Lee Mujin', '정승환', 'Jung Seung Hwan', '임재현', 'Lim Jae Hyun', '박재정', 'Parc Jae Jung',
+  '김나영', 'Kim Na Young', '거미', 'Gummy', '백지영', 'Baek Z Young', '케이윌', 'K.will', '허각', 'Huh Gak', '다비치', 'Davichi', '벤', 'BEN', '경서', 'Kyoung Seo', '송하예', 'Song Ha Ye',
+  '임한별', 'Onestar', '먼데이 키즈', 'MONDAY KIZ', '엠씨더맥스', 'M.C the MAX', '나윤권', 'Na Yoon Kwon', '황가람', '임영웅', 'Lim Young Woong', '에일리', 'Ailee', '이창섭', 'LEE CHANGSUB'].map(nm));
+async function banReason(it) {
+  const arts = it.artists || [];
+  const hit = arts.find((a) => BAN_ART.has(nm(a.name))); if (hit) return hit.name + ' 노래';
+  const y = parseInt((it.album && it.album.release_date) || '', 10); if (!(y >= 2020)) return '';
+  const bal = arts.find((a) => BALLAD.has(nm(a.name))); if (bal) return `${bal.name}의 ${y}년 발라드`;
+  J.genres = J.genres || new Map();
+  const ids = arts.map((a) => a.id).filter((id) => id && !J.genres.has(id));
+  if (ids.length) { try { const j = await C.api('/artists?ids=' + ids.slice(0, 50).join(',')); for (const a of (j && j.artists) || []) if (a) J.genres.set(a.id, a.genres || []); } catch {} }
+  const g = arts.find((a) => (J.genres.get(a.id) || []).some((x) => /ballad|발라드/i.test(x)));
+  return g ? `${g.name}의 ${y}년 발라드` : '';
+}
+async function checkBan() {
+  if (!J.on || J.busy || !J.cur || J.banBusy) return;
+  const s = C.state(), it = s && s.item; if (!it || !it.uri || !s.is_playing || J.banFor === it.uri) return;
+  J.banFor = it.uri; J.banBusy = true;
+  try {
+    const why = await banReason(it); if (!why || !J.on || J.busy) return;
+    const s2 = C.state(); if (!s2 || !s2.item || s2.item.uri !== it.uri) return;
+    C.api('/me/player/pause', { method: 'PUT' }).catch(() => {}); C.poll(600);
+    J.deck.penguinAct('angry'); // 펭귄이 발을 구르며 화냄(소리는 펭귄이 냄)
+    C.toast(`${why}가 나와서 잼을 끝냈습니다`, 5000);
+    await sleep(2200);
+    if (J.cur && J.cur.guest) leave(); else end();
+  } finally { J.banBusy = false; }
+}
+
 // ---------- 지금 곡 · 릴 · 폴라로이드 ----------
 function loop() {
   clearTimeout(J.pollT); clearInterval(J.tickT);
@@ -527,6 +574,7 @@ function loop() {
 }
 function tick() {
   if (!J.on || !J.cur || !J.deck) return;
+  checkBan();
   if (J.cur.guest) return tickGuest();
   const s = C.state(), ours = !!(s && s.context && s.context.uri === ctxUri());
   const on = ours && s.is_playing;
@@ -540,7 +588,7 @@ function tick() {
     let pos = s.progress_ms || 0; if (s.is_playing) pos += Date.now() - s.at;
     const before = J.items.slice(0, i).reduce((a, x) => a + x.ms, 0);
     J.deck.setProgress((before + Math.min(pos, J.items[i].ms)) / total);
-    if (J.items[i].uri !== J.lastUri) { J.lastUri = J.items[i].uri; pola(J.items[i]); renderList(); publish(); }
+    if (J.items[i].uri !== J.lastUri) { if (J.lastUri) J.deck.penguinAct('cheer'); J.lastUri = J.items[i].uri; pola(J.items[i]); renderList(); publish(); }
   }
   if (now0() - (J.pengT || 0) > 2000) { J.pengT = now0(); penguin(); penguinSkip(); }
   const tot = J.items.reduce((a, x) => a + x.ms, 0);
@@ -613,10 +661,7 @@ async function post(uris) {
 
 // ---------- 황제펭귄: 혼자 있을 때(5분 넘게 친구가 안 넣음) 곡이 다 떨어져 가면 하나 골라 넣는다 ----------
 // 고르는 법: 잼에 있는 아티스트(없으면 잼 시작 전에 듣던 아티스트) 중 하나로 곡 찾기 → 아직 없는 곡 하나. 곡마다 한 번만
-const PENG_LINES = ['됐고 이거 들어', '내 맘대로 넣음', '거절은 안 받아', 'p 선곡이다', '이게 낫지', '조용히 들어'];
-const SKIP_LINES = ['별로. 넘김', '이건 아니야', '패스', '내 취향 아님', '다음'];
-const POKE_LINES = { ignore: ['...', '바쁨', '(못 들은 척)'], squawk: ['꽥!!', '왜!!', '건드리지 마'], flop: ['(벌러덩)', '아 미끄러워', '...안 넘어졌음'] };
-const pickL = (L) => L[(Math.random() * L.length) | 0];
+// 펭귄은 말하지 않는다(2026-11-22 사용자 요청: 대사 지우고 몸짓으로). 넣기 = 높이 뛰어 한 바퀴, 넘기기 = 라디오를 콕콕, 눌림 = 찌부·부끄·깜짝·벌러덩
 async function penguinSkip() {
   if (!J.on || !J.cur || J.cur.guest || J.cur.replay || J.pengBusy || J.busy) return;
   const s = C.state(), ours = s && s.context && s.context.uri === ctxUri(); if (!ours || !s.is_playing) return;
@@ -627,15 +672,11 @@ async function penguinSkip() {
   J.pengBusy = true;
   try {
     await J.deck.penguinAct('peck'); // 라디오까지 뒤뚱뒤뚱 걸어가 쪼는 순간
-    J.deck.tap('FF'); sfx.key(); sfx.whirr(); bubble(pickL(SKIP_LINES), '');
+    J.deck.tap('FF'); sfx.key(); sfx.whirr();
     await cmd('/me/player/next');
   } catch {} finally { J.pengBusy = false; }
 }
-function poke() {
-  const r = J.deck.penguinAct('poke'); if (typeof r !== 'string') return;
-  if (r !== 'ignore') sfx.squawk();
-  bubble(pickL(POKE_LINES[r] || ['...']), '');
-}
+function poke() { J.deck.penguinAct('poke'); }
 
 async function penguin() {
   if (!J.on || !J.cur || J.cur.guest || J.cur.replay || J.pengBusy || J.busy) return;
@@ -656,21 +697,12 @@ async function penguin() {
       pick = L[(Math.random() * L.length) | 0] || null;
     }
     if (!pick) return;
-    J.deck.penguinAct('add'); sfx.squawk();
-    bubble(pickL(PENG_LINES), `${pick.name} — ${(pick.artists || []).map((a) => a.name).join(', ')}`);
+    J.deck.penguinAct('add');
     await sleep(900);
     J.cur.peng = [...(J.cur.peng || []), pick.uri]; save();
     await post([pick.uri]);
     await refresh(false);
   } catch {} finally { J.pengBusy = false; }
-}
-function bubble(t, sub) {
-  document.querySelectorAll('.jam-bub').forEach((b) => b.remove());
-  const at = J.deck.penguinAt(); if (!at.on) { C.toast('p: ' + t + (sub ? ' ' + sub : ''), 3500); return; }
-  const b = document.createElement('div'); b.className = 'jam-bub'; b.innerHTML = `<b class="pn">p</b> ${esc(t)}${sub ? `<small>♪ ${esc(sub)}</small>` : ''}`;
-  b.style.left = Math.min(innerWidth - 270, at.x + 12) + 'px'; b.style.top = Math.max(70, at.y - 10) + 'px';
-  $('jam').appendChild(b);
-  setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 400); }, 3800);
 }
 
 async function add(x, t) {
@@ -758,7 +790,9 @@ const NOTES = [
   ['PLAY 재생 · PAUSE 잠깐 · FF 다음 곡 · REW 이전 곡', '8%', '14%', 2.5, 0.16],
   ['STOP/EJ로 멈춘 뒤 한 번 더 = 잼 끝. 테이프는 JAM 크레이트에 꽂혀요', '36%', '10%', -2, 0.24],
   ['J카드의 곡을 누르면 그 곡부터 다시', '62%', '74%', 3, 0.32],
-  ['p는 펭귄이에요. 지 맘대로 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보면 반응함', '40%', '38%', -1.5, 0.4],
+  ['p는 펭귄이에요. 말은 안 하고 몸으로 다 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보세요', '40%', '38%', -1.5, 0.4],
+  ['달을 누르면 흰 종이 · 검은 종이가 바뀌어요', '60%', '20%', 2, 0.48],
+  ['금지곡: 2020년 이후 발라드 · 아이브 · 에스파 · 아일릿이 나오면 잼이 바로 끝나요', '6%', '36%', -2, 0.56],
 ];
 function toggleHelp(on) {
   const b = $('jamHelp'), box = $('jamNotes'); if (!b) return;
