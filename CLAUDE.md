@@ -94,6 +94,14 @@ public/       음악 (MUS-09, 2026-11-11). Spotify 플레이어. Stitch 시안 "
                       건반(3D 누름): PLAY · PAUSE · FF 다음 · REW 이전 · REC(장식, 잼 중 걸려 있음) · STOP/EJ 멈춤, 멈춘 채 한 번 더(또는 J카드 '잼 끝' 두 번) = 문이 열리고 테이프가 튀어나와 JAM 크레이트(c-jam)에 꽂힘. 키보드: 스페이스 · ←/→ · ?
                       카세트 디자인 18종(jam/tapes/*.webp = Stitch "Cassette Front Cover Designs" 마지막 판에서 잘라냄, shell.json = 옆면 색; 투명 아크릴만 코드로). 잼 id로 고르고 바로 전 잼(music.jamTape)과 겹치지 않게(tapeFor)
                       JAM 크레이트 항목은 k 'pl' + t(카세트 키, merge.js가 남김). 크레이트에서 누르면 턴테이블 대신 카세트로 다시 듣기(replay). 진행 중 잼은 music.jam에 저장 → 새로고침해도 이어 함. 잼 중엔 숨은 턴테이블의 판 갈기 모션을 하지 않음(window.MusicJamOn)
+                      두들 2D(2026-11-22 사용자 요청 '잼을 3D에서 두들스타일 2D로', v1.19.0): boombox.js·sea.js(three)를 지우고 jam/doodle.js(캔버스 2D) 하나로. createBoombox 모양은 그대로라 jam.js는 import만 바꿈
+                        낙서 붓: 선 굵기는 화면에서 늘 2.3px(장면 단위 U = 1/S), 130ms마다 떨림(boil, 좌표 해시), 마커 칠은 선에서 어긋남, 빗금 칠. 손글씨 Nanum Pen Script. 그리기 재생·움직임 중 24fps, 아니면 15fps
+                        장면(단위, 무대 가운데 0,0 · 720x540): 라디오 (-70,20) 440x280(건반 6개는 위에 꽂힘, 스피커 둘, 가운데 문 = 아래 경첩으로 열림, 카세트는 문 안), 생선 상자 No.7, 왼쪽 장대 등불, 오른쪽 밧줄 사리, 뱃전·갑판, 뒤 하늘·별·달·달빛 길·물결(배 흔들림 = 바다만 기울임)
+                        카세트 18종은 그림 파일 대신 낙서 라벨(TCOL·labelArt, 껍데기 색은 tapes/shell.json). tapes/*.webp는 이제 안 씀
+                        p: 옆모습 낙서(눈 없음), 상태 기계는 sea.js 그대로 2D로 옮김(dance·wander·slide·stare·preen·sleep·sulk·topeck/peck·add·squawk·ignore·flop)
+                        종이 두 가지: paper(흰 스케치북·검은 펜, 기본) · night(검은 종이·흰 젤펜). 달을 누르면 바뀜(LS music.jamLook, .jam[data-look])
+                        확인: 로컬 Playwright(가짜 MusicCore로 replay, 1180x820 · 390x844), 건반 PLAY 누름·펭귄 쪼기·꺼내기·달. 실제 폰은 미확인
+                      (아래 3D 시절 메모는 기록으로 남김)
                       배경(2026-11-12 사용자 요청, jam/sea.js): 어둑한 망망대해 위 낚싯배. 라디오는 갑판 위 생선 상자(No.7)에, 왼쪽 등불(따뜻한 점광원·깜빡임), 밧줄 사리, 뱃전. 하늘·별·흐린 달, 물결 셰이더(사인파 4개, 해석적 법선, 달빛 길, 안개). 바다·하늘이 천천히 기울어 배가 흔들리는 느낌. 캔버스는 화면 전체, 라디오는 setFrame(왼쪽 칸)에 setViewOffset으로 맞춤
                       'Loan Shark 느낌'(사용자 요청, 분위기만): 탁한 초록빛 밤바다·짙은 안개, 세로 340px로 그려 CSS pixelated로 키움(LOWRES) + 4x4 바이어 디더 겹침(.jam-dith). 재생 중 스피커에서 음표(♪♫♬♩ 스프라이트)가 피어오름
                       p(황제펭귄, 사용자 요청: Penguin Lifter처럼 실제 같은 모습·눈 안 보임, 이름 p, 성격 '지 맘대로', 행동 과장): 회전체 몸 + 정점 색(검은 등·흰 배·노란 가슴·주황 귀 무늬), 긴 부리, 납작한 날개. sea.js 상태 기계 — dance(크게 까딱)·wander(뒤뚱)·slide(배로 미끄럼)·stare(바다 보기)·preen·sleep(Z, 음악에 깸)·sulk(등 돌림), 무작위로 바뀜

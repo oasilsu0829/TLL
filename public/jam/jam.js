@@ -1,4 +1,4 @@
-// 잼 모드 (2026-11-12). 음악 앱 위에 화면 전체를 덮는다: 불이 꺼지고 카세트 라디오(3D)와 J카드(손글씨 셋리스트)만 남는다
+// 잼 모드 (2026-11-12). 음악 앱 위에 화면 전체를 덮는다: 카세트 라디오(낙서 2D, doodle.js — 2026-11-22 3D에서 바꿈)와 J카드(손글씨 셋리스트)만 남는다
 // - 잼 하나 = Spotify 공동 작업 플레이리스트 하나("JAM 11.12"). 나는 J카드 빈 줄을 눌러 곡·앨범을 넣는다
 // - 친구는 이 앱(/#jam)을 열면 손님 창(guest.js)에서 곡을 보낸다(Spotify 로그인·공동 작업자 초대 필요 없음).
 //   서버 대기열(/api/music/jam/add)에 쌓이면 이 화면이 4초마다 가져가 내 토큰으로 넣는다(pullGuests). 셋리스트·지금 곡은 서버에 올려 손님 창이 읽는다(publish)
@@ -10,7 +10,7 @@
 // - 건반: PLAY 재생 · PAUSE 잠깐 · FF/REW 다음/이전 · REC 장식(녹음 중 표시) · STOP/EJ 멈춤, 멈춘 채 두 번 = 잼 끝(테이프가 튀어나와 JAM 크레이트로)
 // - 저장 music.jam = { id, tape, at, name, replay } (새로고침해도 잼이 이어진다), music.jamTape = 바로 전 잼 테이프(겹치지 않게)
 // - 음악 앱(index.html)이 window.MusicCore로 api·토큰·기기·크레이트 저장을 넘겨준다
-import { createBoombox, tapeFor } from './boombox.js';
+import { createBoombox, tapeFor } from './doodle.js';
 
 const C = window.MusicCore;
 const $ = (id) => document.getElementById(id);
@@ -32,8 +32,16 @@ const CSS = `
 .jam-stage { position: relative; min-height: 0; }
 .jam-cv { position: fixed; inset: 0; width: 100vw; height: 100dvh; display: block; touch-action: none; z-index: 0; opacity: 0; transition: opacity 1.1s ease; }
 .jam.lit .jam-cv { opacity: 1; }
-.jam-cv { image-rendering: pixelated; image-rendering: crisp-edges; }
-.jam-dith { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .1; mix-blend-mode: soft-light; image-rendering: pixelated; }
+.jam[data-look="paper"] { background: #f4f0e6; color: #23211e; }
+.jam[data-look="paper"]::before { display: none; }
+.jam[data-look="paper"] .jam-k { color: rgba(35,33,30,.6); }
+.jam[data-look="paper"] .jam-help { border-color: rgba(35,33,30,.5); background: #fffdf6; color: #23211e; }
+.jam[data-look="paper"] .jam-help[aria-pressed="true"] { background: #23211e; color: #f4f0e6; }
+.jam[data-look="paper"] .jcard { box-shadow: 0 14px 30px rgba(60,40,20,.25), 0 2px 4px rgba(60,40,20,.2), inset 0 0 60px rgba(160,130,80,.12); }
+.jcard::after { content: ''; position: absolute; left: 50%; top: -10px; width: 96px; height: 22px; margin-left: -48px; background: rgba(230,220,190,.78); transform: rotate(-2deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); pointer-events: none; }
+.jam-help, .jam-k { font-family: 'Nanum Pen Script', cursive; }
+.jam-k { font-size: 20px; letter-spacing: .04em; }
+.jam-help { font: 400 22px 'Nanum Pen Script', cursive; border-radius: 48% 52% 45% 55%; }
 .jam-bub { position: fixed; z-index: 3; max-width: min(260px, 70vw); padding: 10px 14px 12px; background: #f4efe3; color: #2a2622; border-radius: 14px 14px 14px 3px; font-family: 'Nanum Pen Script', cursive; font-size: 22px; line-height: 1.1;
   box-shadow: 0 10px 22px rgba(0,0,0,.55); transform-origin: 0 100%; animation: jbub .45s cubic-bezier(.2,.9,.25,1.3) both; pointer-events: none; }
 .jam-bub small { display: block; font-size: 17px; color: rgba(42,38,34,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -133,7 +141,7 @@ function mount() {
   const el = document.createElement('div');
   el.id = 'jam'; el.className = 'jam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '잼 모드');
   el.innerHTML = `
-    <div class="jam-stage" id="jamStage"><canvas id="jamCv" class="jam-cv" aria-label="카세트 라디오: 건반을 눌러 조작"></canvas><div class="jam-dith" id="jamDith"></div>
+    <div class="jam-stage" id="jamStage"><canvas id="jamCv" class="jam-cv" aria-label="카세트 라디오: 건반을 눌러 조작"></canvas>
       <div class="jam-k"><span class="rec"></span><span id="jamK">JAM SESSION</span></div>
 </div>
     <aside class="jcard" aria-label="셋리스트">
@@ -205,13 +213,9 @@ async function deck() {
   if (J.deck) return J.deck;
   J.deck = await createBoombox($('jamCv'), BASE);
   J.deck.onKey = onKey; J.deck.onPenguin = poke;
-  const dith = $('jamDith');
-  if (!dith.style.backgroundImage) { // 4x4 바이어 디더(PS1 느낌)
-    const c = document.createElement('canvas'); c.width = c.height = 4; const g = c.getContext('2d'), B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-    B.forEach((v, i) => { const l = Math.round(v / 15 * 255); g.fillStyle = `rgb(${l},${l},${l})`; g.fillRect(i % 4, (i / 4) | 0, 1, 1); });
-    dith.style.backgroundImage = `url(${c.toDataURL()})`;
-  }
-  const fit = () => { const b = $('jamStage').getBoundingClientRect(), W = innerWidth, H = innerHeight; J.deck.setFrame(b.left / W, b.top / H, b.width / W, b.height / H); dith.style.backgroundSize = `${(H / 340) * 4}px`; };
+  const setLook = () => { $('jam').dataset.look = J.deck.look; };
+  $('jamCv').addEventListener('look', () => { setLook(); sfx.light(); }); setLook();
+  const fit = () => { const b = $('jamStage').getBoundingClientRect(), W = innerWidth, H = innerHeight; J.deck.setFrame(b.left / W, b.top / H, b.width / W, b.height / H); };
   new ResizeObserver(fit).observe($('jamStage')); addEventListener('resize', fit); fit();
   J.deck.onDoor = () => note('문은 STOP/EJ로 열립니다 — 멈춘 채 두 번 누르면 잼 끝', 2600);
   return J.deck;
@@ -759,6 +763,7 @@ const NOTES = [
   ['STOP/EJ로 멈춘 뒤 한 번 더 = 잼 끝. 테이프는 JAM 크레이트에 꽂혀요', '36%', '10%', -2, 0.24],
   ['J카드의 곡을 누르면 그 곡부터 다시', '62%', '74%', 3, 0.32],
   ['p는 펭귄이에요. 지 맘대로 해요. 혼자일 땐 곡을 넣고, 싫은 곡은 쪼아서 넘겨요. 눌러 보면 반응함', '40%', '38%', -1.5, 0.4],
+  ['달을 누르면 흰 종이 · 검은 종이가 바뀌어요', '60%', '20%', 2, 0.48],
 ];
 function toggleHelp(on) {
   const b = $('jamHelp'), box = $('jamNotes'); if (!b) return;

@@ -31,7 +31,7 @@
     if (pl && /^[a-z]{2,8}$/.test(a.m || '')) y.m = a.m; // 잡지 부록 LP: 잡지 키(drop·fb·cy·mo) → 투명 비닐 커버·라벨
     const p = Math.max(0, Math.floor(num(a.p)));
     if (p) y.p = Math.min(p, 99999); // 들은 횟수(슬리브 낡음)
-    if (pl && /^[a-z0-9]{2,20}$/.test(a.t || '')) y.t = a.t; // 잼 테이프: 카세트 디자인(jam/boombox.js TAPES)
+    if (pl && /^[a-z0-9]{2,20}$/.test(a.t || '')) y.t = a.t; // 잼 테이프: 카세트 디자인(jam/doodle.js TAPES)
     return y;
   }
 
