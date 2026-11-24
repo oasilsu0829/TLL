@@ -6,13 +6,15 @@
    - 잡지(mag, 2026-11-13): { opened: { 호 id: 처음 뜯은 시각 }, pl: { 호 id: { id, name, n } } } — 뜯은 호와 부록 LP 플레이리스트.
      기기마다 따로 두면 다른 기기에서 또 새 호로 뜨고 부록 플레이리스트가 또 만들어져서, 계정 문서에 같이 싣는다.
      opened는 합집합(이른 시각), pl은 먼저 만든 것(a 쪽)이 이긴다
+   - 폴더(2026-11-24): folders: { id: { id, name, o, u } | { id, del: 1, u } } — 보관함에서 크레이트를 묶는 폴더. 크레이트처럼 u가 늦은 쪽이 이긴다.
+     크레이트의 f = 들어 있는 폴더 id, '' = 폴더 밖(일부러 꺼냄), 없으면 기본(화면이 정함: JAM·잡지 크레이트는 T/L/L 폴더)
    일반 스크립트로 불러도(window.MusicMerge), 모듈에서 import 해도(globalThis.MusicMerge) 된다 */
 (function (root) {
   'use strict';
   const ID = /^[\w.-]{1,40}$/;
   const AID = /^[A-Za-z0-9]{10,40}$/;
   const KEEP_DEL = 180 * 864e5;
-  const MAX_CRATES = 60, MAX_ALBUMS = 600;
+  const MAX_CRATES = 60, MAX_ALBUMS = 600, MAX_FOLDERS = 30;
   const num = (x) => (Number.isFinite(x) ? x : 0);
   const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : {});
   const str = (x, n) => (typeof x === 'string' ? x.slice(0, n) : '');
@@ -76,6 +78,16 @@
         seen.add(y.id); if (mk) seen.add(mk); albums.push(y);
       }
       out.crates[id] = { id, name: str(x.name, 40) || '크레이트', o: num(x.o), u, albums };
+      if (x.f === '' || (typeof x.f === 'string' && ID.test(x.f))) out.crates[id].f = x.f;
+    }
+    let nf = 0;
+    for (const [id, x] of Object.entries(obj(obj(doc).folders))) {
+      if (!ID.test(id) || !x || typeof x !== 'object' || Array.isArray(x)) continue;
+      let u = Math.max(0, Math.floor(num(x.u)));
+      if (now) u = Math.min(u, now + 300000);
+      if (x.del) { if (!(now && u < now - KEEP_DEL)) (out.folders = out.folders || {})[id] = { id, del: 1, u }; continue; }
+      if (++nf > MAX_FOLDERS) continue;
+      (out.folders = out.folders || {})[id] = { id, name: str(x.name, 40) || '폴더', o: num(x.o), u };
     }
     const mag = cleanMag(obj(doc).mag);
     if (!emptyMag(mag)) out.mag = mag;
@@ -89,6 +101,9 @@
     for (const [id, x] of Object.entries(B)) {
       if (!(id in A) || num(x.u) > num(A[id].u)) out.crates[id] = x;
     }
+    const FA = obj(a && a.folders), FB = obj(b && b.folders), folders = { ...FA };
+    for (const [id, x] of Object.entries(FB)) if (!(id in FA) || num(x.u) > num(FA[id].u)) folders[id] = x;
+    if (Object.keys(folders).length) out.folders = folders;
     const mag = mergeMag(a && a.mag, b && b.mag);
     if (!emptyMag(mag)) out.mag = mag;
     return out;
