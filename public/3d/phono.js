@@ -153,12 +153,13 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
     const T0 = V(-0.08, 0.66, -0.12);
     const along = (B, d, ks) => ks.map((k) => B.clone().addScaledVector(d, -k));
     const swanB = V(-0.5, 0.48, -0.2), swanD = V(0.3, 0.45, 0.84).normalize();
-    const gloB = V(-0.24, 1.2, -0.42), gloD = V(0.16, 0.62, 0.77).normalize(); // 사진처럼 기계보다 넓은 나팔꽃이 위에서 앞을 내려다봄
+    const gloB = V(-0.24, 1.25, -0.55), gloD = V(0.16, 0.62, 0.77).normalize(); // 사진처럼 기계보다 넓은 나팔꽃이 위에서 앞을 내려다봄
+    // 나팔꽃 목: 재생기 뒤에서 낮게 뒤로 빠져 나팔꽃 아래·뒤로 돌아 들어감(예전엔 목이 나팔꽃 아랫부분을 뚫고 지나갔음, 2026-11-25). 틈 7cm 이상(검사 scratch hornchk)
     const edB = V(-0.12, 0.68, -0.3), edD = V(-0.45, 0.22, -0.86).normalize();
     const sdB = V(-0.25, 0.72, -0.18), sdD = V(-0.8, 0.12, 0.58).normalize();
     return {
       swan: { pts: [V(-0.06, 0.66, -0.1), V(-0.08, 0.72, -0.3), V(-0.28, 0.7, -0.56), V(-0.56, 0.48, -0.78), V(-0.72, 0.22, -0.78), ...along(swanB, swanD, [0.42, 0.22, 0])], R1: 0.26, pw: 3.4, HU: 0.3, cam: { look: [0.24, 0.1, -0.18], fit: 1 } },
-      glory: { pts: [T0, V(-0.1, 0.72, -0.36), V(-0.16, 0.7, -0.66), gloB.clone().addScaledVector(gloD, -1.05), ...along(gloB, gloD, [0.85, 0.6, 0.38, 0.18, 0])], R1: 0.62, R0: 0.022, pw: 3.2, petals: 10, HU: 0.2, cam: { look: [0.12, 0.42, -0.5], fit: 1.62 } },
+      glory: { pts: [V(-0.08, 0.62, -0.2), V(-0.12, 0.55, -0.45), V(-0.24, 0.45, -0.85), V(-0.36, 0.48, -1.25), ...along(gloB, gloD, [0.85, 0.6, 0.38, 0.18, 0])], R1: 0.62, R0: 0.022, pw: 3.2, petals: 10, HU: 0.2, cam: { look: [0.12, 0.42, -0.5], fit: 1.62 } },
       edison: { pts: [T0, edB, ...along(edB, edD, [-0.3, -0.6, -0.88])], R1: 0.21, pw: 2.2, HU: 0.55, cam: { look: [0.18, 0.3, -0.42], fit: 1.36 } },
       side: { pts: [T0, sdB, ...along(sdB, sdD, [-0.22, -0.45, -0.66])], R1: 0.23, pw: 2.8, HU: 0.42, cam: { look: [0.02, 0.12, -0.05], fit: 1.26 } },
       cabinet: { none: true, cam: { look: [0.27, 0.02, -0.02], fit: 1 } },
