@@ -445,6 +445,18 @@ body.changing .arm { transition-duration: .4s; }
 .cd .acts .btn { min-height: 44px; }
 .cd .acts .del { margin-right: auto; color: var(--red); }
 #cdlg, #fdlg { width: min(400px, calc(100vw - 24px)); }
+#pkdlg { width: min(440px, calc(100vw - 24px)); }
+.pk-list { max-height: min(56vh, 460px); overflow-y: auto; margin: 0 -8px; padding: 0 8px; display: flex; flex-direction: column; gap: 2px; }
+.pk-list h3 { margin: 10px 0 4px; font: 700 11px var(--sans); letter-spacing: .08em; color: var(--muted); }
+.pk-list h3:first-child { margin-top: 0; }
+.pk-list label { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 6px; border-radius: 8px; cursor: pointer; }
+.pk-list label:hover { background: var(--z50); }
+.pk-list .cd-ck, .cd .pk-list input { flex: none; width: 20px; height: 20px; min-height: 0; padding: 0; margin: 0; accent-color: var(--main); }
+.pk-list i { flex: none; width: 36px; height: 36px; border-radius: 3px; background: var(--z200) center / cover; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.pk-list span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pk-list b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-list small { font-size: 12px; color: var(--muted); }
+.pk-none { color: var(--muted); font-size: 13px; padding: 12px 0; }
 
 /* 아랫줄 */
 .bot { position: sticky; bottom: 0; z-index: 30; min-height: 64px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--plinth); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -999,6 +1011,18 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   </form>
 </dialog>
 
+
+<dialog id="pkdlg" aria-labelledby="pkT">
+  <form class="cd" id="pkForm">
+    <h2 id="pkT">크레이트 넣기</h2>
+    <p class="note" id="pkNote">체크한 크레이트가 이 폴더에 들어갑니다. 체크를 풀면 보관함 맨 위로 나옵니다.</p>
+    <div class="pk-list" id="pkList"></div>
+    <div class="acts">
+      <button class="btn" type="button" id="pkX">취소</button>
+      <button class="btn dark" type="submit">저장</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="fdlg" aria-labelledby="fdT">
   <form class="cd" id="fdForm">
@@ -1710,6 +1734,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     });
     if (q && !shown) { const n = document.createElement('div'); n.className = 'cl-none'; n.textContent = `'${$('clQ').value.trim()}'와 맞는 크레이트나 앨범이 없습니다`; box.appendChild(n); }
     if (!q) {
+      if (inF) {
+        const pk = document.createElement('button'); pk.type = 'button'; pk.className = 'ct add'; pk.textContent = '+ 기존 크레이트 넣기';
+        pk.addEventListener('click', () => openPickDlg(inF));
+        box.appendChild(pk);
+      }
       const add = document.createElement('button'); add.type = 'button'; add.className = 'ct add'; add.textContent = '+ 새 크레이트';
       add.addEventListener('click', () => openCrateDlg(null));
       box.appendChild(add);
@@ -1782,6 +1811,45 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('fdlg').close(); renderCrates();
   });
   $('fdX').addEventListener('click', () => $('fdlg').close());
+  // 기존 크레이트를 폴더에 넣기(2026-11-25 사용자 요청): 체크 = 이 폴더, 체크 풀면 맨 위. 다른 폴더에 있던 것도 옮겨 옴
+  let pickF = null;
+  function openPickDlg(f) {
+    pickF = f; ensureFolder();
+    $('pkT').textContent = `'${f.name}'에 크레이트 넣기`;
+    const box = $('pkList'); box.innerHTML = '';
+    const groups = [['이 폴더', live().filter((c) => folderOf(c) === f.id)], ['보관함 맨 위', live().filter((c) => !folderOf(c))]];
+    for (const g of liveF()) if (g.id !== f.id) groups.push([g.name, live().filter((c) => folderOf(c) === g.id)]);
+    let n = 0;
+    for (const [title, cs] of groups) {
+      if (!cs.length) continue;
+      const h = document.createElement('h3'); h.textContent = title; box.appendChild(h);
+      for (const c of cs.slice().sort((a, b) => a.o - b.o || a.u - b.u)) {
+        const l = document.createElement('label');
+        l.innerHTML = '<input type="checkbox" class="cd-ck"><i></i><span><b></b><small></small></span>';
+        const ck = l.querySelector('input'); ck.value = c.id; ck.checked = folderOf(c) === f.id;
+        const img = coverOf(c); if (img) l.querySelector('i').style.backgroundImage = bg(img);
+        l.querySelector('b').textContent = c.name;
+        l.querySelector('small').textContent = `${c.albums.length} LP`;
+        box.appendChild(l); n++;
+      }
+    }
+    if (!n) { const d = document.createElement('div'); d.className = 'pk-none'; d.textContent = '아직 크레이트가 없습니다'; box.appendChild(d); }
+    $('pkdlg').showModal();
+  }
+  $('pkForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = pickF; if (!f) return;
+    let moved = 0;
+    for (const ck of $('pkList').querySelectorAll('input')) {
+      const c = doc.crates[ck.value]; if (!c || c.del) continue;
+      const inNow = folderOf(c) === f.id;
+      if (ck.checked && !inNow) { c.f = f.id; touch(c); moved++; }
+      else if (!ck.checked && inNow) { c.f = ''; touch(c); moved++; }
+    }
+    $('pkdlg').close();
+    if (moved) { sfx.flip(); renderCrates(); }
+  });
+  $('pkX').addEventListener('click', () => $('pkdlg').close());
   $('fdDel').addEventListener('click', () => {
     const f = editingF; if (!f) return;
     const cs = live().filter((c) => folderOf(c) === f.id);
