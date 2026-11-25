@@ -8,7 +8,7 @@
      플레이리스트(1.9초): 통이 위에서 떨어져 0.646초에 쾅 → 실린더가 튀어나와 끼워짐
    deck3d.js가 import해서 씀: buildPhono({ THREE, RoundedBoxGeometry, loadImg }) → { g, hits, step, setLabel, drop, dropping, flashGap, crank, busy } */
 
-export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
+export function buildPhono({ THREE, RoundedBoxGeometry, loadImg, renderer, lights }) {
   const g = new THREE.Group(); g.name = 'phono';
   const SC = 1.12; g.scale.setScalar(SC); g.position.set(-0.04, -0.196 * (1 - SC), 0); // 턴테이블 자리를 채우게 조금 키움(바닥은 그대로)
   const FL = -0.196;                         // 탁자 높이
@@ -31,14 +31,34 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
   const ctex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
 
   // ---------- 재질 ----------
-  // 황동: 얼룩진 손때(거칠기 무늬) + 아주 옅은 망치 자국
-  const [bc, bx] = canvas(256, 256);
-  bx.fillStyle = '#8a8a8a'; bx.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 160; i++) { const x = rnd() * 256, y = rnd() * 256, r = 6 + rnd() * 30, gr = bx.createRadialGradient(x, y, 0, x, y, r); const v = rnd() < 0.5 ? 40 : 190; gr.addColorStop(0, `rgba(${v},${v},${v},.25)`); gr.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = gr; bx.fillRect(x - r, y - r, r * 2, r * 2); }
-  const brassRough = ctex(bc, false); brassRough.wrapS = brassRough.wrapT = THREE.RepeatWrapping;
-  const brass = new THREE.MeshPhysicalMaterial({ color: 0xd9ad55, metalness: 1, roughness: 0.3, roughnessMap: brassRough, clearcoat: 0.35, clearcoatRoughness: 0.2, envMapIntensity: 1.4 });
-  const brassDark = new THREE.MeshPhysicalMaterial({ color: 0xa8792e, metalness: 1, roughness: 0.42, roughnessMap: brassRough, envMapIntensity: 1.2 });
-  const nickel = new THREE.MeshStandardMaterial({ color: 0xe4e6ea, metalness: 1, roughness: 0.16, envMapIntensity: 1.5 });
+  // 황동(2026-11-25 사용자 '황동 질감 더 현실적으로'): 진짜 금속은 비친 것으로 보인다 → 이 기계만의 반사 환경(어두운 바 + 따뜻한 갓등·전구·창 띠)을 따로 만들어
+  // 밤에 방 반사가 꺼져도(scene.environmentIntensity 0.1) 황동은 등불을 비춰 빛남. 색은 닦은 황동(F0 ≈ 0.91·0.78·0.42), 거칠기는 광낸 결 + 손때·녹 얼룩
+  const envTex = (() => {
+    if (!renderer) return null;
+    const es = new THREE.Scene(), em = (c, k) => new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(k), side: THREE.DoubleSide });
+    es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), em(0x1c130c, 1)));
+    const box = (w, h, x, y, z, ry, rx, c, k) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), em(c, k)); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); es.add(m); };
+    box(6, 2.2, 0, 6.5, 1, 0, Math.PI / 2, 0xffd9a0, 5);       // 위 갓등(따뜻한 넓은 빛)
+    box(1.4, 5, -7, 2.5, 1.5, Math.PI / 2, 0, 0xffe7c4, 2.4);  // 왼쪽 세로 띠
+    box(0.8, 4, 7, 2, -2, -Math.PI / 2, 0, 0x9fb3d0, 1.1);     // 오른쪽 창(차가운 빛)
+    box(14, 4, 0, -4, 5, 0, -0.5, 0x5a3416, 1.2);              // 앞 탁자·바닥에서 오는 갈색 되비침
+    for (const [x, y, z] of [[-3, 3.5, -6], [2.5, 3, -6.5], [5.5, 4, -3], [-5.5, 3.2, 4]]) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 8), em(0xffc070, 12)); b.position.set(x, y, z); es.add(b); } // 바 전구
+    const pm = new THREE.PMREMGenerator(renderer); const t = pm.fromScene(es, 0.03).texture; pm.dispose(); return t;
+  })();
+  const [bc, bx] = canvas(512, 512);
+  bx.fillStyle = '#3a3a3a'; bx.fillRect(0, 0, 512, 512); // 바탕 거칠기 낮음(광냄)
+  for (let i = 0; i < 1400; i++) { const y = rnd() * 512, v = 40 + rnd() * 60 | 0; bx.fillStyle = `rgba(${v},${v},${v},.35)`; bx.fillRect(rnd() * 512 - 60, y, 40 + rnd() * 200, 1); } // 광낸 결
+  for (let i = 0; i < 70; i++) { const x = rnd() * 512, y = rnd() * 512, r = 8 + rnd() * 40, gr = bx.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(170,170,170,${0.25 + rnd() * 0.3})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); bx.fillStyle = gr; bx.fillRect(x - r, y - r, r * 2, r * 2); } // 손때·녹(거침)
+  for (let i = 0; i < 12; i++) { const x = rnd() * 512, y = rnd() * 512; bx.strokeStyle = 'rgba(150,150,150,.35)'; bx.lineWidth = 1.2; for (let k = 0; k < 8; k++) { bx.beginPath(); bx.ellipse(x, y, 6 + k * 2.2, 8 + k * 2.6, 0.4, 0, 5); bx.stroke(); } } // 지문
+  const brassRough = ctex(bc, false); brassRough.wrapS = brassRough.wrapT = THREE.RepeatWrapping; brassRough.repeat.set(2, 2);
+  // 녹 색(초록·갈색으로 아주 옅게 얼룩, 이음매 근처에 짙음)
+  const [pc2, px2] = canvas(512, 512); px2.fillStyle = '#ffffff'; px2.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 90; i++) { const x = rnd() * 512, y = rnd() * 512, r = 10 + rnd() * 50, gr = px2.createRadialGradient(x, y, 0, x, y, r); const c = rnd() < 0.3 ? '150,170,130' : '190,150,110'; gr.addColorStop(0, `rgba(${c},${0.18 + rnd() * 0.2})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); px2.fillStyle = gr; px2.fillRect(x - r, y - r, r * 2, r * 2); }
+  const patina = ctex(pc2); patina.wrapS = patina.wrapT = THREE.RepeatWrapping;
+  const BRASS = 0xe8c472;
+  const brass = new THREE.MeshPhysicalMaterial({ color: BRASS, map: patina, metalness: 1, roughness: 1, roughnessMap: brassRough, clearcoat: 0.25, clearcoatRoughness: 0.12, envMap: envTex, envMapIntensity: 1 });
+  const brassDark = new THREE.MeshPhysicalMaterial({ color: 0xc49a4c, map: patina, metalness: 1, roughness: 1, roughnessMap: brassRough, envMap: envTex, envMapIntensity: 0.9 });
+  const nickel = new THREE.MeshStandardMaterial({ color: 0xe4e6ea, metalness: 1, roughness: 0.14, envMap: envTex, envMapIntensity: 1.1 });
   const japan = new THREE.MeshPhysicalMaterial({ color: 0x121010, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.08 });
   // 마호가니: 붉은 갈색 바탕 + 물결치는 나뭇결 + 니스 광택
   const [wc, wx] = canvas(1024, 512);
@@ -175,7 +195,7 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
   // 그림 위쪽 = 나팔 끝(v = 1). 무늬는 퍼지는 쪽(위 55%)에만. 색 그림 + 높낮이 그림(bump) 둘
   const HW = 2048, HH = 1024, NP = PET || 10;
   const [hc, hx] = canvas(HW, HH), [hb, bx2] = canvas(HW, HH);
-  { const gr = hx.createLinearGradient(0, 0, 0, HH); gr.addColorStop(0, '#e2ac3e'); gr.addColorStop(0.5, '#cf9a32'); gr.addColorStop(1, '#b07e28'); hx.fillStyle = gr; hx.fillRect(0, 0, HW, HH);
+  { const gr = hx.createLinearGradient(0, 0, 0, HH); gr.addColorStop(0, '#f6dc96'); gr.addColorStop(0.5, '#ecc878'); gr.addColorStop(1, '#d8b060'); hx.fillStyle = gr; hx.fillRect(0, 0, HW, HH);
     bx2.fillStyle = '#808080'; bx2.fillRect(0, 0, HW, HH);
     const both = (f) => { f(hx, true); f(bx2, false); };
     const pw2 = HW / NP;
@@ -217,9 +237,9 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
     return { geo };
   })();
-  const hornM = new THREE.MeshPhysicalMaterial({ map: hornT, bumpMap: hornB, bumpScale: 1.6, metalness: 1, roughness: 0.2, roughnessMap: brassRough, clearcoat: 0.5, clearcoatRoughness: 0.12, envMapIntensity: 1.7, emissive: 0x6a4210, emissiveMap: hornT, emissiveIntensity: 0.25 });
+  const hornM = new THREE.MeshPhysicalMaterial({ map: hornT, bumpMap: hornB, bumpScale: 1.8, metalness: 1, roughness: 1, roughnessMap: brassRough, clearcoat: 0.3, clearcoatRoughness: 0.1, envMap: envTex, envMapIntensity: 1 });
   // 안쪽: 등불을 머금은 따뜻한 황동(밤에도 나팔 속이 보이게 아주 옅게 스스로 빛남)
-  const hornInM = new THREE.MeshPhysicalMaterial({ map: hornT, bumpMap: hornB, bumpScale: 1.6, color: 0xffd27a, metalness: 0.9, roughness: 0.2, side: THREE.BackSide, envMapIntensity: 2, emissive: 0xffb040, emissiveMap: hornT, emissiveIntensity: 0.2 }); // 안쪽: 사진처럼 금빛으로 환하게(밤에도 무늬가 보이게 스스로 조금 빛남)
+  const hornInM = new THREE.MeshPhysicalMaterial({ map: hornT, bumpMap: hornB, bumpScale: 1.8, metalness: 1, roughness: 1, roughnessMap: brassRough, side: THREE.BackSide, clearcoat: 0.3, clearcoatRoughness: 0.1, envMap: envTex, envMapIntensity: 1.2, emissive: 0xffb040, emissiveMap: hornT, emissiveIntensity: 0.06 }); // 안쪽은 금빛(밤엔 아주 조금 스스로 빛나 무늬가 보임)
   const horn = new THREE.Mesh(hornG.geo, hornM), hornIn = new THREE.Mesh(hornG.geo, hornInM);
   if (!HL.none) g.add(horn, hornIn);
   const bellP = hornC.getPointAt(1), bellT = hornC.getTangentAt(1);
@@ -363,8 +383,9 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
   hit.castShadow = hit2.castShadow = false;
 
   // 밤에 황동이 살게: 기계 위 따뜻한 등(보이는 동안만 켜짐) + 나팔 안을 비추는 낮은 빛
-  const lamp = new THREE.PointLight(0xffd6a0, 0, 2.6, 1.6); lamp.position.set(0.05, 1.25, 0.7); g.add(lamp);
-  const bellL = new THREE.PointLight(0xffc880, 0, 1.0, 2); bellL.position.copy(bellP).addScaledVector(bellT, 0.25); g.add(bellL);
+  // 불빛은 deck3d가 처음부터 장면에 둔 것(lights)을 씀: 자리만 이 기계 좌표 → deck 좌표로
+  const lamp = lights.lamp, bellL = lights.bell; g.updateMatrix();
+  lamp.position.set(0.05, 1.25, 0.7).applyMatrix4(g.matrix); bellL.position.copy(bellP).addScaledVector(bellT, 0.25).applyMatrix4(g.matrix);
 
   // ---------- 움직임 ----------
   let ang = 0, vel = 0, carX = P0, lift = 1, crankT = -1, crankA = 0;
@@ -395,6 +416,7 @@ export function buildPhono({ THREE, RoundedBoxGeometry, loadImg }) {
     crankArm.rotation.x = -crankA;
     // 곡 사이 무음 홈 빛남
     for (let i = gaps.length - 1; i >= 0; i--) { const gp = gaps[i], k = (now - gp.t0) / 1600; if (k >= 1) { spin.remove(gp.m); gaps.splice(i, 1); } else gp.m.material.opacity = (1 - k) * 0.9; }
+    const ek = lerp(1.15, 0.7, st.night); brass.envMapIntensity = hornM.envMapIntensity = ek; hornInM.envMapIntensity = ek * 1.2; brassDark.envMapIntensity = ek * 0.9; nickel.envMapIntensity = ek;
     lamp.intensity = g.visible ? lerp(0.25, 1.5, st.night) : 0; bellL.intensity = g.visible ? lerp(0.1, 1.4, st.night) : 0;
     if (pdrop) stepDrop(now);
   }
