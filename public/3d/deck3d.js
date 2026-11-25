@@ -74,6 +74,7 @@ function start() {
 
   const deck = new THREE.Group(); scene.add(deck);
   // 턴테이블(tt) · 황동 실린더 전축(phono). 시가를 꾹 눌러 바꿈(bar.dunk → setMode)
+  let phono = null; // 황동 실린더 전축(phono.js, 처음 쓸 때 만듦)
   let deckMode = (() => { try { return localStorage.getItem('tll.deck') === 'phono' ? 'phono' : 'tt'; } catch { return 'tt'; } })();
 
   // 헤어라인 결(브러시드 알루미늄): 가로로 가는 줄을 촘촘히
@@ -1381,7 +1382,7 @@ void main(){
   }
 
   const camBase = new THREE.Vector3(), camLook = new THREE.Vector3(0.27, -0.02, 0);
-  const LOOK = { tt: new THREE.Vector3(0.27, -0.02, 0), phono: new THREE.Vector3(0.24, 0.1, -0.18) }; // 전축은 나팔이 높아 조금 위·뒤를 봄
+  const LOOK = { tt: new THREE.Vector3(0.27, -0.02, 0) }; // 전축은 나팔 모양마다 phono.cam(보는 곳·거리)
   let camZoom = 0;
   function resize() {
     poke = performance.now();
@@ -1391,7 +1392,7 @@ void main(){
     // 판 전체(1.8 × 1.5)가 들어오게 거리를 맞춘다. 위에서 비스듬히(약 62도) 내려다본다
     // 잔·시가가 오른쪽 뒤에 있어 폭·높이를 넓히고 중심을 오른쪽으로 옮김(2026-11-17)
     const fitW = 2.6 / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect), fitH = 1.78 / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
-    const dist = Math.max(fitW, fitH);
+    const dist = Math.max(fitW, fitH) * (deckMode === 'phono' && phono ? phono.cam.fit : 1); // 전축은 나팔 모양마다 화면에 맞게
     const el = THREE.MathUtils.degToRad(48);
     camBase.set(camLook.x, Math.sin(el) * dist + camLook.y + 0.02, Math.cos(el) * dist + camLook.z);
     cam.position.copy(camBase);
@@ -1493,7 +1494,6 @@ void main(){
   el.addEventListener('contextmenu', (e) => e.preventDefault()); // 꾹 누를 때 폰의 길게 누르기 메뉴가 뜨지 않게
   let cigHold = 0, cigT0 = 0;
   // ---------- 턴테이블 ↔ 황동 실린더 전축 ----------
-  let phono = null;
   function ensurePhono() {
     if (phono) return phono;
     phono = buildPhono({ THREE, RoundedBoxGeometry, loadImg });
@@ -1506,7 +1506,7 @@ void main(){
     try { localStorage.setItem('tll.deck', deckMode); } catch {}
     const ph = deckMode === 'phono';
     if (ph) ensurePhono();
-    camLook.copy(LOOK[deckMode]); resize();
+    if (ph) camLook.fromArray(phono.cam.look); else camLook.copy(LOOK.tt); resize();
     // 바꾸는 순간 판·실린더 갈기가 돌고 있으면 바로 끝낸다(숨는 쪽 모션이 장면에 남거나 멈춰 있지 않게)
     if (ph && drop) {
       const d = drop; drop = null; scene.remove(d.sleeve); if (d.old) scene.remove(d.old);
