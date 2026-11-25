@@ -54,4 +54,13 @@ assert.ok(!('fb-01' in m.mag.pl));
 // 같은 잡지 부록 LP가 id만 다르게 여러 장 꽂혀 있으면 앞 것 하나만 남는다(다른 잡지·다른 호는 그대로)
 d = clean({ crates: { 'c-pub-drop': { name: 'x', u: 1, albums: [{ k: 'pl', m: 'drop', ...P1 }, { k: 'pl', m: 'drop', ...P2 }, { k: 'pl', m: 'drop', id: '5bbwyAB9vmqN3uQ7FjRGTz', name: 'Drop Vol.02 부록' }, A1] } } });
 assert.deepEqual(d.crates['c-pub-drop'].albums.map((x) => x.id), [P1.id, '5bbwyAB9vmqN3uQ7FjRGTz', A1.id]);
+// 폴더: 크레이트처럼 늦게 고친 쪽, 크레이트의 f는 폴더 id·'' 만 남는다
+d = clean({ folders: { 'f-tll': { name: 'T/L/L', u: 0 }, 'f-x': { name: '여름', o: 2, u: 10 }, '../bad': { name: 'x' } }, crates: { a: { name: 'a', u: 1, f: 'f-x', albums: [] }, b: { name: 'b', u: 1, f: '', albums: [] }, c: { name: 'c', u: 1, f: '<x>', albums: [] }, e: { name: 'e', u: 1, albums: [] } } });
+assert.deepEqual(Object.keys(d.folders).sort(), ['f-tll', 'f-x']);
+assert.equal(d.crates.a.f, 'f-x'); assert.equal(d.crates.b.f, ''); assert.ok(!('f' in d.crates.c)); assert.ok(!('f' in d.crates.e));
+p = clean({ folders: { 'f-x': { name: '여름', u: 10 } } }); q = clean({ folders: { 'f-x': { name: '겨울', u: 20 }, 'f-tll': { del: 1, u: 30 } } });
+m = merge(p, q);
+assert.equal(m.folders['f-x'].name, '겨울'); assert.equal(m.folders['f-tll'].del, 1);
+assert.deepEqual(merge(q, p), m, '폴더도 순서를 바꿔도 같다');
+assert.ok(!('folders' in clean({ crates: {} })));
 console.log('music merge ok');

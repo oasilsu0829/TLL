@@ -3,11 +3,13 @@
    · 스트로브 등 · 바늘 조명 · 45 어댑터 · 톤암 클립 · 고무 발 · RCA 케이블 · 먼지 덮개
    연출: 무지개 반사광, 조명 속 먼지, 판 휨, 스트로브 착시(속도가 맞으면 점이 멈춰 보임), 카메라 숨쉬기, 곡이 바뀔 때 무음 홈이 빛남
    좌표: +Y 위, +Z 화면 앞. 본체 1.77 × 1.44
+   턴테이블 ↔ 황동 실린더 전축(2026-11-24, phono.js): 시가를 꾹 누르면 잔에 담가 끄고 토치로 다시 붙임 → 연기 속에서 바뀜(시가 ↔ 시가렛). localStorage tll.deck = 'tt' | 'phono'
    바깥(index.html)에서 쓰는 것: window.Deck3D = { ok, setPlaying(on, 진행), setLabel, drop(a, slam), shake, setNight, setTint, setVolume, flashGap,
      onScratch, onButton(kind: start·cue), onVolume(0~100), onSound(kind) }
    WebGL이 안 되면 ok = false 로 두고 예전 CSS 턴테이블을 그대로 쓴다 */
 import * as THREE from '/3d/three.module.min.js';
 import { RoundedBoxGeometry } from './geometries/RoundedBoxGeometry.js';
+import { buildPhono } from './phono.js';
 
 const host = document.getElementById('deck3d');
 const D = (window.Deck3D = { ok: false });
@@ -71,6 +73,9 @@ function start() {
   const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
 
   const deck = new THREE.Group(); scene.add(deck);
+  // 턴테이블(tt) · 황동 실린더 전축(phono). 시가를 꾹 눌러 바꿈(bar.dunk → setMode)
+  let phono = null; // 황동 실린더 전축(phono.js, 처음 쓸 때 만듦)
+  let deckMode = (() => { try { return localStorage.getItem('tll.deck') === 'phono' ? 'phono' : 'tt'; } catch { return 'tt'; } })();
 
   // 헤어라인 결(브러시드 알루미늄): 가로로 가는 줄을 촘촘히
   function brushed() {
@@ -469,6 +474,49 @@ void main(){
     const ash = new THREE.Mesh(ashG, new THREE.MeshStandardMaterial({ map: ashT, roughness: 1, bumpMap: ashT, bumpScale: 1.5 })); ash.rotation.z = -Math.PI / 2; ash.position.x = X1 + 0.007 + ASH / 2; cig.add(ash);
     const emberL = new THREE.PointLight(0xff6a20, 0.12, 0.35, 2); emberL.position.set(X1 + 0.004, 0, 0); cig.add(emberL);
     cig.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    // 꺼진 끝(재 밑 숯 단면): 잔에 담가 재가 떨어지면 보임. 토치로 다시 붙이면 주황으로 달아오름
+    const footM = new THREE.MeshStandardMaterial({ color: 0x0e0806, emissive: 0xff5a14, emissiveMap: emT, emissiveIntensity: 0, roughness: 1 });
+    { const f = new THREE.Mesh(new THREE.CircleGeometry(CR * 0.985, 40), footM); f.rotation.y = Math.PI / 2; f.position.x = X1 + 0.0042; cig.add(f); }
+    // 시가렛(2026-11-24 사용자 요청: 실린더 전축으로 바뀌면 시가도 시가렛으로): 지름 8mm · 길이 84mm(코르크 필터 25mm)
+    // 흰 종이(세로 결) + 필터 쪽 작은 T/L/L 과 금줄 · 코르크 무늬 필터 · 흰 필터 단면 · 탄 테 · 불씨 고리 · 짧은 재. 재떨이 같은 자리에 걸침
+    const TR = 0.0158, T0 = -0.12, T1 = 0.21, TF = T0 + 0.098, TASH = 0.022;
+    const CGT_P = new THREE.Vector3(-0.16, TH + 0.0145, 0.27), CGT_R = new THREE.Euler(0, 0.785, 0.05);
+    const cgt = new THREE.Group(); cgt.position.copy(CGT_P); cgt.rotation.copy(CGT_R); tray.add(cgt);
+    const pc = document.createElement('canvas'); pc.width = 512; pc.height = 512; const pg = pc.getContext('2d'); // 종이: 위 = 필터 쪽, 아래 = 불 쪽
+    pg.fillStyle = '#f4f2ec'; pg.fillRect(0, 0, 512, 512);
+    for (let x = 0; x < 512; x += 5) { pg.fillStyle = `rgba(150,140,120,${0.05 + rndC() * 0.05})`; pg.fillRect(x, 0, 1, 512); }
+    pg.fillStyle = '#9a7a2e'; pg.font = 'italic 700 34px Georgia, serif'; pg.textAlign = 'center'; pg.textBaseline = 'middle'; pg.fillText('T/L/L', 256, 40);
+    { const cg2 = pg.createLinearGradient(0, 430, 0, 512); cg2.addColorStop(0, 'rgba(120,80,40,0)'); cg2.addColorStop(0.55, 'rgba(90,50,20,.55)'); cg2.addColorStop(1, 'rgba(20,10,5,1)'); pg.fillStyle = cg2; pg.fillRect(0, 430, 512, 82); }
+    const paperT = new THREE.CanvasTexture(pc); paperT.colorSpace = THREE.SRGBColorSpace; paperT.anisotropy = 8;
+    const paper = new THREE.Mesh(new THREE.CylinderGeometry(TR, TR, T1 - TF, 40, 1, true), new THREE.MeshPhysicalMaterial({ map: paperT, roughness: 0.75, sheen: 0.4, sheenColor: new THREE.Color(0xffffff) }));
+    paper.rotation.z = Math.PI / 2; paper.position.x = (TF + T1) / 2; cgt.add(paper);
+    const kc = document.createElement('canvas'); kc.width = 256; kc.height = 256; const kg = kc.getContext('2d'); // 코르크 필터: 위 = 입 쪽
+    kg.fillStyle = '#c98a4c'; kg.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 900; i++) { kg.fillStyle = `rgba(${rndC() < 0.6 ? '120,60,20' : '240,200,140'},${0.15 + rndC() * 0.35})`; kg.beginPath(); kg.ellipse(rndC() * 256, rndC() * 256, 1 + rndC() * 2.5, 0.6 + rndC() * 1.5, rndC() * 3, 0, 7); kg.fill(); }
+    { const gg = kg.createLinearGradient(0, 228, 0, 246); gg.addColorStop(0, '#f6e3a1'); gg.addColorStop(0.5, '#b8862e'); gg.addColorStop(1, '#f0d27a'); kg.fillStyle = gg; kg.fillRect(0, 232, 256, 10); }
+    const corkT = new THREE.CanvasTexture(kc); corkT.colorSpace = THREE.SRGBColorSpace;
+    const filt = new THREE.Mesh(new THREE.CylinderGeometry(TR + 0.0003, TR + 0.0003, TF - T0, 40, 1, true), new THREE.MeshPhysicalMaterial({ map: corkT, roughness: 0.6, metalness: 0.05 }));
+    filt.rotation.z = Math.PI / 2; filt.position.x = (T0 + TF) / 2; cgt.add(filt);
+    const fcv = document.createElement('canvas'); fcv.width = fcv.height = 64; const fcg = fcv.getContext('2d'); fcg.fillStyle = '#ece6d6'; fcg.fillRect(0, 0, 64, 64); for (let i = 0; i < 300; i++) { fcg.fillStyle = `rgba(160,150,130,${rndC() * 0.4})`; fcg.fillRect(rndC() * 64, rndC() * 64, 1, 1); }
+    const fcT = new THREE.CanvasTexture(fcv); fcT.colorSpace = THREE.SRGBColorSpace;
+    { const m = new THREE.Mesh(new THREE.CircleGeometry(TR + 0.0003, 32), new THREE.MeshStandardMaterial({ map: fcT, roughness: 1 })); m.rotation.y = -Math.PI / 2; m.position.x = T0 - 0.0002; cgt.add(m); }
+    const tEmberM = new THREE.MeshStandardMaterial({ color: 0x1a0904, emissive: 0xff5a14, emissiveMap: emT, emissiveIntensity: 2, roughness: 0.95 });
+    { const m = new THREE.Mesh(new THREE.CylinderGeometry(TR * 0.98, TR * 0.99, 0.004, 32, 1, true), tEmberM); m.rotation.z = Math.PI / 2; m.position.x = T1 + 0.002; cgt.add(m); }
+    const tFootM = new THREE.MeshStandardMaterial({ color: 0x0e0806, emissive: 0xff5a14, emissiveMap: emT, emissiveIntensity: 0, roughness: 1 });
+    { const m = new THREE.Mesh(new THREE.CircleGeometry(TR * 0.98, 32), tFootM); m.rotation.y = Math.PI / 2; m.position.x = T1 + 0.0035; cgt.add(m); }
+    const tAshG = new THREE.CylinderGeometry(TR * 0.88, TR * 0.97, TASH, 32, 6, false);
+    { const P = tAshG.attributes.position; for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), y = P.getY(i), a = Math.atan2(z, x); const k = 1 + Math.sin(a * 6 + y * 500) * 0.03; P.setX(i, x * k); P.setZ(i, z * k); } tAshG.computeVertexNormals(); }
+    const tAsh = new THREE.Mesh(tAshG, new THREE.MeshStandardMaterial({ map: ashT, roughness: 1, color: 0xd8d6d2 })); tAsh.rotation.z = -Math.PI / 2; tAsh.position.x = T1 + 0.004 + TASH / 2; cgt.add(tAsh);
+    const tEmberL = new THREE.PointLight(0xff6a20, 0.06, 0.2, 2); tEmberL.position.set(T1 + 0.004, 0, 0); cgt.add(tEmberL);
+    cgt.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    // 지금 피우는 것(시가 · 시가렛). head = 입 끝, tip = 불 붙은 끝, ashL = 재 길이, rw = 연기 굵기
+    const SMK = {
+      cigar: { g: cig, P: CIG_P, R: CIG_R, head: capX - 0.004, tip: X1, ash, ashL: ASH, gap: 0.007, emberM, emberL, footM, rw: 1, eI: 1, lit: 1, ashK: 1 },
+      cigt: { g: cgt, P: CGT_P, R: CGT_R, head: T0 - 0.002, tip: T1, ash: tAsh, ashL: TASH, gap: 0.004, emberM: tEmberM, emberL: tEmberL, footM: tFootM, rw: 0.55, eI: 0.6, lit: 1, ashK: 1 },
+    };
+    let sm = deckMode === 'phono' ? SMK.cigt : SMK.cigar;
+    cig.visible = sm === SMK.cigar; cgt.visible = sm === SMK.cigt;
+    const setAsh = (s, k) => { s.ashK = k; s.ash.visible = k > 0.02; s.ash.scale.y = Math.max(0.02, k); s.ash.position.x = s.tip + s.gap + s.ashL * Math.max(0.02, k) / 2; };
     // 잔 위 조명(위에서 떨어지는 빛): 컷 면·테·얼음이 반짝이게. 재즈바에선 더 따뜻하고 세게
     const lamp = new THREE.SpotLight(0xffe2b8, 0, 2.4, 0.3, 0.6, 1.3); lamp.position.set(0.85, 1.7, 0.35); lamp.target = G; scene.add(lamp);
     const glint = new THREE.PointLight(0xffffff, 0, 0.9, 2); glint.position.set(0.85, 0.55, 0.45); scene.add(glint);
@@ -511,7 +559,7 @@ void main(){
         for (let i = 0; i <= NS; i++) {
           const p0 = ribPts[Math.max(0, i - 1)], p1 = ribPts[Math.min(NS, i + 1)];
           _t.subVectors(p1, p0).normalize(); _v.subVectors(cam.position, ribPts[i]).normalize(); _side.crossVectors(_t, _v).normalize();
-          const t = i / NS, w = (0.006 + 0.075 * t * t) * r.w * (0.85 + 0.15 * Math.sin(T * 1.3 + t * 9 + r.ph));
+          const t = i / NS, w = (0.006 + 0.075 * t * t) * r.w * sm.rw * (0.85 + 0.15 * Math.sin(T * 1.3 + t * 9 + r.ph));
           _p.copy(ribPts[i]).addScaledVector(_side, -w); _q.copy(ribPts[i]).addScaledVector(_side, w);
           r.pos.set([_p.x, _p.y, _p.z, _q.x, _q.y, _q.z], i * 6);
         }
@@ -534,18 +582,165 @@ void main(){
     for (let i = 0; i < 40; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: wispTex, color: 0xd6d9de, transparent: true, opacity: 0, depthWrite: false, depthTest: false })); sp.renderOrder = 30; sp.visible = false; scene.add(sp); exh.push({ sp, age: -1, life: 1, v: new THREE.Vector3(), sd: 0 }); }
     let pf0 = -1, exhOn = 0, ribGrow = 1, ribK = 1;
     const restP = new THREE.Vector3(), restQ = new THREE.Quaternion(), nearP = new THREE.Vector3(), nearQ = new THREE.Quaternion(), _f = new THREE.Vector3(), _u = new THREE.Vector3(), _r = new THREE.Vector3(), _ax = new THREE.Vector3(1, 0, 0);
-    function restPose() { tray.updateMatrixWorld(); const o = new THREE.Object3D(); o.position.copy(CIG_P); o.rotation.copy(CIG_R); tray.add(o); o.updateMatrixWorld(); o.matrixWorld.decompose(restP, restQ, _v); tray.remove(o); }
+    function restPose() { tray.updateMatrixWorld(); const o = new THREE.Object3D(); o.position.copy(sm.P); o.rotation.copy(sm.R); tray.add(o); o.updateMatrixWorld(); o.matrixWorld.decompose(restP, restQ, _v); tray.remove(o); }
     function nearPose(T) {
       cam.updateMatrixWorld(); cam.getWorldDirection(_f); _u.setFromMatrixColumn(cam.matrixWorld, 1); _r.setFromMatrixColumn(cam.matrixWorld, 0);
       const dir = _v.copy(_f).multiplyScalar(0.8).addScaledVector(_u, 0.42).addScaledVector(_r, -0.42).normalize(); // 오른쪽 아래(입) → 왼쪽 위로 비스듬히: 불씨가 화면 가운데 근처에서 보임
       nearQ.setFromUnitVectors(_ax, dir);
       const tip = _p.copy(cam.position).addScaledVector(_f, 0.55).addScaledVector(_u, -0.17 + Math.sin(T * 2.2) * 0.003).addScaledVector(_r, 0.2); // 머리 끝은 화면 오른쪽 아래 구석(입 쪽)
-      nearP.copy(tip).addScaledVector(dir, -(capX - 0.004)); // 머리 끝이 tip에 오게
+      nearP.copy(tip).addScaledVector(dir, -sm.head); // 머리 끝이 tip에 오게
     }
     function puff() {
-      if (pf0 >= 0) return;
-      pf0 = performance.now(); restPose(); scene.attach(cig);
+      if (pf0 >= 0 || dk0 >= 0 || sm.lit < 0.5) return false;
+      pf0 = performance.now(); restPose(); scene.attach(sm.g); return true;
     }
+    // ---------- 꾹 누르기(2026-11-24 사용자 요청): 잔에 담가 불을 끄고 → 토치로 다시 붙이면 → 연기 속에서 턴테이블 ↔ 황동 실린더 전축, 시가 ↔ 시가렛 ----------
+    // 0~0.9 잔 위로 · 0.9~1.45 불 쪽을 술에 담금(1.25 치익, 불 꺼짐·재 떨어짐·김) · 1.6~2.05 꺼내 · 물방울 · 2.35~3.2 재떨이로
+    // 3.2~3.75 토치가 날아옴 · 3.8~5.0 파란 불꽃(4.1부터 끝이 달아오름) · 5.0~5.5 토치 빠짐 · 5.1~ 연기가 크게 피어 화면을 덮음 → 6.0에 바꿔 치기 → 7.9까지 걷힘
+    let dk0 = -1, dkHiss = 0, dkTorch = 0, dkWhoosh = 0, dkSwap = 0, hold0 = -1, onSwap = null;
+    const overP = new THREE.Vector3(), dipP = new THREE.Vector3(), dipQ = new THREE.Quaternion(), _gw = new THREE.Vector3(), _dd = new THREE.Vector3();
+    function dipPose(depth) { // 불 붙은 끝이 술 수면 아래 depth(음수면 위)에 오게
+      G.updateMatrixWorld(); G.getWorldPosition(_gw);
+      const ly = liq.getWorldPosition(_dir).y + LQ * liq.scale.y / 2;
+      _dd.set(0.12, -1, 0.22).normalize(); dipQ.setFromUnitVectors(_ax, _dd);
+      const tipL = sm.tip + (sm.ash.visible ? sm.gap + sm.ashL * sm.ashK : 0.004);
+      const p = _p.set(_gw.x - 0.055, ly - depth, _gw.z + 0.075);
+      return p.addScaledVector(_dd, -tipL);
+    }
+    // 김(치익): 수면에서 빠르게 솟는 흰 김
+    const steam = [];
+    for (let i = 0; i < 16; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smTex, color: 0xf2f4f6, transparent: true, opacity: 0, depthWrite: false })); sp.renderOrder = 9; sp.visible = false; scene.add(sp); steam.push({ sp, age: -1, life: 1, v: new THREE.Vector3(), sd: 0 }); }
+    // 물방울(꺼낸 끝에서 떨어짐)
+    const drips = [];
+    for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.0045, 10, 8), new THREE.MeshPhysicalMaterial({ color: 0xdfe8f0, roughness: 0.05, clearcoat: 1, transparent: true, opacity: 0.75 })); m.visible = false; m.scale.y = 1.4; scene.add(m); drips.push({ m, t0: 0, y0: 0, on: false }); }
+    // 토치(가스 제트 라이터): 총구가 끝을 겨눠 파란 불꽃. 처음 쓸 때 만든다
+    let torch = null;
+    function makeTorch() {
+      const t = new THREE.Group();
+      const gun = new THREE.MeshStandardMaterial({ color: 0x3a3d44, metalness: 0.85, roughness: 0.3 }), chr = new THREE.MeshStandardMaterial({ color: 0xe8eaee, metalness: 1, roughness: 0.12 });
+      const kc2 = document.createElement('canvas'); kc2.width = 64; kc2.height = 128; const kx = kc2.getContext('2d'); kx.fillStyle = '#b9bdc5'; kx.fillRect(0, 0, 64, 128); for (let y = 0; y < 128; y += 4) { kx.fillStyle = 'rgba(40,40,48,.35)'; kx.fillRect(0, y, 64, 1); }
+      const knT = new THREE.CanvasTexture(kc2); knT.wrapS = knT.wrapT = THREE.RepeatWrapping; knT.repeat.set(4, 2);
+      const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.028, 0.15, 32), new THREE.MeshStandardMaterial({ map: knT, metalness: 0.9, roughness: 0.28 })); tank.position.y = -0.11; t.add(tank);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.0285, 0.0285, 0.012, 32), new THREE.MeshStandardMaterial({ color: 0x8e1418, metalness: 0.4, roughness: 0.4 })); band.position.y = -0.05; t.add(band);
+      const head = new THREE.Mesh(new RoundedBoxGeometry(0.06, 0.05, 0.055, 3, 0.012), gun); head.position.y = -0.02; t.add(head);
+      const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.011, 0.04, 20), chr); noz.position.y = 0.02; t.add(noz);
+      const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.0105, 0.002, 8, 20), chr); ring2.rotation.x = Math.PI / 2; ring2.position.y = 0.006; t.add(ring2);
+      const trig = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.03, 0.02), new THREE.MeshStandardMaterial({ color: 0x8e1418, roughness: 0.5 })); trig.position.set(0, -0.045, 0.033); t.add(trig);
+      // 불꽃: 바깥 파랑 + 안쪽 하늘·흰 원뿔(더하기 섞기)
+      const fl = new THREE.Group(); fl.position.y = 0.04; t.add(fl);
+      const outer = new THREE.Mesh(new THREE.ConeGeometry(0.011, 0.085, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x2f6bff, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      outer.rotation.x = Math.PI; outer.position.y = 0.0425; fl.add(outer);
+      const inner = new THREE.Mesh(new THREE.ConeGeometry(0.0055, 0.035, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      inner.rotation.x = Math.PI; inner.position.y = 0.0175; fl.add(inner);
+      const glowS = new THREE.Sprite(new THREE.SpriteMaterial({ map: smTex, color: 0x4f8dff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); glowS.scale.set(0.07, 0.07, 1); glowS.position.y = 0.03; fl.add(glowS);
+      const tl = new THREE.PointLight(0x6aa8ff, 0, 0.6, 2); tl.position.y = 0.06; t.add(tl);
+      [tank, band, head, noz, trig].forEach((m) => { m.castShadow = true; });
+      t.scale.setScalar(1.5); t.visible = false; scene.add(t);
+      return { t, fl, tl };
+    }
+    // 큰 연기(바꿔 치기를 가림): 끝에서 뭉게뭉게 퍼지는 덩어리 + 카메라 앞에 덮이는 장막
+    const burst = [];
+    for (let i = 0; i < 34; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: i % 2 ? wispTex : smTex, color: 0xcfd2d8, transparent: true, opacity: 0, depthWrite: false })); sp.renderOrder = 12; sp.visible = false; scene.add(sp); burst.push({ sp, age: -1, life: 1, v: new THREE.Vector3(), sd: 0, s0: 0.1 }); }
+    const veil = [];
+    for (let i = 0; i < 4; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: i ? wispTex : smTex, color: 0xc9ccd2, transparent: true, opacity: 0, depthWrite: false, depthTest: false })); sp.renderOrder = 40; sp.visible = false; scene.add(sp); veil.push(sp); }
+    const _tp = new THREE.Vector3(), _aim = new THREE.Vector3(), _Yv = new THREE.Vector3(0, 1, 0);
+    function tipWorld(out) { sm.g.updateMatrixWorld(); return sm.g.localToWorld(out.set(sm.tip + 0.003, 0, 0)); }
+    function dunk(swap) {
+      if (dk0 >= 0 || pf0 >= 0) return;
+      onSwap = swap; dk0 = performance.now(); dkHiss = dkTorch = dkWhoosh = dkSwap = 0; hold0 = -1;
+      restPose(); scene.attach(sm.g);
+    }
+    function stepDunk(dt, T, nightK, now) {
+      const e = (now - dk0) / 1000;
+      ribK = 0;
+      // 시가 자리
+      const g0 = sm.g;
+      if (e < 3.2) {
+        if (e < 0.9) { const k = ease(e / 0.9); overP.copy(dipPose(-0.26)); g0.position.lerpVectors(restP, overP, k).y += Math.sin(k * Math.PI) * 0.08; g0.quaternion.slerpQuaternions(restQ, dipQ, k); }
+        else if (e < 1.45) { const k = ease((e - 0.9) / 0.55); overP.copy(dipPose(-0.26)); dipP.copy(dipPose(0.035)); g0.position.lerpVectors(overP, dipP, k); g0.quaternion.copy(dipQ); }
+        else if (e < 1.6) { dipP.copy(dipPose(0.035)); g0.position.copy(dipP); g0.position.x += Math.sin(e * 60) * 0.0015; g0.quaternion.copy(dipQ); }
+        else if (e < 2.05) { const k = ease((e - 1.6) / 0.45); dipP.copy(dipPose(0.035)); overP.copy(dipPose(-0.24)); g0.position.lerpVectors(dipP, overP, k); g0.quaternion.copy(dipQ); }
+        else if (e < 2.35) { overP.copy(dipPose(-0.24)); g0.position.copy(overP); g0.quaternion.copy(dipQ); }
+        else { const k = ease((e - 2.35) / 0.85); overP.copy(dipPose(-0.24)); restPose(); g0.position.lerpVectors(overP, restP, k).y += Math.sin(k * Math.PI) * 0.06; g0.quaternion.slerpQuaternions(dipQ, restQ, k); }
+      } else if (g0.parent !== tray) { tray.attach(g0); g0.position.copy(sm.P); g0.rotation.copy(sm.R); }
+      // 치익: 불이 술에 닿는 순간 꺼지고 재는 떨어져 나감, 김이 솟고 수면에 잔물결·얼음 흔들림
+      if (e >= 1.25 && !dkHiss) {
+        dkHiss = 1; D.onSound && D.onSound('hiss'); sm.lit = 0; setAsh(sm, 0); rip0 = ring = now;
+        const sp0 = tipWorld(_tp);
+        for (const q of steam) { q.age = Math.random() * -0.25; q.life = 0.9 + Math.random() * 0.8; q.sd = Math.random() * 100; q.sp.position.copy(sp0); q.sp.position.y += 0.03; q.v.set((Math.random() - 0.5) * 0.12, 0.25 + Math.random() * 0.3, (Math.random() - 0.5) * 0.12); }
+      }
+      if (e >= 1.45 && e < 1.6) sm.lit = 0;
+      // 물방울: 꺼낸 끝에서 세 방울
+      for (let i = 0; i < drips.length; i++) {
+        const q = drips[i], at = 2.05 + i * 0.13;
+        if (e >= at && !q.on && e < 2.9) { q.on = true; q.t0 = now; tipWorld(q.m.position); q.y0 = q.m.position.y; q.m.visible = true; }
+        if (q.on) { const s = (now - q.t0) / 1000; const ly = liq.getWorldPosition(_dir).y + LQ * liq.scale.y / 2; q.m.position.y = q.y0 - 4.9 * s * s; if (q.m.position.y <= ly) { q.on = false; q.m.visible = false; rip0 = now; } }
+        if (e < 1) { q.on = false; q.m.visible = false; }
+      }
+      // 토치: 오른쪽 앞에서 날아와 끝을 겨눔 → 불꽃 → 빠짐
+      if (e >= 3.2 && e < 5.6) {
+        if (!torch) torch = makeTorch();
+        const tw = tipWorld(_tp);
+        _aim.set(-0.72, -0.5, 0.3).normalize(); // 오른쪽 뒤 위에서 앞 왼쪽 아래로 겨눔(카메라와 불씨 사이를 가리지 않게)
+        const aimP = _v.copy(tw).addScaledVector(_aim, -0.155);
+        const away = _q.copy(tw).add(new THREE.Vector3(0.9, 0.6, -0.35));
+        const inK = ease(seg(e, 3.2, 3.75)), outK = easeIn(seg(e, 5.0, 5.5));
+        torch.t.visible = true;
+        torch.t.position.lerpVectors(away, aimP, inK * (1 - outK)); torch.t.position.y += Math.sin(T * 7) * 0.0015 * inK;
+        torch.t.quaternion.setFromUnitVectors(_Yv, _aim);
+        const on = e >= 3.8 && e < 5.0;
+        if (e >= 3.75 && !dkTorch) { dkTorch = 1; D.onSound && D.onSound('torch'); }
+        torch.fl.visible = on; const fk = on ? 1 + Math.sin(T * 47) * 0.06 + (Math.random() - 0.5) * 0.08 : 0;
+        torch.fl.scale.set(1, fk || 0.001, 1); torch.tl.intensity = on ? 0.9 + Math.random() * 0.2 : 0;
+        // 끝이 달아오름(4.1 ~ 5.0), 불꽃이 꺼진 뒤에도 빨갛게 남음
+        if (on && e > 4.1) sm.lit = Math.max(sm.lit, seg(e, 4.1, 4.95) * (0.85 + Math.random() * 0.15));
+      } else if (torch && torch.t.visible) { torch.t.visible = false; torch.tl.intensity = 0; }
+      if (e >= 5.0) sm.lit = Math.max(sm.lit, 1);
+      // 큰 연기: 5.1부터 끝에서 뭉게뭉게(턴테이블 쪽으로 퍼짐), 장막은 5.4~5.95 짙어지고 6.15부터 걷힘
+      if (e >= 5.1 && e < 6.2) {
+        if (!dkWhoosh) { dkWhoosh = 1; D.onSound && D.onSound('whoosh'); }
+        const tw = tipWorld(_tp);
+        for (const q of burst) if (q.age < 0 && Math.random() < 0.3) {
+          q.age = 0; q.life = 2.2 + Math.random() * 1.6; q.sd = Math.random() * 100; q.s0 = 0.05 + Math.random() * 0.08; q.sp.visible = true; q.sp.position.copy(tw);
+          q.v.set(-0.5 - Math.random() * 0.9, 0.25 + Math.random() * 0.6, -0.2 + (Math.random() - 0.5) * 0.7);
+        }
+      }
+      for (const q of burst) {
+        if (q.age < 0) continue;
+        q.age += dt; const k = q.age / q.life;
+        if (k >= 1) { q.age = -1; q.sp.visible = false; q.sp.material.opacity = 0; continue; }
+        q.v.multiplyScalar(Math.exp(-1.1 * dt)); q.v.y += 0.05 * dt; q.sp.position.addScaledVector(q.v, dt);
+        const s = q.s0 + (1 - Math.pow(1 - k, 2)) * 1.1; q.sp.scale.set(s, s, 1);
+        q.sp.material.opacity = Math.min(1, k / 0.08) * Math.pow(1 - k, 1.4) * lerp(0.5, 0.62, nightK); q.sp.material.rotation = q.sd + k * 1.2; q.sp.material.color.setRGB(0.78, 0.76, 0.73);
+      }
+      const vk = e < 5.4 ? 0 : e < 5.95 ? ease(seg(e, 5.4, 5.95)) : e < 6.15 ? 1 : 1 - ease(seg(e, 6.15, 7.9));
+      cam.updateMatrixWorld(); cam.getWorldDirection(_f); _u.setFromMatrixColumn(cam.matrixWorld, 1); _r.setFromMatrixColumn(cam.matrixWorld, 0);
+      const vh = 2 * 0.6 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2);
+      veil.forEach((sp, i) => { sp.visible = vk > 0.001; if (!sp.visible) return;
+        sp.position.copy(cam.position).addScaledVector(_f, 0.6).addScaledVector(_r, Math.sin(T * 0.3 + i * 2) * vh * 0.25 * (i ? 1 : 0)).addScaledVector(_u, Math.cos(T * 0.25 + i) * vh * 0.15 * (i ? 1 : 0));
+        const s = vh * cam.aspect * (i ? 1.3 : 2.6); sp.scale.set(s, i ? s : vh * 2.6, 1); sp.material.rotation = i * 1.7 + T * 0.05 * (i % 2 ? 1 : -1);
+        sp.material.opacity = vk * (i ? 0.6 : 0.9); sp.material.color.setRGB(...[0.6, 0.58, 0.55].map((c) => lerp(c + 0.2, c, nightK))); });
+      // 바꿔 치기(연기가 가장 짙을 때)
+      if (e >= 6.0 && !dkSwap) {
+        dkSwap = 1;
+        const was = sm; was.g.visible = false; was.lit = 1; setAsh(was, 1);
+        sm = sm === SMK.cigar ? SMK.cigt : SMK.cigar; sm.g.visible = true; sm.lit = 1; setAsh(sm, 0.2); sm.g.position.copy(sm.P); sm.g.rotation.copy(sm.R);
+        onSwap && onSwap(sm === SMK.cigt ? 'phono' : 'tt');
+        ribGrow = 0;
+      }
+      if (e >= 6.3) ribK = 1;
+      if (e >= 8.0) { dk0 = -1; veil.forEach((sp) => { sp.visible = false; }); }
+    }
+    function stepSteam(dt) {
+      for (const q of steam) {
+        if (q.age === -1) continue;
+        q.age += dt; if (q.age < 0) { q.sp.visible = false; continue; }
+        const k = q.age / q.life; if (k >= 1) { q.age = -1; q.sp.visible = false; continue; }
+        q.sp.visible = true; q.v.multiplyScalar(Math.exp(-1.6 * dt)); q.sp.position.addScaledVector(q.v, dt);
+        const s = 0.02 + k * 0.14; q.sp.scale.set(s, s, 1); q.sp.material.opacity = Math.min(1, k / 0.1) * Math.pow(1 - k, 1.5) * 0.5;
+      }
+    }
+
     // 잔을 누르면: 잔이 코스터 위에서 살짝 돌고(속 얼음은 늦게 따라 흔들림) 쨍. 누를 때마다 방향을 바꿔 제자리 근처를 오감
     let ring = -1, turn = 0, turnV = 0, turnT = 0, dir = 1;
     function step(dt, T, nightK) {
@@ -555,10 +750,10 @@ void main(){
       if (pf0 >= 0) {
         const e = (performance.now() - pf0) / 1000;
         nearPose(T);
-        if (e < 1.1) { const k = ease(e / 1.1); cig.position.lerpVectors(restP, nearP, k).y += Math.sin(k * Math.PI) * 0.12; cig.quaternion.slerpQuaternions(restQ, nearQ, k); ribK = Math.max(0, 1 - e / 0.3); }
-        else if (e < 2.7) { const k = (e - 1.1) / 1.6; draw = Math.sin(Math.min(1, k * 1.25) * Math.PI * 0.5) * (1 - Math.max(0, (k - 0.85) / 0.15)); cig.position.copy(nearP).addScaledVector(_f, -0.012 * Math.sin(k * Math.PI)); cig.quaternion.copy(nearQ); }
-        else if (e < 3.9) { const k = ease((e - 2.7) / 1.2); restPose(); cig.position.lerpVectors(nearP, restP, k).y += Math.sin(k * Math.PI) * 0.1; cig.quaternion.slerpQuaternions(nearQ, restQ, k); draw = Math.max(0, 0.35 - k); }
-        else { tray.attach(cig); cig.position.copy(CIG_P); cig.rotation.copy(CIG_R); pf0 = -1; ribGrow = 0; ribK = 1; }
+        if (e < 1.1) { const k = ease(e / 1.1); sm.g.position.lerpVectors(restP, nearP, k).y += Math.sin(k * Math.PI) * 0.12; sm.g.quaternion.slerpQuaternions(restQ, nearQ, k); ribK = Math.max(0, 1 - e / 0.3); }
+        else if (e < 2.7) { const k = (e - 1.1) / 1.6; draw = Math.sin(Math.min(1, k * 1.25) * Math.PI * 0.5) * (1 - Math.max(0, (k - 0.85) / 0.15)); sm.g.position.copy(nearP).addScaledVector(_f, -0.012 * Math.sin(k * Math.PI)); sm.g.quaternion.copy(nearQ); }
+        else if (e < 3.9) { const k = ease((e - 2.7) / 1.2); restPose(); sm.g.position.lerpVectors(nearP, restP, k).y += Math.sin(k * Math.PI) * 0.1; sm.g.quaternion.slerpQuaternions(nearQ, restQ, k); draw = Math.max(0, 0.35 - k); }
+        else { tray.attach(sm.g); sm.g.position.copy(sm.P); sm.g.rotation.copy(sm.R); pf0 = -1; ribGrow = 0; ribK = 1; }
         if (e >= 2.9 && exhOn === 0) { exhOn = 1; D.onSound && D.onSound('exhale'); }
         if (e >= 2.9 && exhOn === 1 && e < 3.8) { // 0.9초 동안 입 앞에서 내뿜음
           for (const q of exh) if (q.age < 0 && Math.random() < 0.35) {
@@ -569,7 +764,13 @@ void main(){
         }
         if (e < 1) exhOn = 0;
       }
-      emberM.emissiveIntensity = 1.5 + pulse * 1.1 + draw * 5; emberL.intensity = 0.06 + pulse * 0.1 + draw * 0.9; emberL.distance = 0.35 + draw * 0.5; emT.offset.x = (T * 0.03) % 1; emT.offset.y = Math.sin(T * 1.7) * 0.05;
+      if (dk0 >= 0) stepDunk(dt, T, nightK, performance.now());
+      stepSteam(dt);
+      if (hold0 >= 0) draw = Math.max(draw, Math.min(1, (performance.now() - hold0) / 600) * 0.7); // 꾹 누르는 동안 불씨가 점점 밝아짐
+      const L0 = sm.lit;
+      sm.emberM.emissiveIntensity = (1.5 + pulse * 1.1 + draw * 5) * L0 * sm.eI; sm.emberL.intensity = (0.06 + pulse * 0.1 + draw * 0.9) * L0 * sm.eI; sm.emberL.distance = (0.35 + draw * 0.5) * (0.6 + 0.4 * sm.eI); emT.offset.x = (T * 0.03) % 1; emT.offset.y = Math.sin(T * 1.7) * 0.05;
+      sm.footM.emissiveIntensity = L0 * (1.2 + pulse * 0.8) * (sm.ash.visible ? 0 : 1);
+      if (sm.lit > 0.9 && sm.ashK < 1 && dk0 < 0) setAsh(sm, Math.min(1, sm.ashK + dt / 240)); // 다시 붙인 뒤 재가 천천히 길어짐
       lamp.intensity = nightK * 2.6;
       glint.intensity = nightK * 0.35;
       // 유리 밝기는 실제 조명을 따라감: 잔 위 조명 세기·방향
@@ -591,10 +792,10 @@ void main(){
       turnV += ((turnT - turn) * 60 - turnV * 9) * Math.min(dt, 0.05); turn += turnV * Math.min(dt, 0.05);
       G.rotation.y = turn;
       if (ring >= 0) { const k = (performance.now() - ring) / 1100; if (k >= 1) { ring = -1; ice.rotation.z = -0.07; ice.position.x = 0.006; ice.rotation.y = 0.55; } else { const a = (1 - k) * (1 - k); ice.rotation.z = -0.07 + Math.sin(k * 38) * 0.05 * a; ice.position.x = 0.006 + Math.sin(k * 31) * 0.007 * a; ice.rotation.y = 0.55 - Math.sin(k * 9) * 0.25 * a * dir; } }
-      cig.updateMatrixWorld(); cig.localToWorld(src.set(X1 + ASH + 0.006, 0.006, 0));
+      sm.g.updateMatrixWorld(); sm.g.localToWorld(src.set(sm.tip + (sm.ash.visible ? sm.gap + sm.ashL * sm.ashK : 0) + 0.005, 0.006 * sm.rw, 0));
       // 리본: 모금 중엔 숨기고, 돌아온 뒤 불씨에서 다시 자라 오름
       if (ribGrow < 1) ribGrow = Math.min(1, ribGrow + dt / 2.2);
-      const sOp = lerp(0.32, 0.48, nightK) * ribK * (pf0 >= 0 ? 0 : 1);
+      const sOp = lerp(0.32, 0.48, nightK) * ribK * (pf0 >= 0 ? 0 : 1) * (sm.lit > 0.5 ? 1 : 0);
       stepRibbons(T, sOp, Math.max(0.02, ribGrow));
       for (const q of exh) {
         if (q.age < 0) continue;
@@ -614,12 +815,14 @@ void main(){
         q.p.set(src.x + sway - k * k * 0.12, src.y + h, src.z + Math.cos(T * 0.5 + q.sd + h * 7) * 0.025 * (0.2 + k * 1.4) - k * 0.05);
         q.sp.position.copy(q.p);
         const s = 0.025 + k * 0.26; q.sp.scale.set(s, s, 1);
-        q.sp.material.opacity = Math.min(1, k / 0.2) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.16, nightK) * ribK * (pf0 >= 0 ? 0 : ribGrow);
+        q.sp.material.opacity = Math.min(1, k / 0.2) * Math.pow(1 - k, 1.6) * lerp(0.1, 0.16, nightK) * ribK * (pf0 >= 0 ? 0 : ribGrow) * (sm.lit > 0.5 ? 1 : 0) * (0.5 + 0.5 * sm.rw);
         q.sp.material.rotation = q.sd + k * 2;
       }
     }
     [glass, tintG, lip, base, facet, liq, ice, hit, caus, frost, runs, liqTop, liqSpec, silver].concat(legs ? [legs] : []).forEach((m) => { m.userData.ns = true; }); inside.traverse((m) => { m.userData.ns = true; }); iceS.userData.ns = true; G.children.forEach((m) => { if (m.material === cutM) m.userData.ns = true; });
-    return { step, prepass, hit, trayHit, puff() { puff(); D.onSound && D.onSound('puff'); }, lively: () => pf0 >= 0, clink() { ring = rip0 = legT0 = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, newIce() { melt0 = performance.now(); }, busy: () => pf0 >= 0 || ribGrow < 1 || exh.some((q) => q.age >= 0) || ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
+    return { step, prepass, hit, trayHit, g, tray, puff() { if (puff()) D.onSound && D.onSound('puff'); }, dunk, dunking: () => dk0 >= 0, hold(on) { hold0 = on && dk0 < 0 && pf0 < 0 ? performance.now() : -1; },
+      lively: () => pf0 >= 0 || dk0 >= 0 || hold0 >= 0, clink() { if (dk0 >= 0) return; ring = rip0 = legT0 = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, newIce() { melt0 = performance.now(); },
+      busy: () => pf0 >= 0 || dk0 >= 0 || hold0 >= 0 || ribGrow < 1 || exh.some((q) => q.age >= 0) || steam.some((q) => q.age !== -1) || burst.some((q) => q.age >= 0) || ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
   })();
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
@@ -1138,6 +1341,8 @@ void main(){
     // 그림자: 판·플래터·톤암·조작부가 드리우고, 본체·매트가 받는다
     deck.traverse((o) => { if (o.isMesh && o !== floor && !o.userData.ns && !(o.material && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } });
     applyLabel();
+    D.mode = deckMode;
+    if (deckMode === 'phono') setMode('phono', true);
     D.ok = true;
     // 3D가 늦게 떴으면 화면이 먼저 정한 앨범 색을 받아 온다
     if (window.__tllAccent) { D.setTint(window.__tllAccent[2]); D.setAccent(window.__tllAccent[0], window.__tllAccent[1]); }
@@ -1177,6 +1382,7 @@ void main(){
   }
 
   const camBase = new THREE.Vector3(), camLook = new THREE.Vector3(0.27, -0.02, 0);
+  const LOOK = { tt: new THREE.Vector3(0.27, -0.02, 0) }; // 전축은 나팔 모양마다 phono.cam(보는 곳·거리)
   let camZoom = 0;
   function resize() {
     poke = performance.now();
@@ -1186,9 +1392,9 @@ void main(){
     // 판 전체(1.8 × 1.5)가 들어오게 거리를 맞춘다. 위에서 비스듬히(약 62도) 내려다본다
     // 잔·시가가 오른쪽 뒤에 있어 폭·높이를 넓히고 중심을 오른쪽으로 옮김(2026-11-17)
     const fitW = 2.6 / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect), fitH = 1.78 / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
-    const dist = Math.max(fitW, fitH);
+    const dist = Math.max(fitW, fitH) * (deckMode === 'phono' && phono ? phono.cam.fit : 1); // 전축은 나팔 모양마다 화면에 맞게
     const el = THREE.MathUtils.degToRad(48);
-    camBase.set(camLook.x, Math.sin(el) * dist, Math.cos(el) * dist);
+    camBase.set(camLook.x, Math.sin(el) * dist + camLook.y + 0.02, Math.cos(el) * dist + camLook.z);
     cam.position.copy(camBase);
     cam.lookAt(camLook);
     cam.updateProjectionMatrix();
@@ -1212,9 +1418,10 @@ void main(){
     const r = el.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, cam);
-    const h = ray.intersectObjects(clickables, false)[0];
+    const h = ray.intersectObjects(clickables, false).find((x) => shown(x.object)); // 숨은 쪽(턴테이블 · 전축)의 조작부는 건너뜀
     return h ? h.object.userData.act : null;
   }
+  const shown = (o) => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
   function planeHit(e, y) {
     const r = el.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -1236,12 +1443,17 @@ void main(){
       else if (act === 'reset') { press(ctl.reset); D.onSound && D.onSound('click'); D.onButton && D.onButton('reset'); }
       else if (act === 'power') { ctl.power.rotation.y += ctl.power.rotation.y < 0 ? 1.2 : -1.2; D.onSound && D.onSound('click'); }
       else if (act === 'bar') { bar.clink(); D.onBar && D.onBar(); }
-      else if (act === 'cig') bar.puff();
+      else if (act === 'cig') { // 톡 = 한 모금, 꾹(0.65초) = 잔에 담가 끄고 토치로 다시 붙임 → 턴테이블 ↔ 전축
+        if (bar.dunking()) return;
+        el.setPointerCapture(e.pointerId); bar.hold(true);
+        cigT0 = performance.now(); cigHold = setTimeout(() => { cigHold = 0; bar.hold(false); startDunk(); }, 650);
+      }
+      else if (act === 'phono') { if (!playing) { phono.crank(); D.onSound && D.onSound('crank'); } else D.onSound && D.onSound('click'); D.onButton && D.onButton('start'); }
       else if (act === 'cue') { D.onSound && D.onSound('cue'); D.onButton && D.onButton('cue'); }
       else if (act === 'slider' || act === 'dial') { dragCtl = { act, x: e.clientX, y: e.clientY, rot: ctl.dial.rotation.y }; el.setPointerCapture(e.pointerId); }
       return;
     }
-    if (drop || !record) return;
+    if (drop || !record || deckMode === 'phono') return;
     const a = recordAngle(e); if (!a || a.d > recK().r || a.d < 0.04) return;
     e.preventDefault(); el.setPointerCapture(e.pointerId);
     grab = { phi: a.phi, spin0: spin, t: performance.now(), last: performance.now(), v: 0 };
@@ -1257,7 +1469,8 @@ void main(){
       } else { ctl.dial.rotation.y = dragCtl.rot - (e.clientX - dragCtl.x) * 0.02; }
       return;
     }
-    if (!grab) { const act = parts && hitControl(e); if (act) { el.style.cursor = 'pointer'; return; } const a = parts && recordAngle(e); el.style.cursor = a && a.d < recK().r && a.d > 0.04 && !drop ? 'grab' : ''; return; }
+    if (cigHold) return;
+    if (!grab) { const act = parts && hitControl(e); if (act) { el.style.cursor = 'pointer'; return; } if (deckMode === 'phono') { el.style.cursor = ''; return; } const a = parts && recordAngle(e); el.style.cursor = a && a.d < recK().r && a.d > 0.04 && !drop ? 'grab' : ''; return; }
     const a = recordAngle(e); if (!a) return;
     let dphi = a.phi - grab.phi; if (dphi > Math.PI) dphi -= 2 * Math.PI; if (dphi < -Math.PI) dphi += 2 * Math.PI;
     grab.phi = a.phi;
@@ -1267,6 +1480,7 @@ void main(){
     D.onScratch && D.onScratch('move', grab.v / (RPS * Math.PI * 2)); // 1 = 정상 속도, 음수 = 거꾸로
   });
   const release = () => {
+    if (cigHold) { clearTimeout(cigHold); cigHold = 0; bar.hold(false); if (performance.now() - cigT0 >= 600) startDunk(); else bar.puff(); return; } // 타이머가 늦어도 오래 눌렀으면 꾹
     if (dragCtl) { if (dragCtl.act === 'dial') D.onSound && D.onSound('click'); dragCtl = null; return; }
     if (!grab) return;
     // 앞으로 돈 각(시계 방향이 앞) → 초. 한 바퀴 = 1.8초(33⅓ rpm)
@@ -1277,6 +1491,44 @@ void main(){
     D.onScratch && D.onScratch('end', sec, held);
   };
   el.addEventListener('pointerup', release); el.addEventListener('pointercancel', release);
+  el.addEventListener('contextmenu', (e) => e.preventDefault()); // 꾹 누를 때 폰의 길게 누르기 메뉴가 뜨지 않게
+  let cigHold = 0, cigT0 = 0;
+  // ---------- 턴테이블 ↔ 황동 실린더 전축 ----------
+  function ensurePhono() {
+    if (phono) return phono;
+    phono = buildPhono({ THREE, RoundedBoxGeometry, loadImg });
+    phono.g.visible = false; deck.add(phono.g); clickables.push(...phono.hits);
+    phono.setLabel(label);
+    return phono;
+  }
+  function setMode(m, quiet) {
+    deckMode = m === 'phono' ? 'phono' : 'tt';
+    try { localStorage.setItem('tll.deck', deckMode); } catch {}
+    const ph = deckMode === 'phono';
+    if (ph) ensurePhono();
+    if (ph) camLook.fromArray(phono.cam.look); else camLook.copy(LOOK.tt); resize();
+    // 바꾸는 순간 판·실린더 갈기가 돌고 있으면 바로 끝낸다(숨는 쪽 모션이 장면에 남거나 멈춰 있지 않게)
+    if (ph && drop) {
+      const d = drop; drop = null; scene.remove(d.sleeve); if (d.old) scene.remove(d.old);
+      if (!d.handed) { scene.remove(d.disc); if (record && record.parent) record.parent.remove(record); record = d.disc; record.visible = true; record.position.set(0, REC_Y, 0); record.rotation.set(0, 0, 0); parts.platter.add(record); labelKey = d.key; kindOn(); }
+    }
+    if (!ph && phono) phono.finish();
+    const keep = new Set([floor, shadow, bar.g, bar.tray, phono && phono.g]);
+    deck.children.forEach((c) => { if (!keep.has(c)) c.visible = !ph; });
+    if (phono) { phono.g.visible = ph; if (ph) phono.setLabel(label); }
+    if (ph) { coverT = coverK = 0; brushT0 = -1; if (dustBrush) dustBrush.visible = false; }
+    renderer.shadowMap.needsUpdate = true; poke = performance.now();
+    D.mode = deckMode;
+    if (!quiet && D.onMode) D.onMode(deckMode);
+  }
+  function startDunk() {
+    if (bar.dunking() || D.dropping()) return;
+    if (deckMode === 'tt') ensurePhono(); // 연기 속에서 바로 바꿀 수 있게 미리 만들어 둔다
+    bar.dunk((m) => setMode(m));
+  }
+  D.setMode = (m) => setMode(m, true);
+  D.dunking = () => bar.dunking();
+  D.dunk = startDunk;
 
   const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
   const easeIn = (t) => t * t * t, easeOut = (t) => 1 - (1 - t) ** 3;
@@ -1317,14 +1569,15 @@ void main(){
     if (D._off) { loop.last = now; setTimeout(() => requestAnimationFrame(loop), 500); return; }
     if (document.hidden || window.MusicJamOn || !onScreen) { loop.last = now; requestAnimationFrame(loop); return; }
     // 조용할 때(멈춤 · 움직이는 것 없음 · 2초 넘게 안 만짐)는 초당 10번, 덮개가 닫혔으면 초당 2번만 그린다
-    const calm = !(bar.busy() || playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
+    const phOn = !!(phono && phono.g.visible);
+    const calm = !(bar.busy() || (phOn && phono.busy()) || playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
       vel < 0.005 && Math.abs(yaw) < 0.001 && lift < 0.0005 && Math.abs(cueUp - 1) < 0.005 &&
       Math.abs(coverT - coverK) < 0.001 && Math.abs(nightT - night) < 0.001 &&
       Math.abs((0.25 - volume / 100 * 0.5) - ctl.knob.position.z) < 0.0005 && now - poke > 2000;
     // 시가 연기가 있어 조용할 때도 초당 15번(덮개 닫힘은 2번 그대로)
     if (calm && now - loop.last < (coverK > 0.99 ? 500 : 66)) { requestAnimationFrame(loop); return; }
     // 판만 도는 평소 재생은 초당 30번이면 충분하다(120Hz 화면에서 4배 덜 그림). 판 갈기·잡기·조작 중엔 매 프레임
-    const lively = !!(grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || bar.lively()) || now - touchAt < 1200;
+    const lively = !!(grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || bar.lively() || (phOn && phono.lively())) || now - touchAt < 1200;
     if (!calm && !lively && now - loop.last < 31) { requestAnimationFrame(loop); return; }
     const dt = Math.min(calm ? 0.6 : 0.05, (now - loop.last) / 1000); loop.last = now;
     const busy = !!drop;
@@ -1369,7 +1622,7 @@ void main(){
     ctl.knob.position.z += ((0.25 - volume / 100 * 0.5) - ctl.knob.position.z) * Math.min(1, dt * 10);
     // 먼지 덮개: 멈춘 채 25초 지나면 닫힘, 만지거나 재생하면 열림
     if (playing || grab || drop || dragCtl || cue) idle = 0; else idle += dt;
-    if (idle > 25) coverT = 1; else if (playing || drop) coverT = 0;
+    if (idle > 25 && !phOn) coverT = 1; else if (playing || drop || phOn) coverT = 0;
     const prevK = coverK; coverK += (coverT - coverK) * Math.min(1, dt * 1.8);
     if (prevK < 0.5 && coverK >= 0.5 && D.onSound) D.onSound('cover');
     ctl.cover.rotation.x = lerp(-1.32, 0, easeOut(coverK));
@@ -1383,9 +1636,10 @@ void main(){
     dp.needsUpdate = true; fx.dust.pts.material.opacity = night * 0.75;
     // 곡이 바뀔 때 그 무음 홈이 빛났다 사라짐
     bar.step(dt, T, night);
+    if (phOn) phono.step(dt, T, { playing, progress, cue, night, now });
     fx.gaps = fx.gaps.filter((gp) => { const k = (now - gp.t0) / 1600; if (k >= 1) { scene.remove(gp.m); return false; } gp.m.material.opacity = (1 - k) * 0.9; return true; });
     // 카메라 숨쉬기 + 판 갈 때 플래터 쪽으로 살짝 다가감
-    camZoom += ((drop ? 1 : 0) - camZoom) * Math.min(1, dt * 1.5);
+    camZoom += ((drop || (phOn && phono.dropping()) ? 1 : 0) - camZoom) * Math.min(1, dt * 1.5);
     if (!D._camLock) {
       cam.position.set(camBase.x + Math.sin(T * 0.11) * 0.06, camBase.y + Math.sin(T * 0.07) * 0.03, camBase.z + Math.cos(T * 0.09) * 0.04);
       cam.position.lerp(new THREE.Vector3(PLATTER.x, camBase.y * 0.72, camBase.z * 0.72), camZoom * 0.22);
@@ -1396,7 +1650,7 @@ void main(){
     key.intensity = lerp(1.1, 0.06, night);
     rim.intensity = lerp(0.5, 1.4, night);
     spot.intensity = lerp(0, 3.2, night); spot.color.lerp(tintC, Math.min(1, dt * 1.5));
-    armLamp.intensity = lerp(0, 0.5, night);
+    armLamp.intensity = phOn ? 0 : lerp(0, 0.5, night);
     if (D._glow) { D._glow.intensity = lerp(0.35, 1.6, night); D._glow.distance = lerp(0.5, 1.1, night); }
     renderer.toneMappingExposure = lerp(1.05, 1.25, night);
     // 쾅 흔들림
@@ -1540,8 +1794,20 @@ void main(){
     const go = (img) => { if (pre && pre.k === k) return; pre = { k, ...build(a, slam, img) }; };
     const im = imgReady.get(a.img); if (im || !a.img) go(im || null); else loadImg(a.img).then(go);
   };
+  // 전축일 때: 숨은 턴테이블 판은 모션 없이 바로 바꿔 두고(돌아갈 때 맞는 판), 전축은 실린더 갈기
+  function phonoDrop(a, slam) {
+    idle = 0; preparing = 0;
+    const k = preKey(a, slam), P = pre && pre.k === k ? pre : build(a, slam, imgReady.get(a.img) || null);
+    pre = null;
+    if (drop) { scene.remove(drop.sleeve); if (!drop.handed) scene.remove(drop.disc); if (drop.old) scene.remove(drop.old); drop = null; }
+    if (record && record.parent) record.parent.remove(record);
+    record = P.disc; record.visible = true; record.position.set(0, REC_Y, 0); record.rotation.set(0, 0, 0); parts.platter.add(record);
+    label = P.L; labelKey = [label.name, label.artist, label.img, (label.vc || []).join(), (label.tracks || []).map((f) => f.toFixed(3)).join(',')].join('|'); kindOn();
+    phono.drop(P.L, slam, imgReady.get(a.img) || null);
+  }
   D.drop = (a, slam) => {
     bar.newIce && bar.newIce(); // 판을 바꾸면 새 얼음
+    if (deckMode === 'phono' && phono) { phonoDrop(a, slam); return; }
     ++preparing; idle = 0; coverT = 0;
     // 판을 가는 도중에 또 갈면(잡지가 열려 3D가 멈춘 동안 등) 옛 판이 장면에 남아 새 판과 겹쳤다(2026-11-13) → 옛 판은 이어받아 사라지게
     let carry = null;
@@ -1579,8 +1845,8 @@ void main(){
   };
   D.suspend = (on) => { D._off = !!on; renderer.domElement.style.display = on ? 'none' : ''; if (!on) { poke = performance.now(); resize(); } };
   D.grabbing = () => !!grab;
-  D.dropping = () => !!drop;
-  D.setLabel = (L) => { label = L; if (!drop && !preparing && record) applyLabel(); };
+  D.dropping = () => !!drop || !!(phono && phono.dropping());
+  D.setLabel = (L) => { label = L; if (!drop && !preparing && record) applyLabel(); if (phono && !phono.dropping() && !preparing) phono.setLabel(L); };
   D.preload = (url) => { if (url) loadImg(url); };
   // 판 갈기 직전에 불러 옛 판 라벨을 잠근다(drop이 조금 늦게 불려도)
   D.prepare = () => { if (!preparing) preparing = 1; };
@@ -1598,6 +1864,7 @@ void main(){
   D._dbg = () => ({ scene, parts, record, cam });
   D.setVolume = (v) => { if (!dragCtl) volume = v; };
   D.flashGap = (f) => {
+    if (deckMode === 'phono' && phono) { phono.flashGap(f); return; }
     const rk = recK(), gO = rk.r * rk.go / 512, gI = rk.r * rk.gi / 512;
     const r = gO - Math.min(1, Math.max(0, f)) * (gO - gI);
     const m = new THREE.Mesh(new THREE.RingGeometry(r - 0.006, r + 0.006, 160), new THREE.MeshBasicMaterial({ color: 0xffe2b0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
@@ -1605,7 +1872,7 @@ void main(){
   };
   D.coverOpen = () => { idle = 0; coverT = 0; };
   D.cue = (m) => { cue = m || null; idle = 0; coverT = 0; poke = performance.now(); if (m === 'spin') press(ctl.start); };
-  D.brush = () => { brushT0 = performance.now(); poke = brushT0; };
+  D.brush = () => { if (deckMode === 'phono') return; brushT0 = performance.now(); poke = brushT0; };
   // 깨우기: 판 갈기·흔들기·홈 빛·덮개 열기. 라벨·색·시간창은 실제로 바뀔 때만, 재생·조명·볼륨은 calm 조건이 본다
   for (const k of ['drop', 'shake', 'flashGap', 'coverOpen']) {
     const f = D[k]; D[k] = (...a) => { poke = performance.now(); return f(...a); };

@@ -189,6 +189,24 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .ct .tools button { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.92); border: 1px solid var(--z300); font-size: 13px; color: var(--ink-2); display: grid; place-items: center; }
 .ct .tools button:disabled { opacity: .3; }
 .ct.add { align-items: center; justify-content: center; border-style: dashed; color: var(--muted); font-weight: 700; min-height: 150px; }
+.ct.fold .fart { position: relative; aspect-ratio: 1.15; margin: 2px 2px 6px; }
+.ct.fold .fart::before { content: ''; position: absolute; inset: 9% 0 0; border-radius: 3px 7px 6px 6px; background: linear-gradient(#b48a50, #9c733c); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+.ct.fold .fart .tab { position: absolute; left: 0; top: 0; width: 44%; height: 14%; border-radius: 6px 10px 0 0; background: #b48a50; }
+.ct.fold .fart i { position: absolute; top: 15%; width: 44%; aspect-ratio: 1; border-radius: 2px; background: #3a3a40 center/cover no-repeat; box-shadow: 0 3px 8px rgba(0,0,0,.3); }
+.ct.fold .fart i:nth-child(2) { left: 7%; transform: rotate(-6deg); }
+.ct.fold .fart i:nth-child(3) { left: 29%; transform: rotate(4deg); top: 12%; }
+.ct.fold .fart i:nth-child(4) { left: 50%; transform: rotate(-2deg); top: 17%; }
+.ct.fold .fart .ffr { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; border-radius: 3px 3px 6px 6px; background: linear-gradient(#d8b376, #c49a5c); box-shadow: 0 -3px 8px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.4); display: grid; place-items: center; }
+.ct.fold .fart .ffr em { font: 700 11px var(--sans); font-style: normal; color: #3b2a14; background: #f7f1e3; padding: 3px 8px; border-radius: 2px; max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transform: rotate(-1.5deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+/* 기본 폴더 T/L/L: 검은 가죽 + 금박 각인 */
+.ct.fold.tll .fart::before, .ct.fold.tll .fart .tab { background: linear-gradient(#2b2724, #1b1816); }
+.ct.fold.tll .fart .ffr { background: radial-gradient(120% 90% at 50% 0%, #34302c, #191614); box-shadow: 0 -3px 8px rgba(0,0,0,.35), inset 0 0 0 3px #191614, inset 0 0 0 4px rgba(214,178,98,.55); }
+.ct.fold.tll .fart .ffr em { background: none; box-shadow: none; transform: none; font: 700 17px var(--sans); letter-spacing: .18em; color: #d6b262; text-shadow: 0 1px 0 rgba(0,0,0,.8), 0 -1px 0 rgba(255,230,160,.25); }
+.ct.fold .fart.empty i { display: none; }
+.cl-head .up { flex: none; }
+.cl-head .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd .frow { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.cd .frow select { flex: 1; min-height: 40px; padding: 0 10px; border: 1px solid var(--z300); border-radius: 8px; font: 13px var(--sans); background: var(--z50); color: var(--ink); }
 .cl-none { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 13px; padding: 30px 0; }
 .crates { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-mask: linear-gradient(90deg, #000 calc(100% - 18px), transparent); mask: linear-gradient(90deg, #000 calc(100% - 18px), transparent); padding-right: 18px; }
 .crates::-webkit-scrollbar { display: none; }
@@ -426,7 +444,7 @@ body.changing .arm { transition-duration: .4s; }
 .cd .acts { display: flex; gap: 8px; justify-content: flex-end; }
 .cd .acts .btn { min-height: 44px; }
 .cd .acts .del { margin-right: auto; color: var(--red); }
-#cdlg { width: min(400px, calc(100vw - 24px)); }
+#cdlg, #fdlg { width: min(400px, calc(100vw - 24px)); }
 
 /* 아랫줄 */
 .bot { position: sticky; bottom: 0; z-index: 30; min-height: 64px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--plinth); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -843,7 +861,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       <div class="seal-acts"><button class="btn dark" type="button" id="sealPlay" hidden><svg class="ico"><use href="#i-play"/></svg>판 꺼내기</button><button class="btn" type="button" id="sealTi" hidden>제목 넣기</button><button class="btn" type="button" id="sealLater">나중에</button></div>
     </div>
     <div class="cstore" id="cstore">
-      <div class="cl-head"><b id="clT">크레이트 보관함</b><button class="btn dark" type="button" id="findBtn2"><svg class="ico"><use href="#i-search"/></svg><span>앨범 찾기</span></button></div>
+      <div class="cl-head"><button class="btn up" type="button" id="clUp" hidden aria-label="보관함 맨 위로"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg><span>보관함</span></button><b id="clT" class="grow">크레이트 보관함</b><button class="btn dark" type="button" id="findBtn2"><svg class="ico"><use href="#i-search"/></svg><span>앨범 찾기</span></button></div>
       <div class="cl-tools">
         <input type="search" id="clQ" placeholder="크레이트·앨범·아티스트 찾기" autocomplete="off" aria-label="크레이트 찾기">
         <div class="seg" role="group" aria-label="정렬" id="clSort">
@@ -972,6 +990,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   <form class="cd" id="cdForm">
     <h2 id="cdT">새 크레이트</h2>
     <input type="text" id="cdName" maxlength="40" placeholder="이름 (예: 비 오는 날, 재즈, 공부할 때)" autocomplete="off" aria-label="크레이트 이름">
+    <label class="frow" id="cdFrow">폴더 <select id="cdFold"></select></label>
     <div class="acts">
       <button class="btn del" type="button" id="cdDel">지우기</button>
       <button class="btn" type="button" id="cdX">취소</button>
@@ -981,6 +1000,18 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
 </dialog>
 
 
+<dialog id="fdlg" aria-labelledby="fdT">
+  <form class="cd" id="fdForm">
+    <h2 id="fdT">새 폴더</h2>
+    <input type="text" id="fdName" maxlength="40" placeholder="폴더 이름 (예: 계절, 친구들이 준 판)" autocomplete="off" aria-label="폴더 이름">
+    <p class="note" id="fdNote" hidden>폴더를 지워도 안에 든 크레이트는 보관함 맨 위로 나올 뿐 지워지지 않습니다.</p>
+    <div class="acts">
+      <button class="btn del" type="button" id="fdDel">지우기</button>
+      <button class="btn" type="button" id="fdX">취소</button>
+      <button class="btn dark" type="submit">저장</button>
+    </div>
+  </form>
+</dialog>
 <div class="amb" id="amb" aria-hidden="true"></div>
 <div class="magpop" id="magPop" role="dialog" aria-labelledby="mpName" hidden>
   <div class="mp-k"><span class="led on"></span>신간 도착</div>
@@ -1252,7 +1283,17 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   const docKey = () => 'music.crates.' + uid;
   let doc = MM.clean(uid ? LS.get(docKey()) || {} : {});
   const live = () => Object.values(doc.crates).filter((c) => !c.del).sort((a, b) => a.o - b.o || a.u - b.u);
+  // 폴더(2026-11-24 사용자 요청): 보관함에서 크레이트를 묶는다. 기본 폴더 T/L/L(f-tll) = 앱이 만든 크레이트(JAM 테이프·잡지 부록)
+  // 크레이트 f = 폴더 id, '' = 폴더 밖(일부러 꺼냄), 없으면 기본(JAM·잡지 크레이트는 T/L/L, 나머지는 밖)
+  const FTLL = 'f-tll';
+  let clFolder = ''; // 보관함에서 열어 둔 폴더('' = 맨 위)
+  function ensureFolder() { doc.folders = doc.folders || {}; if (!doc.folders[FTLL]) doc.folders[FTLL] = { id: FTLL, name: 'T/L/L', o: 0, u: 0 }; }
+  const liveF = () => Object.values(doc.folders || {}).filter((f) => !f.del).sort((a, b) => a.o - b.o || a.u - b.u);
+  const sysCrate = (c) => c.id === 'c-jam' || /^c-pub-/.test(c.id);
+  function folderOf(c) { const f = c.f !== undefined ? c.f : sysCrate(c) ? FTLL : ''; return f && doc.folders && doc.folders[f] && !doc.folders[f].del ? f : ''; }
+  function touchF(f) { f.u = Date.now(); doc.folders[f.id] = f; storeDoc(); syncSoon(); }
   function ensureCrate() {
+    ensureFolder();
     if (live().length) return;
     const id = doc.crates['c-main'] ? 'c-' + rand(8) : 'c-main';
     doc.crates[id] = { id, name: '내 크레이트', o: 0, u: id === 'c-main' ? 0 : Date.now(), albums: [] };
@@ -1432,7 +1473,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('stkN').textContent = `${cur.albums.length} LP · T/L/L`;
     const sel = $('into'), keep = sel.value || cur.id;
     sel.innerHTML = '';
-    for (const c of live()) { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.name} (${c.albums.length})`; sel.appendChild(o); }
+    const opt = (c, box2) => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.name} (${c.albums.length})`; box2.appendChild(o); };
+    live().filter((c) => !folderOf(c)).forEach((c) => opt(c, sel));
+    for (const f of liveF()) { const cs = live().filter((c) => folderOf(c) === f.id); if (!cs.length) continue; const g = document.createElement('optgroup'); g.label = f.name; cs.forEach((c) => opt(c, g)); sel.appendChild(g); }
     sel.value = live().some((c) => c.id === keep) ? keep : cur.id;
   }
 
@@ -1594,18 +1637,42 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // ---------- 크레이트 목록 ----------
   let clSort = LS.get('music.csort') || 'o';
   const playsOf = (c) => c.albums.reduce((x, a) => x + (a.p || 0), 0);
+  const coverOf = (c) => { const a = c.albums[Math.min(pos[c.id] || 0, Math.max(0, c.albums.length - 1))]; return a && a.img; };
+  function folderTile(f, box, cur) {
+    const cs = live().filter((c) => folderOf(c) === f.id), lp = cs.reduce((x, c) => x + c.albums.length, 0);
+    const t = document.createElement('div'); t.className = 'ct fold' + (f.id === FTLL ? ' tll' : '') + (cs.some((c) => c.id === cur.id) ? ' on' : ''); t.setAttribute('role', 'button'); t.tabIndex = 0;
+    t.innerHTML = '<div class="fart"><span class="tab"></span><i></i><i></i><i></i><div class="ffr"><em></em></div></div><b></b><small></small><div class="tools"></div>';
+    const imgs = cs.map(coverOf).filter(Boolean).slice(0, 3), I = t.querySelectorAll('.fart i');
+    if (!imgs.length) t.querySelector('.fart').classList.add('empty');
+    I.forEach((i, k) => { if (imgs[k]) i.style.backgroundImage = bg(imgs[k]); else i.style.visibility = 'hidden'; });
+    t.querySelector('em').textContent = f.name;
+    t.querySelector('b').innerHTML = cs.some((c) => c.id === cur.id) ? '<span class="led on"></span>' : '';
+    t.querySelector('b').append(f.name);
+    t.querySelector('small').textContent = cs.length ? `크레이트 ${cs.length}개 · ${lp} LP` : '빈 폴더';
+    const ed = document.createElement('button'); ed.type = 'button'; ed.textContent = '✎'; ed.setAttribute('aria-label', '폴더 이름 바꾸기·지우기');
+    ed.addEventListener('click', (e) => { e.stopPropagation(); openFolderDlg(f); }); t.querySelector('.tools').appendChild(ed);
+    const go = () => { clFolder = f.id; sfx.flip(); renderCList(); $('clGrid').scrollTop = 0; };
+    t.addEventListener('click', go);
+    t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    box.appendChild(t);
+  }
   function renderCList() {
     if ($('cpanel').dataset.cv !== 'store') return;
+    ensureFolder();
     const q = $('clQ').value.trim().toLowerCase(), cur = crate();
-    let L = live();
+    if (clFolder && !(doc.folders[clFolder] && !doc.folders[clFolder].del)) clFolder = '';
+    const inF = clFolder ? doc.folders[clFolder] : null;
+    let L = q ? live() : live().filter((c) => folderOf(c) === clFolder);
     if (clSort === 'u') L = L.slice().sort((a, b) => b.u - a.u);
     else if (clSort === 'n') L = L.slice().sort((a, b) => b.albums.length - a.albums.length);
     else if (clSort === 'a') L = L.slice().sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     for (const b of document.querySelectorAll('#clSort button')) b.setAttribute('aria-pressed', String(b.dataset.s === clSort));
-    $('clT').textContent = `크레이트 보관함 · ${live().length}개`;
+    $('clT').textContent = inF && !q ? `${inF.name} · ${L.length}개` : `크레이트 보관함 · ${live().length}개`;
+    $('clUp').hidden = !inF || !!q;
     const box = $('clGrid'); box.innerHTML = '';
     let shown = 0;
-    const all = live();
+    const all = q ? live() : live().filter((c) => folderOf(c) === clFolder);
+    if (!q && !inF) liveF().forEach((f) => folderTile(f, box, cur));
     L.forEach((c) => {
       const hits = q ? c.albums.filter((a) => (a.name + ' ' + a.artist).toLowerCase().includes(q)).length : 0;
       if (q && !c.name.toLowerCase().includes(q) && !hits) return;
@@ -1622,7 +1689,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       t.querySelector('b').append(c.name);
       const sm = t.querySelector('small'), pl = playsOf(c);
       if (hits) { sm.textContent = `일치하는 앨범 ${hits}장`; sm.classList.add('hit'); }
-      else sm.textContent = [`${c.albums.length} LP`, pl ? `${pl}번 들음` : ''].filter(Boolean).join(' · ');
+      else sm.textContent = [q && folderOf(c) ? doc.folders[folderOf(c)].name : '', `${c.albums.length} LP`, pl ? `${pl}번 들음` : ''].filter(Boolean).join(' · ');
       const tools = t.querySelector('.tools');
       const mk = (txt, label, fn, dis) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.setAttribute('aria-label', label); b.disabled = !!dis; b.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); tools.appendChild(b); };
       if (clSort === 'o' && !q) {
@@ -1646,6 +1713,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       const add = document.createElement('button'); add.type = 'button'; add.className = 'ct add'; add.textContent = '+ 새 크레이트';
       add.addEventListener('click', () => openCrateDlg(null));
       box.appendChild(add);
+      if (!inF) {
+        const addF = document.createElement('button'); addF.type = 'button'; addF.className = 'ct add'; addF.textContent = '+ 새 폴더';
+        addF.addEventListener('click', () => openFolderDlg(null));
+        box.appendChild(addF);
+      }
     }
   }
   // 내 순서: 이웃과 자리 바꾸기(o 값을 맞바꾸고 두 크레이트 모두 고친 것으로)
@@ -1656,9 +1728,10 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     renderCrates(); renderCList();
   }
   // 크레이트 탭은 보관함(목록)부터. 하나를 고르면 그 크레이트를 크게, '보관함'으로 돌아감
-  function openCList() { $('clQ').value = ''; $('cpanel').dataset.cv = 'store'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCList(); }
+  function openCList() { $('clQ').value = ''; clFolder = folderOf(crate()); $('cpanel').dataset.cv = 'store'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCList(); }
   function showCrate() { $('cpanel').dataset.cv = 'crate'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCrate(true); }
   $('clBtn').addEventListener('click', () => { sfx.flip(); openCList(); });
+  $('clUp').addEventListener('click', () => { sfx.flip(); clFolder = ''; renderCList(); });
   $('findBtn2').addEventListener('click', () => $('findBtn').click());
   $('clQ').addEventListener('input', renderCList);
   for (const b of document.querySelectorAll('#clSort button')) b.addEventListener('click', () => { clSort = b.dataset.s; LS.set('music.csort', clSort); renderCList(); });
@@ -1668,23 +1741,56 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     $('cdT').textContent = c ? '크레이트 편집' : '새 크레이트';
     $('cdName').value = c ? c.name : '';
     $('cdDel').hidden = !c;
+    ensureFolder();
+    const fs = $('cdFold'); fs.innerHTML = '<option value="">폴더 없음 (보관함 맨 위)</option>';
+    for (const f of liveF()) { const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; fs.appendChild(o); }
+    fs.value = c ? folderOf(c) : clFolder;
     $('cdlg').showModal();
     setTimeout(() => $('cdName').focus(), 30);
   }
   $('cdForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = $('cdName').value.trim() || '크레이트';
-    if (editing) { editing.name = name; touch(editing); }
+    const fv = $('cdFold').value;
+    if (editing) { editing.name = name; if (fv !== folderOf(editing)) editing.f = fv; touch(editing); }
     else {
       const id = 'c-' + rand(8);
       const o = Math.max(0, ...live().map((x) => x.o)) + 1;
-      doc.crates[id] = { id, name, o, u: 0, albums: [] };
+      doc.crates[id] = { id, name, o, u: 0, albums: [], f: fv };
       touch(doc.crates[id]);
       curCrate = id; LS.set('music.crate', id);
     }
     $('cdlg').close(); renderCrates(); renderCrate(true);
   });
   $('cdX').addEventListener('click', () => $('cdlg').close());
+  // 폴더 만들기 · 이름 바꾸기 · 지우기(안의 크레이트는 맨 위로 나옴)
+  let editingF = null;
+  function openFolderDlg(f) {
+    editingF = f;
+    $('fdT').textContent = f ? '폴더 편집' : '새 폴더';
+    $('fdName').value = f ? f.name : '';
+    $('fdDel').hidden = $('fdNote').hidden = !f;
+    $('fdlg').showModal();
+    setTimeout(() => $('fdName').focus(), 30);
+  }
+  $('fdForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('fdName').value.trim() || '폴더';
+    ensureFolder();
+    if (editingF) { editingF.name = name; touchF(editingF); }
+    else { const id = 'f-' + rand(8); doc.folders[id] = { id, name, o: Math.max(0, ...liveF().map((x) => x.o)) + 1, u: 0 }; touchF(doc.folders[id]); clFolder = id; }
+    $('fdlg').close(); renderCrates();
+  });
+  $('fdX').addEventListener('click', () => $('fdlg').close());
+  $('fdDel').addEventListener('click', () => {
+    const f = editingF; if (!f) return;
+    const cs = live().filter((c) => folderOf(c) === f.id);
+    if (!confirm(`'${f.name}' 폴더를 지울까요?` + (cs.length ? ` 안의 크레이트 ${cs.length}개는 보관함 맨 위로 나옵니다.` : ''))) return;
+    cs.forEach((c) => { c.f = ''; touch(c); });
+    doc.folders[f.id] = { id: f.id, del: 1, u: Date.now() }; storeDoc(); syncSoon();
+    if (clFolder === f.id) clFolder = '';
+    $('fdlg').close(); renderCrates();
+  });
   $('cdDel').addEventListener('click', () => {
     const c = editing; if (!c) return;
     if (!confirm(`'${c.name}' 크레이트를 지울까요? 담긴 앨범 ${c.albums.length}장도 같이 빠집니다.`)) return;
@@ -2122,6 +2228,19 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
         noise(t, 1.5, { f: 1500, f2: 2300, q: 0.7, g: 0.035, a: 0.45 });
         for (let i = 0; i < 16; i++) noise(t + 0.15 + Math.random() * 1.3, 0.006, { type: 'highpass', f: 3500 + Math.random() * 3500, g: 0.03 + Math.random() * 0.05, a: 0.0005 }); },
       exhale() { if (!get()) return; const t = at(); noise(t, 1.9, { f: 1100, f2: 380, q: 0.5, g: 0.06, a: 0.22 }); noise(t + 0.05, 1.5, { type: 'lowpass', f: 450, g: 0.04, a: 0.3 }); },
+      // 시가를 잔에 담가 끔(2026-11-24): 치익 — 높은 잡음이 확 일었다 잦아들고 작은 거품 톡톡
+      hiss() { if (!get()) return; const t = at();
+        noise(t, 0.9, { type: 'highpass', f: 5200, f2: 2600, g: 0.16, a: 0.008 }); noise(t, 0.6, { f: 3200, f2: 1800, q: 0.8, g: 0.08, a: 0.01 });
+        for (let i = 0; i < 12; i++) noise(t + 0.1 + Math.random() * 0.8, 0.008, { type: 'bandpass', f: 1800 + Math.random() * 2400, q: 4, g: 0.04 + Math.random() * 0.04, a: 0.001 }); },
+      // 토치: 딸깍(점화) + 1.2초 동안 쉬이익 타오르는 가스 불꽃
+      torch() { if (!get()) return; const t = at(0.03);
+        noise(t, 0.012, { type: 'highpass', f: 3000, g: 0.3, a: 0.001 }); tone(t, 0.02, { type: 'square', f: 2400, f2: 1200, g: 0.04 });
+        noise(t + 0.03, 1.25, { f: 1400, q: 0.4, g: 0.09, a: 0.04 }); noise(t + 0.03, 1.25, { type: 'lowpass', f: 380, g: 0.07, a: 0.05 });
+        for (let i = 0; i < 10; i++) noise(t + 0.4 + Math.random() * 0.8, 0.006, { type: 'highpass', f: 4000 + Math.random() * 3000, g: 0.03 + Math.random() * 0.04, a: 0.0005 }); },
+      // 연기가 화면을 덮을 때: 낮게 부푸는 숨
+      whoosh() { if (!get()) return; const t = at(); noise(t, 1.6, { type: 'lowpass', f: 300, f2: 900, g: 0.09, a: 0.6 }); noise(t + 0.3, 1.4, { f: 900, f2: 500, q: 0.5, g: 0.04, a: 0.5 }); },
+      // 전축 태엽 감기: 톱니 딸깍딸깍
+      crank() { if (!get()) return; const t = at(); for (let i = 0; i < 14; i++) { const d = t + i * 0.1 + Math.random() * 0.01; noise(d, 0.012, { type: 'bandpass', f: 2600 + (i % 2) * 500, q: 3, g: 0.09, a: 0.001 }); tone(d, 0.02, { type: 'triangle', f: 900, f2: 500, g: 0.02 }); } },
       cover() { if (!get()) return; const t = at(); noise(t, 0.7, { f: 500, f2: 1400, q: 0.6, g: 0.06, a: 0.25 }); noise(t + 0.62, 0.05, { type: 'lowpass', f: 500, g: 0.2 }); },
       // 모터가 돌기 시작하는 낮은 소리
       motor() { if (!get()) return; const t = at(); tone(t, 1.1, { type: 'sawtooth', f: 40, f2: 95, g: 0.025, a: 0.3 }); tone(t, 1.1, { f: 120, f2: 300, g: 0.012, a: 0.4 }); },
@@ -2821,6 +2940,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       Deck3D.onSound = (k) => { if (sfx[k]) sfx[k](); };
       Deck3D.setVolume(LS.get('music.vol') ?? 50);
       Deck3D.onBar = () => { sfx.clink && sfx.clink(); }; // 온더락 잔을 누르면 잔이 살짝 돌며 쨍
+      Deck3D.onMode = (m) => toast(m === 'phono' ? '황동 실린더 전축으로 바뀌었습니다 · 시가렛을 꾹 누르면 턴테이블로' : '턴테이블로 돌아왔습니다 · 시가를 꾹 누르면 실린더 전축으로');
       LS.del('tll.jazz'); // 재즈바(잠깐 있었음)는 지움
       Deck3D.onScratch = onScratch; Deck3D.setNight(true); render(); return; }
     setTimeout(hook3d, 400);
