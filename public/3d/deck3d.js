@@ -599,7 +599,7 @@ void main(){
     // 0~0.9 잔 위로 · 0.9~1.45 불 쪽을 술에 담금(1.25 치익, 불 꺼짐·재 떨어짐·김) · 1.6~2.05 꺼내 · 물방울 · 2.35~3.2 재떨이로
     // 2.35~3.1 시가를 재떨이 위 허공으로 들어 끝을 아래로 · 3.0~3.5 라이터가 올라옴 · 3.55 뚜껑 '찡' · 3.85 휠 딸깍 · 3.9~5.0 노란 불꽃(4.2부터 끝이 달아오름)
     // 5.05 뚜껑 닫힘 · 5.05~5.75 시가는 재떨이로 · 5.1~ 연기가 크게 피어 화면을 덮음 → 6.0에 바꿔 치기 → 7.9까지 걷힘
-    let dk0 = -1, dkHiss = 0, dkTorch = 0, dkWhoosh = 0, dkSwap = 0, hold0 = -1, onSwap = null;
+    let dk0 = -1, dkHiss = 0, dkTorch = 0, dkWhoosh = 0, dkSwap = 0, dkPuff = 0, dkDraw = 0, hold0 = -1, onSwap = null;
     const overP = new THREE.Vector3(), dipP = new THREE.Vector3(), dipQ = new THREE.Quaternion(), _gw = new THREE.Vector3(), _dd = new THREE.Vector3();
     function dipPose(depth) { // 불 붙은 끝이 술 수면 아래 depth(음수면 위)에 오게
       G.updateMatrixWorld(); G.getWorldPosition(_gw);
@@ -660,25 +660,44 @@ void main(){
       return { t, lid, flame, spark };
     }
     const lighterL = new THREE.PointLight(0xffb060, 0, 0.9, 2); scene.add(lighterL); // 불빛은 처음부터 장면에(나중에 더하면 모든 셰이더를 다시 만들어 폰이 멈춤)
-    // 큰 연기(바꿔 치기를 가림): 끝에서 뭉게뭉게 퍼지는 덩어리 + 카메라 앞에 덮이는 장막
-    const burst = [];
-    for (let i = 0; i < 34; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: i % 2 ? wispTex : smTex, color: 0xcfd2d8, transparent: true, opacity: 0, depthWrite: false })); sp.renderOrder = 12; sp.visible = false; scene.add(sp); burst.push({ sp, age: -1, life: 1, v: new THREE.Vector3(), sd: 0, s0: 0.1 }); }
-    const veil = [];
-    for (let i = 0; i < 4; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: i ? wispTex : smTex, color: 0xc9ccd2, transparent: true, opacity: 0, depthWrite: false, depthTest: false })); sp.renderOrder = 40; sp.visible = false; scene.add(sp); veil.push(sp); }
+    // 큰 연기(바꿔 치기를 가림, 2026-11-26): 예전엔 큰 스프라이트 34장 + 화면 가득 장막 4장을 겹쳐 폰에서 그래픽이 깨지고 느렸음
+    // → 화면 전체를 덮는 판 한 장(클립 좌표로 바로 그림, 카메라와 상관없음)에 잡음 셰이더로 뭉게구름. 입 자리(org)에서 번져 화면을 덮었다 위로 흐르며 걷힘
+    const fogM = new THREE.ShaderMaterial({
+      uniforms: { tm: { value: 0 }, k: { value: 0 }, fade: { value: 1 }, asp: { value: 1 }, org: { value: new THREE.Vector2(0.68, 0.12) }, col: { value: new THREE.Color(0.62, 0.6, 0.57) } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: `varying vec2 vUv; uniform float tm, k, fade, asp; uniform vec2 org; uniform vec3 col;
+float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { v += a * n(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return v; }
+void main(){
+  vec2 q = vec2(vUv.x * asp, vUv.y) * 2.4;
+  float rise = (1.0 - fade) * 0.8;
+  float w = fbm(q + vec2(tm * 0.05, -tm * 0.12 - rise) + fbm(q * 1.3 - tm * 0.07) * 1.4);
+  float r = length(vec2((vUv.x - org.x) * asp, vUv.y - org.y));
+  float body = 1.0 - smoothstep(k * 1.9 * 0.45, k * 1.9 + 0.05, r - w * 0.35);
+  float d = clamp(body * (0.62 + 0.75 * w), 0.0, 1.0);
+  d = max(d, smoothstep(0.7, 1.0, k) * (0.93 + 0.2 * w));
+  d *= fade * smoothstep(0.0, 0.5, fade + w * 0.4);
+  gl_FragColor = vec4(col * (0.78 + 0.32 * w), clamp(d, 0.0, 0.99));
+}`,
+      transparent: true, depthTest: false, depthWrite: false, toneMapped: false,
+    });
+    const fog = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), fogM); fog.frustumCulled = false; fog.renderOrder = 50; fog.visible = false; scene.add(fog);
+    refrParts.push(fog); // 굴절용 앞 그리기에선 숨김(한 번 더 화면 가득 그리지 않게)
     const _tp = new THREE.Vector3(), _hp = new THREE.Vector3(), _f2 = new THREE.Vector3(), _off = new THREE.Vector3(), _q2l = new THREE.Quaternion(), _q3l = new THREE.Quaternion();
     // 라이터 불을 붙이는 자리: 재떨이 위 허공(시가를 들고 끝을 아래·앞으로)
     function litePoint(out) { tray.updateMatrixWorld(); return tray.localToWorld(out.set(-0.06, 0.36, 0.02)); }
     // 꾹 누른 순간: 이번 연출에 쓸 것을 미리 보이게 해 두면 deck3d가 한꺼번에 셰이더를 만들어 둔다(연출 도중 멈춤 없음)
     function prepare(on) {
       if (!lighter) lighter = makeLighter();
-      const list = [lighter.t, ...steam.map((q) => q.sp), ...drips.map((q) => q.m), ...burst.map((q) => q.sp), ...veil, SMK.cigar.g, SMK.cigt.g];
+      const list = [lighter.t, ...steam.map((q) => q.sp), ...drips.map((q) => q.m), ...exh.map((q) => q.sp), fog, SMK.cigar.g, SMK.cigt.g];
       if (on) { prepare.saved = list.map((o) => o.visible); list.forEach((o) => { o.visible = true; }); }
       else if (prepare.saved) { list.forEach((o, i) => { o.visible = prepare.saved[i]; }); prepare.saved = null; }
     }
     function tipWorld(out) { sm.g.updateMatrixWorld(); return sm.g.localToWorld(out.set(sm.tip + 0.003, 0, 0)); }
     function dunk(swap) {
       if (dk0 >= 0 || pf0 >= 0) return;
-      onSwap = swap; dk0 = performance.now(); dkHiss = dkTorch = dkWhoosh = dkSwap = 0; hold0 = -1;
+      onSwap = swap; dk0 = performance.now(); dkHiss = dkTorch = dkWhoosh = dkSwap = dkPuff = 0; dkDraw = 0; hold0 = -1;
       restPose(); scene.attach(sm.g);
     }
     function stepDunk(dt, T, nightK, now) {
@@ -716,7 +735,6 @@ void main(){
         const tipL = sm.tip + 0.004, holdP = _hp.copy(F).addScaledVector(_dd, -tipL);
         if (e < 3.1) { const k = ease((e - 2.35) / 0.75); overP.copy(dipPose(-0.24)); g0.position.lerpVectors(overP, holdP, k); g0.quaternion.copy(dipQ); }
         else if (e < 5.05) { g0.position.copy(holdP); g0.position.y += Math.sin(T * 1.7) * 0.002; g0.quaternion.copy(holdQ); }
-        else { const k = ease((e - 5.05) / 0.7); restPose(); g0.position.lerpVectors(holdP, restP, k).y += Math.sin(k * Math.PI) * 0.05; g0.quaternion.slerpQuaternions(holdQ, restQ, k); }
         // 라이터
         if (!lighter) lighter = makeLighter();
         const L = lighter, inK = ease(seg(e, 3.0, 3.5)), outK = easeIn(seg(e, 5.15, 5.6));
@@ -740,42 +758,49 @@ void main(){
         lighterL.intensity = on ? 0.7 + Math.random() * 0.15 : 0;
         if (on && e > 4.2) sm.lit = Math.max(sm.lit, seg(e, 4.2, 4.95) * (0.85 + Math.random() * 0.15));
       } else if (lighter && lighter.t.visible) { lighter.t.visible = false; lighterL.intensity = 0; }
-      if (e >= 5.75 && g0.parent !== tray) { tray.attach(g0); g0.position.copy(sm.P); g0.rotation.copy(sm.R); }
       if (e >= 5.0) sm.lit = Math.max(sm.lit, 1);
-      // 큰 연기: 5.1부터 끝에서 뭉게뭉게(턴테이블 쪽으로 퍼짐), 장막은 5.4~5.95 짙어지고 6.15부터 걷힘
-      if (e >= 5.1 && e < 6.2) {
-        if (!dkWhoosh) { dkWhoosh = 1; D.onSound && D.onSound('whoosh'); }
-        const tw = tipWorld(_tp);
-        for (const q of burst) if (q.age < 0 && Math.random() < 0.3) {
-          q.age = 0; q.life = 2.2 + Math.random() * 1.6; q.sd = Math.random() * 100; q.s0 = 0.05 + Math.random() * 0.08; q.sp.visible = true; q.sp.position.copy(tw);
-          q.v.set(-0.5 - Math.random() * 0.9, 0.25 + Math.random() * 0.6, -0.2 + (Math.random() - 0.5) * 0.7);
+      // 피우기(2026-11-26 사용자 '피우는 과정이 없어'): 붙인 시가를 입으로 가져와(5.05~6.0) 두 번 빨고(6.0~7.2 · 7.6~8.7, 불씨가 확 밝아짐)
+      // 사이에 살짝 내뿜고(7.25~7.6), 마지막에 길게 내뿜은 연기가 화면을 덮음(8.75~9.3) → 9.45에 바꿔 치기 → 11.3까지 걷힘
+      dkDraw = 0;
+      if (e >= 5.05 && e < 9.45) {
+        nearPose(T);
+        if (e < 6.0) { const k = ease((e - 5.05) / 0.95); g0.position.lerpVectors(_hp, nearP, k).y += Math.sin(k * Math.PI) * 0.06; g0.quaternion.slerpQuaternions(_q3l, nearQ, k); }
+        else {
+          const d1 = seg(e, 6.0, 7.2), d2 = seg(e, 7.6, 8.7);
+          dkDraw = Math.max(Math.sin(Math.min(1, d1 * 1.2) * Math.PI * 0.5) * (d1 < 1 ? 1 : 0) * (1 - Math.max(0, (d1 - 0.85) / 0.15)), Math.sin(Math.min(1, d2 * 1.2) * Math.PI * 0.5) * (d2 < 1 ? 1 : 0) * (1 - Math.max(0, (d2 - 0.85) / 0.15)));
+          g0.position.copy(nearP).addScaledVector(_f, -0.012 * dkDraw); g0.quaternion.copy(nearQ);
+          if (e > 8.75) { const k = ease(seg(e, 8.75, 9.4)); g0.position.addScaledVector(_u, -0.12 * k).addScaledVector(_r, 0.08 * k); } // 내뿜으며 입에서 뗌
         }
+        if (e >= 5.6 && dkPuff === 0) { dkPuff = 1; D.onSound && D.onSound('puff'); }
+        if (e >= 7.2 && dkPuff === 1) { dkPuff = 2; D.onSound && D.onSound('exhale'); }
+        if (e >= 7.0 && dkPuff === 2) { dkPuff = 3; D.onSound && D.onSound('puff'); }
+        if (e >= 8.75 && dkPuff === 3) { dkPuff = 4; D.onSound && D.onSound('exhale'); }
+        if (e >= 7.25 && e < 7.6) blow(0.12, 0.6);
       }
-      for (const q of burst) {
-        if (q.age < 0) continue;
-        q.age += dt; const k = q.age / q.life;
-        if (k >= 1) { q.age = -1; q.sp.visible = false; q.sp.material.opacity = 0; continue; }
-        q.v.multiplyScalar(Math.exp(-1.1 * dt)); q.v.y += 0.05 * dt; q.sp.position.addScaledVector(q.v, dt);
-        const s = q.s0 + (1 - Math.pow(1 - k, 2)) * 1.1; q.sp.scale.set(s, s, 1);
-        q.sp.material.opacity = Math.min(1, k / 0.08) * Math.pow(1 - k, 1.4) * lerp(0.5, 0.62, nightK); q.sp.material.rotation = q.sd + k * 1.2; q.sp.material.color.setRGB(0.78, 0.76, 0.73);
-      }
-      const vk = e < 5.4 ? 0 : e < 5.95 ? ease(seg(e, 5.4, 5.95)) : e < 6.15 ? 1 : 1 - ease(seg(e, 6.15, 7.9));
-      cam.updateMatrixWorld(); cam.getWorldDirection(_f); _u.setFromMatrixColumn(cam.matrixWorld, 1); _r.setFromMatrixColumn(cam.matrixWorld, 0);
-      const vh = 2 * 0.6 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2);
-      veil.forEach((sp, i) => { sp.visible = vk > 0.001; if (!sp.visible) return;
-        sp.position.copy(cam.position).addScaledVector(_f, 0.6).addScaledVector(_r, Math.sin(T * 0.3 + i * 2) * vh * 0.25 * (i ? 1 : 0)).addScaledVector(_u, Math.cos(T * 0.25 + i) * vh * 0.15 * (i ? 1 : 0));
-        const s = vh * cam.aspect * (i ? 1.3 : 2.6); sp.scale.set(s, i ? s : vh * 2.6, 1); sp.material.rotation = i * 1.7 + T * 0.05 * (i % 2 ? 1 : -1);
-        sp.material.opacity = vk * (i ? 0.6 : 0.9); sp.material.color.setRGB(...[0.6, 0.58, 0.55].map((c) => lerp(c + 0.2, c, nightK))); });
+      if (e >= 8.75 && e < 9.6) blow(0.08, 1);
+      if (e >= 8.8 && !dkWhoosh) { dkWhoosh = 1; D.onSound && D.onSound('whoosh'); }
+      // 화면 덮는 연기(화면 전체 한 장, 잡음 셰이더): 입(화면 오른쪽 아래)에서 번져 8.75~9.3에 다 덮고 9.65부터 위로 흐르며 걷힘
+      const fk = ease(seg(e, 8.75, 9.3)), ff = 1 - ease(seg(e, 9.65, 11.3));
+      fog.visible = fk * ff > 0.002;
+      if (fog.visible) { fogM.uniforms.k.value = fk; fogM.uniforms.fade.value = ff; fogM.uniforms.tm.value = T; fogM.uniforms.asp.value = cam.aspect; fogM.uniforms.col.value.setRGB(...[0.6, 0.58, 0.55].map((c) => lerp(c + 0.18, c, nightK))); }
       // 바꿔 치기(연기가 가장 짙을 때)
-      if (e >= 6.0 && !dkSwap) {
+      if (e >= 9.45 && !dkSwap) {
         dkSwap = 1;
         const was = sm; if (was.g.parent !== tray) tray.attach(was.g); was.g.position.copy(was.P); was.g.rotation.copy(was.R); was.g.visible = false; was.lit = 1; setAsh(was, 1);
         sm = sm === SMK.cigar ? SMK.cigt : SMK.cigar; sm.g.visible = true; sm.lit = 1; setAsh(sm, 0.2); sm.g.position.copy(sm.P); sm.g.rotation.copy(sm.R);
         onSwap && onSwap(sm === SMK.cigt ? 'phono' : 'tt');
         ribGrow = 0;
       }
-      if (e >= 6.3) ribK = 1;
-      if (e >= 8.0) { dk0 = -1; veil.forEach((sp) => { sp.visible = false; }); }
+      if (e >= 9.8) ribK = 1;
+      if (e >= 11.4) { dk0 = -1; fog.visible = false; }
+    }
+    // 입 앞에서 연기 결 몇 개(한 모금 때와 같은 스프라이트). 화면 가득 큰 판을 여러 장 겹치면 폰이 느려져 개수를 줄임
+    function blow(rate, power) {
+      let live = 0; for (const q of exh) if (q.age >= 0) live++;
+      for (const q of exh) { if (live >= 14) break; if (q.age >= 0 || Math.random() > rate) continue; live++;
+        q.age = 0; q.life = 2.4 + Math.random() * 1.4; q.sd = Math.random() * 100; q.sp.visible = true;
+        q.sp.position.copy(cam.position).addScaledVector(_f, 0.32).addScaledVector(_u, -0.1).addScaledVector(_r, (Math.random() - 0.5) * 0.03);
+        q.v.copy(_f).multiplyScalar((0.45 + Math.random() * 0.5) * power).addScaledVector(_r, (Math.random() - 0.5) * 0.3).addScaledVector(_u, 0.03 + Math.random() * 0.12); }
     }
     function stepSteam(dt) {
       for (const q of steam) {
@@ -802,15 +827,11 @@ void main(){
         else { tray.attach(sm.g); sm.g.position.copy(sm.P); sm.g.rotation.copy(sm.R); pf0 = -1; ribGrow = 0; ribK = 1; }
         if (e >= 2.9 && exhOn === 0) { exhOn = 1; D.onSound && D.onSound('exhale'); }
         if (e >= 2.9 && exhOn === 1 && e < 3.8) { // 0.9초 동안 입 앞에서 내뿜음
-          for (const q of exh) if (q.age < 0 && Math.random() < 0.35) {
-            q.age = 0; q.life = 2.8 + Math.random() * 1.6; q.sd = Math.random() * 100; q.sp.visible = true;
-            q.sp.position.copy(cam.position).addScaledVector(_f, 0.32).addScaledVector(_u, -0.1).addScaledVector(_r, (Math.random() - 0.5) * 0.03);
-            q.v.copy(_f).multiplyScalar(0.55 + Math.random() * 0.6).addScaledVector(_r, (Math.random() - 0.5) * 0.3).addScaledVector(_u, 0.03 + Math.random() * 0.12);
-          }
+          blow(0.35, 1); // 개수 제한(화면 가득 큰 판이 여러 장 겹치면 폰이 느려짐)
         }
         if (e < 1) exhOn = 0;
       }
-      if (dk0 >= 0) stepDunk(dt, T, nightK, performance.now());
+      if (dk0 >= 0) { stepDunk(dt, T, nightK, performance.now()); draw = Math.max(draw, dkDraw); }
       stepSteam(dt);
       if (hold0 >= 0) draw = Math.max(draw, Math.min(1, (performance.now() - hold0) / 600) * 0.7); // 꾹 누르는 동안 불씨가 점점 밝아짐
       const L0 = sm.lit;
@@ -870,7 +891,7 @@ void main(){
     const withRT = (f) => { if (!rt) return; const prev = renderer.getRenderTarget(); renderer.setRenderTarget(rt); try { f(); } finally { renderer.setRenderTarget(prev); } };
     return { step, prepass, hit, trayHit, g, tray, prepare, withRT, puff() { if (puff()) D.onSound && D.onSound('puff'); }, dunk, dunking: () => dk0 >= 0, hold(on) { hold0 = on && dk0 < 0 && pf0 < 0 ? performance.now() : -1; },
       lively: () => pf0 >= 0 || dk0 >= 0 || hold0 >= 0, clink() { if (dk0 >= 0) return; ring = rip0 = legT0 = performance.now(); dir = -dir; turnT = dir > 0 ? 0 : -0.42; }, newIce() { melt0 = performance.now(); },
-      busy: () => pf0 >= 0 || dk0 >= 0 || hold0 >= 0 || ribGrow < 1 || exh.some((q) => q.age >= 0) || steam.some((q) => q.age !== -1) || burst.some((q) => q.age >= 0) || ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
+      busy: () => pf0 >= 0 || dk0 >= 0 || hold0 >= 0 || ribGrow < 1 || exh.some((q) => q.age >= 0) || steam.some((q) => q.age !== -1) || ring >= 0 || rip0 >= 0 || Math.abs(turnT - turn) > 0.002 || Math.abs(turnV) > 0.002 };
   })();
 
   // 판(레코드): 홈 무늬 + 가운데 라벨을 캔버스 하나에 그린다
