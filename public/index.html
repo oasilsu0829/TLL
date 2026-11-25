@@ -170,8 +170,6 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 /* 크레이트 목록 창: 크레이트마다 표지 3장 묶음 타일. 누르면 그 크레이트로, 편집은 연필 */
 #clist { width: min(720px, calc(100vw - 24px)); height: min(780px, calc(100dvh - 24px)); }
 .dlg.cl { height: 100%; }
-.cl-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.cl-tools input { flex: 1 1 200px; min-width: 0; min-height: 40px; padding: 0 12px; border: 1px solid var(--z300); border-radius: 8px; font: 13px var(--sans); background: var(--z50); color: var(--ink); }
 .cl-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 10px; align-content: start; padding: 2px 2px 8px; }
 .ct { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; text-align: left; min-width: 0; }
 .ct:hover { border-color: var(--z400); }
@@ -874,15 +872,6 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     </div>
     <div class="cstore" id="cstore">
       <div class="cl-head"><button class="btn up" type="button" id="clUp" hidden aria-label="보관함 맨 위로"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg><span>보관함</span></button><b id="clT" class="grow">크레이트 보관함</b><button class="btn dark" type="button" id="findBtn2"><svg class="ico"><use href="#i-search"/></svg><span>앨범 찾기</span></button></div>
-      <div class="cl-tools">
-        <input type="search" id="clQ" placeholder="크레이트·앨범·아티스트 찾기" autocomplete="off" aria-label="크레이트 찾기">
-        <div class="seg" role="group" aria-label="정렬" id="clSort">
-          <button type="button" data-s="o" aria-pressed="true">내 순서</button>
-          <button type="button" data-s="u" aria-pressed="false">최근</button>
-          <button type="button" data-s="n" aria-pressed="false">많은 순</button>
-          <button type="button" data-s="a" aria-pressed="false">이름</button>
-        </div>
-      </div>
       <div class="cl-grid" id="clGrid"></div>
     </div>
     <div class="cstrip2">
@@ -1659,7 +1648,8 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // 크레이트 만들기 · 이름 바꾸기 · 지우기
   let editing = null;
   // ---------- 크레이트 목록 ----------
-  let clSort = LS.get('music.csort') || 'o';
+  // 정렬 줄·찾기 칸은 2026-11-25 사용자 요청으로 뺌(공간). 늘 내 순서
+  const clSort = 'o';
   const playsOf = (c) => c.albums.reduce((x, a) => x + (a.p || 0), 0);
   const coverOf = (c) => { const a = c.albums[Math.min(pos[c.id] || 0, Math.max(0, c.albums.length - 1))]; return a && a.img; };
   function folderTile(f, box, cur) {
@@ -1683,14 +1673,10 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   function renderCList() {
     if ($('cpanel').dataset.cv !== 'store') return;
     ensureFolder();
-    const q = $('clQ').value.trim().toLowerCase(), cur = crate();
+    const q = '', cur = crate();
     if (clFolder && !(doc.folders[clFolder] && !doc.folders[clFolder].del)) clFolder = '';
     const inF = clFolder ? doc.folders[clFolder] : null;
     let L = q ? live() : live().filter((c) => folderOf(c) === clFolder);
-    if (clSort === 'u') L = L.slice().sort((a, b) => b.u - a.u);
-    else if (clSort === 'n') L = L.slice().sort((a, b) => b.albums.length - a.albums.length);
-    else if (clSort === 'a') L = L.slice().sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    for (const b of document.querySelectorAll('#clSort button')) b.setAttribute('aria-pressed', String(b.dataset.s === clSort));
     $('clT').textContent = inF && !q ? `${inF.name} · ${L.length}개` : `크레이트 보관함 · ${live().length}개`;
     $('clUp').hidden = !inF || !!q;
     const box = $('clGrid'); box.innerHTML = '';
@@ -1732,7 +1718,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
       t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
       box.appendChild(t);
     });
-    if (q && !shown) { const n = document.createElement('div'); n.className = 'cl-none'; n.textContent = `'${$('clQ').value.trim()}'와 맞는 크레이트나 앨범이 없습니다`; box.appendChild(n); }
+    if (q && !shown) { const n = document.createElement('div'); n.className = 'cl-none'; n.textContent = '맞는 크레이트가 없습니다'; box.appendChild(n); }
     if (!q) {
       if (inF) {
         const pk = document.createElement('button'); pk.type = 'button'; pk.className = 'ct add'; pk.textContent = '+ 기존 크레이트 넣기';
@@ -1757,13 +1743,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     renderCrates(); renderCList();
   }
   // 크레이트 탭은 보관함(목록)부터. 하나를 고르면 그 크레이트를 크게, '보관함'으로 돌아감
-  function openCList() { $('clQ').value = ''; clFolder = folderOf(crate()); $('cpanel').dataset.cv = 'store'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCList(); }
+  function openCList() { clFolder = folderOf(crate()); $('cpanel').dataset.cv = 'store'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCList(); }
   function showCrate() { $('cpanel').dataset.cv = 'crate'; if ($('cpanel').dataset.tab !== 'crate') setTab('crate', true); renderCrate(true); }
   $('clBtn').addEventListener('click', () => { sfx.flip(); openCList(); });
   $('clUp').addEventListener('click', () => { sfx.flip(); clFolder = ''; renderCList(); });
   $('findBtn2').addEventListener('click', () => $('findBtn').click());
-  $('clQ').addEventListener('input', renderCList);
-  for (const b of document.querySelectorAll('#clSort button')) b.addEventListener('click', () => { clSort = b.dataset.s; LS.set('music.csort', clSort); renderCList(); });
 
   function openCrateDlg(c) {
     editing = c;
@@ -2725,7 +2709,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   })();
   // 탭: 기기마다 기억(music.tab)
   function setTab(tab, keep) {
-    if (tab === 'crate' && !keep) { $('cpanel').dataset.cv = 'store'; $('clQ').value = ''; } // 크레이트 탭에 들어오면 보관함부터
+    if (tab === 'crate' && !keep) { $('cpanel').dataset.cv = 'store'; } // 크레이트 탭에 들어오면 보관함부터
     $('cpanel').dataset.tab = tab; LS.set('music.tab', tab);
     for (const b of document.querySelectorAll('.tabs [data-tab]')) b.setAttribute('aria-pressed', String(b.dataset.tab === tab));
     if (tab === 'crate') { renderCrate(); renderCList(); }
