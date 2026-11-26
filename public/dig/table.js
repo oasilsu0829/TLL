@@ -1,6 +1,6 @@
 // T/L/L 디깅 — 턴테이블 장면(deck3d.js) 안의 카드덱(2026-11-26 사용자 요청: 'DIG 버튼 없애고 온더락·시가 옆에 카드덱, LP 화면에서 카메라를 옮겨 거기서')
 // 덱은 재떨이 왼쪽 앞 바닥에 놓여 있다. 누르면 카메라가 턴테이블 앞으로 내려오고, 사용자 시안 그대로 섞음 → 펼침 → 웨이브 → 세 장 → 고른 카드가 앨범으로
-// 카드 그림은 고전 트럼프(바이시클 같은) 모양: 흰 테두리 + 빨간 바탕 고운 무늬 뒷면(점대칭), 흰 앞면에 빨강·검정 무늬와 세리프 숫자, 그림 카드는 색 띠 옷의 마주 보는 두 인물
+// 카드 그림: 뒷면은 고전 트럼프(바이시클 같은) 모양(흰 테두리 + 빨간 바탕 고운 무늬, 점대칭), 앞면은 시안 그대로 색 바탕 트럼프(뽑힌 카드는 앨범 표지 색 + 장르 띠)
 // 좌표: 시안의 미터 단위를 그대로 쓰고, 묶음 G(위치 P0, 배율 K3)로 장면에 놓는다. 카메라도 G 안 좌표로 계산해 장면 좌표로 바꾼다
 // 불빛(digSpot·digFront)은 deck3d가 처음부터 장면에 둔 것을 받아 세기만 바꾼다(불빛 수가 바뀌면 모든 셰이더를 다시 만들어 폰이 멈춤)
 import * as THREE from '/3d/three.module.min.js';
@@ -19,7 +19,7 @@ const S = new V3(0.17, 0.12, 0.035), TG = new V3(-0.13, 0.12, 0.035);
 const X0 = -0.27, STEP = 0.0125, ZS = 0.085, YB = 0.0004, KK = STEP / W, BOW = 0.011;
 const GAP = 0.0165, FLY = 0.34, P1 = 0.5, P2 = 1.5;
 const SQ0 = 2.45, SQ1 = 2.97, SP1 = 3.6, W0 = 3.62, WD = 1.75, FL0 = 5.45, FG = 0.17, FD = 0.8, NP = 4, T_END = FL0 + (NP - 1) * FG + FD + 0.02; // 네 장(2026-11-26)
-const HOLD = FL0 - 0.02; // 판이 아직이면 웨이브가 끝난 채 여기서 기다림
+const HOLD = SP1 - 0.02; // 판이 아직이면 펼친 채(뒤집기 전) 여기서 기다림: 뽑힐 카드 앞면을 앨범 색으로 바꿔 둬야 해서
 const C0 = -10, C1 = N - 1 + 10;
 const LOOK = new V3(-0.02, 0.02, -0.02);
 
@@ -38,77 +38,52 @@ function pip(g, s, x, y, z, flip) {
   else { g.arc(0, -24, 22, 0, Math.PI * 2); g.moveTo(-2, 10); g.arc(-24, 10, 22, 0, Math.PI * 2); g.moveTo(46, 10); g.arc(24, 10, 22, 0, Math.PI * 2); g.moveTo(-5, 8); g.quadraticCurveTo(-4, 38, -18, 50); g.lineTo(18, 50); g.quadraticCurveTo(4, 38, 5, 8); }
   g.closePath(); g.fill(); g.restore();
 }
-const suitCol = (s) => (s === 1 || s === 2 ? RED : INK);
-const PIPS = { 2: [[0.5, 0], [0.5, 1]], 3: [[0.5, 0], [0.5, 0.5], [0.5, 1]], 4: [[0, 0], [1, 0], [0, 1], [1, 1]] };
-PIPS[5] = [...PIPS[4], [0.5, 0.5]]; PIPS[6] = [...PIPS[4], [0, 0.5], [1, 0.5]]; PIPS[7] = [...PIPS[6], [0.5, 0.25]]; PIPS[8] = [...PIPS[7], [0.5, 0.75]];
-PIPS[9] = [[0, 0], [1, 0], [0, 1 / 3], [1, 1 / 3], [0, 2 / 3], [1, 2 / 3], [0, 1], [1, 1], [0.5, 0.5]]; PIPS[10] = [...PIPS[9].slice(0, 8), [0.5, 1 / 6], [0.5, 5 / 6]];
 function blank() {
   const c = document.createElement('canvas'); c.width = CW; c.height = CH; const g = c.getContext('2d');
   rr(g, 0, 0, CW, CH, 26); g.fillStyle = '#fbfaf6'; g.fill();
   g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 2; rr(g, 1, 1, CW - 2, CH - 2, 25); g.stroke();
   return [c, g];
 }
-function index(g, rank, s) {
-  const one = () => {
-    g.fillStyle = suitCol(s); g.textAlign = 'center'; g.textBaseline = 'top';
-    g.font = `bold ${rank === '10' ? 46 : 54}px ${SERIF}`;
-    g.save(); g.translate(38, 18); if (rank === '10') g.scale(0.78, 1); g.fillText(rank, 0, 0); g.restore();
-    pip(g, s, 38, 98, 34);
-  };
-  one(); g.save(); g.translate(CW, CH); g.rotate(Math.PI); one(); g.restore();
+// 앞면(2026-11-26 사용자 '숫자·기호 있는 쪽은 전 게 더 좋았음' → 시안 앞면으로 되돌림): 색 바탕 + 같은 색 계열 무늬·숫자, 안쪽 가는 테.
+// 장식 카드는 팔레트 18개, 뽑힌 네 장은 그 앨범 표지 색 + 아래 장르 띠
+const FW = 320, FH = Math.round(320 * HC / W);
+const PAL = [['#1f3b4d', '#e8c46a', '#d9572b'], ['#f1e4cf', '#203a2f', '#c94f3d'], ['#0f1c3f', '#7fb3d5', '#f3d9b1'], ['#3b1d3e', '#ee8a6a', '#f6d7a7'],
+  ['#e4ded0', '#111111', '#e23b2e'], ['#123024', '#9fcf8a', '#f2efe0'], ['#2a2a2a', '#f5a524', '#e9e4da'], ['#6b2737', '#f0c9a0', '#2d2a32'],
+  ['#d6e4e1', '#2f5d62', '#e07a5f'], ['#141414', '#5cc8c0', '#ff5d8f'], ['#f4c95d', '#1b2a41', '#e8e2d2'], ['#2e1f17', '#c98b4b', '#efe1c6'],
+  ['#b9d7ea', '#14213d', '#fca311'], ['#40263c', '#9ee6cf', '#ffd6e0'], ['#f6f1e7', '#2b59c3', '#f25c54'], ['#1c2b2d', '#e9b872', '#f7f3e3'],
+  ['#ff6b4a', '#1a1423', '#fff1d6'], ['#2d3047', '#e0a458', '#93b7be']];
+const lum = (h) => { const n = parseInt(h.slice(1), 16), f = (v) => { v /= 255; return v <= 0.04 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(n >> 16) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255); };
+const con = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function faceOf(p, rank, suit) {
+  const [bg, a1, a2] = p, el0 = con(bg, a1) >= con(bg, a2) ? a1 : a2;
+  const el = con(bg, el0) < 2.2 ? (lum(bg) > 0.3 ? '#14100c' : '#f6f1e7') : el0;
+  return { bg, el, acc: el0 === a1 ? a2 : a1, rank, suit };
 }
-// 그림 카드: 테두리 상자 안에 위·아래 마주 보는 반신(왕관·얼굴·색 띠 옷)
-function court(g, rank, s) {
-  const bx = 74, by = 70, bw = CW - 148, bh = CH - 140, col = suitCol(s);
-  g.fillStyle = '#fff'; g.fillRect(bx, by, bw, bh);
-  g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip();
-  const half = (flip) => {
-    g.save(); if (flip) { g.translate(bx + bw, by + bh); g.rotate(Math.PI); g.translate(-bx, -by); }
-    const cx = bx + bw / 2, mid = by + bh / 2;
-    // 옷: 빨강·파랑·노랑 띠, 비스듬히
-    const bands = [['#2a56a8', 0], ['#e8b62a', 1], [RED, 2], ['#2a56a8', 3], ['#e8b62a', 4]];
-    for (const [c, i] of bands) { g.fillStyle = c; g.beginPath(); g.moveTo(bx + i * 46 - 30, mid); g.lineTo(bx + i * 46 + 16, mid); g.lineTo(bx + i * 46 + 80, by + 150); g.lineTo(bx + i * 46 + 34, by + 150); g.closePath(); g.fill(); }
-    g.strokeStyle = INK; g.lineWidth = 2;
-    for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(bx + i * 46 - 30, mid); g.lineTo(bx + i * 46 + 34, by + 150); g.stroke(); }
-    // 어깨 깃·얼굴
-    g.fillStyle = '#fff'; g.beginPath(); g.ellipse(cx, by + 150, 70, 20, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.fillStyle = '#f6dcb6'; g.beginPath(); g.ellipse(cx, by + 104, 30, 38, 0, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.beginPath(); g.moveTo(cx - 14, by + 98); g.lineTo(cx - 5, by + 98); g.moveTo(cx + 5, by + 98); g.lineTo(cx + 14, by + 98); g.moveTo(cx - 6, by + 122); g.quadraticCurveTo(cx, by + 126, cx + 6, by + 122); g.stroke();
-    if (rank === 'K') { g.fillStyle = '#8a5a2b'; g.beginPath(); g.moveTo(cx - 26, by + 116); g.quadraticCurveTo(cx, by + 160, cx + 26, by + 116); g.quadraticCurveTo(cx, by + 132, cx - 26, by + 116); g.fill(); g.stroke(); }
-    if (rank === 'Q') { g.fillStyle = col; g.beginPath(); g.arc(cx + 40, by + 96, 9, 0, Math.PI * 2); g.fill(); g.stroke(); }
-    // 왕관(K·Q) · 모자(J)
-    g.fillStyle = '#e8b62a';
-    g.beginPath();
-    if (rank === 'J') { g.moveTo(cx - 40, by + 74); g.quadraticCurveTo(cx, by + 30, cx + 40, by + 74); g.closePath(); }
-    else { g.moveTo(cx - 34, by + 72); g.lineTo(cx - 34, by + 40); g.lineTo(cx - 17, by + 56); g.lineTo(cx, by + 30); g.lineTo(cx + 17, by + 56); g.lineTo(cx + 34, by + 40); g.lineTo(cx + 34, by + 72); g.closePath(); }
-    g.fill(); g.stroke();
-    g.fillStyle = col; for (const dx of [-17, 0, 17]) { g.beginPath(); g.arc(cx + dx, by + 64, 4, 0, Math.PI * 2); g.fill(); }
-    // 큰 무늬(어깨 위)
-    g.fillStyle = col; pip(g, s, bx + 34, by + 40, 34);
-    g.restore();
-  };
-  half(false); half(true);
-  g.restore();
-  g.strokeStyle = INK; g.lineWidth = 2.5; g.strokeRect(bx, by, bw, bh);
-  g.beginPath(); g.moveTo(bx, by + bh / 2); g.lineTo(bx + bw, by + bh / 2); g.lineWidth = 1.5; g.stroke();
-}
-function faceTex(rank, s) {
-  const [c, g] = blank();
-  index(g, rank, s);
-  g.fillStyle = suitCol(s);
-  if (rank === 'A') {
-    if (s === 0) { // 스페이드 에이스: 큰 무늬 + 고운 고리 + 작은 글씨
-      g.strokeStyle = INK; g.lineWidth = 1.5;
-      for (const r of [118, 110]) { g.beginPath(); g.arc(CW / 2, CH / 2, r, 0, Math.PI * 2); g.stroke(); }
-      for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; g.beginPath(); g.arc(CW / 2 + Math.cos(a) * 114, CH / 2 + Math.sin(a) * 114, 3, 0, Math.PI * 2); g.stroke(); }
-      g.fillStyle = INK; pip(g, 0, CW / 2, CH / 2 - 4, 150);
-      g.font = `bold 15px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('T / L / L', CW / 2, CH / 2 + 150);
-      g.font = `11px ${SERIF}`; g.fillText('PLAYING CARDS', CW / 2, CH / 2 + 170);
-    } else pip(g, s, CW / 2, CH / 2, 96);
-  } else if ('JQK'.includes(rank)) court(g, rank, s);
-  else {
-    const bx = 110, by = 92, bw = CW - 220, bh = CH - 184;
-    for (const [px, py] of PIPS[+rank]) pip(g, s, bx + px * bw, by + py * bh, 62, py > 0.55);
+const SPIPS = { 2: [[0.5, 0.18], [0.5, 0.82]], 3: [[0.5, 0.18], [0.5, 0.5], [0.5, 0.82]], 4: [[0.3, 0.18], [0.7, 0.18], [0.3, 0.82], [0.7, 0.82]] };
+SPIPS[5] = [...SPIPS[4], [0.5, 0.5]]; SPIPS[6] = [...SPIPS[4], [0.3, 0.5], [0.7, 0.5]]; SPIPS[7] = [...SPIPS[6], [0.5, 0.34]]; SPIPS[8] = [...SPIPS[7], [0.5, 0.66]];
+SPIPS[9] = [[0.3, 0.18], [0.7, 0.18], [0.3, 0.39], [0.7, 0.39], [0.3, 0.61], [0.7, 0.61], [0.3, 0.82], [0.7, 0.82], [0.5, 0.5]]; SPIPS[10] = [...SPIPS[9].slice(0, 8), [0.5, 0.29], [0.5, 0.71]];
+function colorFace(a, tag) {
+  const c = document.createElement('canvas'); c.width = FW; c.height = FH; const g = c.getContext('2d');
+  rr(g, 0, 0, FW, FH, 22); g.fillStyle = a.bg; g.fill();
+  g.strokeStyle = a.acc; g.globalAlpha = 0.55; g.lineWidth = 2; rr(g, 10, 10, FW - 20, FH - 20, 15); g.stroke(); g.globalAlpha = 1;
+  g.fillStyle = a.el;
+  const idx = () => { g.font = `bold ${a.rank === '10' ? 38 : 44}px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(a.rank, 38, 20); pip(g, a.suit, 38, 90, 30); };
+  idx(); g.save(); g.translate(FW, FH); g.rotate(Math.PI); idx(); g.restore();
+  const bx = 70, by = 64, bw = FW - 140, bh = FH - 128;
+  if (a.rank === 'A') { pip(g, a.suit, FW / 2, FH / 2, 130); g.strokeStyle = a.acc; g.lineWidth = 2; g.beginPath(); g.arc(FW / 2, FH / 2, 92, 0, 7); g.stroke(); }
+  else if ('JQK'.includes(a.rank)) {
+    g.fillStyle = a.acc; g.globalAlpha = 0.9; rr(g, bx, by, bw, bh, 10); g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = a.el; g.lineWidth = 3; rr(g, bx + 8, by + 8, bw - 16, bh - 16, 6); g.stroke();
+    g.fillStyle = a.el; g.font = `bold 120px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(a.rank, FW / 2, FH / 2 + 6);
+    pip(g, a.suit, FW / 2, by + 44, 42); pip(g, a.suit, FW / 2, by + bh - 44, 42, true);
+  } else {
+    for (const [px, py] of SPIPS[+a.rank]) pip(g, a.suit, bx + px * bw, by + py * bh, 52, py > 0.55);
+  }
+  if (tag) {
+    g.fillStyle = a.el; g.globalAlpha = 0.92; rr(g, 46, FH - 60, FW - 92, 30, 15); g.fill(); g.globalAlpha = 1;
+    g.fillStyle = a.bg; g.font = '600 17px "Noto Sans KR", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    let t = tag; while (g.measureText(t).width > FW - 120 && t.length > 2) t = t.slice(0, -2) + '…';
+    g.fillText(t, FW / 2, FH - 45);
   }
   return c;
 }
@@ -194,15 +169,10 @@ export function createDigTable({ deck, scene, cam, renderer, lights, onState }) 
   let picks = [0, 0, 0];
   const setMap = (c, t) => { if (c.f.material.map !== t) { c.f.material.map = t; c.f.material.needsUpdate = true; } };
   function shuffleFaces() {
-    if (!FACES) {
-      const all = []; for (let s = 0; s < 4; s++) for (const r of RANKS) all.push([r, s]);
-      for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
-      if (!all.slice(0, N).some((x) => x[0] === 'A' && x[1] === 0)) all[5] = ['A', 0];
-      FACES = all.slice(0, N).map(([r, s]) => tex(faceTex(r, s)));
-    }
+    if (!FACES) FACES = PAL.map((p, i) => tex(colorFace(faceOf(p, RANKS[(i * 7 + 3) % 13], (i * 3 + Math.floor(i / 13)) % 4))));
     const perm = [...Array(N).keys()];
     for (let i = N - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
-    cards.forEach((c, i) => { c.face = FACES[perm[i]]; setMap(c, c.face); });
+    cards.forEach((c, i) => { c.face = FACES[perm[i] % FACES.length]; setMap(c, c.face); });
     picks = [3 + Math.floor(Math.random() * 6), 11 + Math.floor(Math.random() * 6), 19 + Math.floor(Math.random() * 6), 27 + Math.floor(Math.random() * 6)];
   }
 
@@ -478,7 +448,14 @@ li:hover span:nth-child(1){color:var(--acc)}
     prepP = ensureTaste().then(() => D.makeHand(P)).then((h) => { if (my === gen) next = h; return h; }).catch((e) => { if (my === gen) prepP = null; throw e; });
     return prepP;
   }
-  function takeHand() { if (!next) return false; hand = next; next = null; prepP = null; gen++; return true; }
+  function takeHand() {
+    if (!next) return false; hand = next; next = null; prepP = null; gen++;
+    hand.forEach((h, k) => {
+      if (!h.trump) h.trump = tex(colorFace(faceOf(h.pal, RANKS[Math.floor(Math.random() * 13)], Math.floor(Math.random() * 4)), h.g.name));
+      cards[picks[k]].face = h.trump; setMap(cards[picks[k]], h.trump);
+    });
+    return true;
+  }
 
   // ── 상태
   let active = false, camW = 0, camTarget = 0, t = 0, playing = false, mode = 'tl', gk = 0, autoPlay = false, hover = -1, startWhenReady = false, afterExit = null;
