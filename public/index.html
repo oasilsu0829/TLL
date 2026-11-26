@@ -1348,7 +1348,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     const dg = LS.get('dig.v1'); if (dg) doc.dig = MM.mergeDig(doc.dig, dg);
   }
   function magOut() {
-    if (doc.dig) { const dg = LS.get('dig.v1') || {}, m2 = MM.mergeDig(dg, doc.dig); LS.set('dig.v1', { ...dg, fb: m2.fb, seen: m2.seen }); }
+    if (doc.dig) { const dg = LS.get('dig.v1') || {}, m2 = MM.mergeDig(dg, doc.dig); LS.set('dig.v1', { ...dg, fb: m2.fb, seen: m2.seen, ...(m2.fu ? { filter: m2.filter, fu: m2.fu } : {}) }); }
     const m = MM.cleanMag(doc.mag);
     LS.set('mag.opened', { ...(LS.get('mag.opened') || {}), ...m.opened });
     LS.set('mag.pl', { ...m.pl, ...(LS.get('mag.pl') || {}) });

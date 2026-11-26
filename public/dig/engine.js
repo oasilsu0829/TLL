@@ -1,14 +1,12 @@
 // T/L/L 디깅 엔진 — 순수 함수만(화면·네트워크 없음). test/dig.mjs가 node에서 돌린다
 // 1) 취향: 내가 듣는 아티스트들의 태그(Spotify 장르 · MusicBrainz 태그)를 장르 지도(atlas.js)의 칸에 놓는다 → 칸마다 무게 + 성질 평균(중심)
-// 2) 고르기: 안 듣는 장르 중 성질이 내 중심(그리고 좋아요한 장르들)과 가까운 것. 카드 세 장 = 거리 세 단계
-//    옆 동네(듣는 묶음 안의 안 들은 장르) · 건너 동네(안 듣는 묶음) · 먼 나라(지역 음악)
+// 2) 고르기: 안 듣는 장르 중 성질이 내 중심(그리고 좋아요한 장르들)과 가까운 것. 카드 네 장 = 필터 안 세 장 + 필터 밖 아예 다른 장르 한 장
 // 3) 기록: 좋아요·별로(fb)와 본 판(seen). 별로면 그 장르는 거의 안 나오고 같은 묶음도 조금 덜, 좋아요면 그 장르와 비슷한 쪽으로 중심이 끌린다
 import { GENRES, BY_ID, FAMS, TRAITS } from './atlas.js';
 
 export const SLOTS = [
-  { id: 'near', name: '옆 동네', hint: '듣던 쪽에서 한 걸음' },
-  { id: 'mid', name: '건너 동네', hint: '안 듣던 갈래, 결은 닮음' },
-  { id: 'far', name: '먼 나라', hint: '지역 음악, 멀리 떠나기' },
+  { id: 'in', name: '범위 안', hint: '필터 안에서 취향에 맞는 쪽' },
+  { id: 'out', name: '완전 다른 곳', hint: '필터 밖, 다른 갈래' },
 ];
 export const norm = (s) => String(s || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 const K = [1, 1, 1, 1, 0.8, 1, 0.45]; // 성질마다 거리 무게(시대는 덜)
@@ -114,36 +112,84 @@ export function why(g, P, year) {
   return { text: s1 + s2, bridge: br ? br.id : null };
 }
 
-// 한 판(대표 앨범) 고르기: 본 적 없는 것 먼저
-export const seedKey = (s) => norm(s.artist) + '|' + norm(s.album);
-export function pickSeed(g, seen = {}, rnd = Math.random) {
-  const fresh = g.seeds.filter((s) => !seen[seedKey(s)]);
-  const L = fresh.length ? fresh : [];
-  return L.length ? L[Math.floor(rnd() * L.length)] : null;
+// ── 필터(2026-11-26 사용자 요청 '내가 원하는 범위 안에서, 4장 중 하나는 아예 다른 장르'): 비어 있는 칸은 '전부'
+//   f = { fams: [묶음 id], dec: [1950 … 2020 (연대)], en: ['calm'|'mid'|'loud'], snd: ['ac'|'el'] }
+export const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+export const ENERGY = { calm: '조용', mid: '보통', loud: '강렬' };
+export const SOUND = { ac: '생악기', el: '전자' };
+export function cleanFilter(f) {
+  f = f && typeof f === 'object' ? f : {};
+  const arr = (x, ok) => [...new Set(Array.isArray(x) ? x.filter(ok) : [])];
+  return { fams: arr(f.fams, (x) => x in FAMS), dec: arr(f.dec, (x) => DECADES.includes(x)).sort(), en: arr(f.en, (x) => x in ENERGY), snd: arr(f.snd, (x) => x in SOUND) };
+}
+export const filterEmpty = (f) => { f = cleanFilter(f); return !f.fams.length && !f.dec.length && !f.en.length && !f.snd.length; };
+const enOf = (g) => (g.tr[0] < 0.4 ? 'calm' : g.tr[0] < 0.7 ? 'mid' : 'loud');
+const sndOk = (g, snd) => !snd.length || snd.some((x) => (x === 'ac' ? g.tr[1] >= 0.45 : g.tr[1] <= 0.55));
+const decOf = (y) => Math.min(2020, Math.max(1950, Math.floor(y / 10) * 10));
+// 장르가 필터에 드는지(연대는 대표 앨범 연도로 본다: 그 연대 앨범이 하나라도 있어야)
+export function inFilter(g, f) {
+  f = cleanFilter(f);
+  if (f.fams.length && !f.fams.includes(g.fam)) return false;
+  if (f.en.length && !f.en.includes(enOf(g))) return false;
+  if (!sndOk(g, f.snd)) return false;
+  if (f.dec.length && !g.seeds.some((s) => f.dec.includes(decOf(s.year)))) return false;
+  return true;
+}
+export function describeFilter(f) {
+  f = cleanFilter(f);
+  const bits = [];
+  if (f.fams.length) bits.push(f.fams.map((x) => FAMS[x]).join('·'));
+  if (f.dec.length) bits.push(f.dec.map((d) => `${String(d).slice(2)}년대`).join('·'));
+  if (f.en.length) bits.push(f.en.map((x) => ENERGY[x]).join('·'));
+  if (f.snd.length) bits.push(f.snd.map((x) => SOUND[x]).join('·'));
+  return bits.join(' · ');
 }
 
-// 카드 세 장: [{ slot, g, seed, why, score }]
-// st = { fb, seen, recent: 최근 나온 장르 id들 }
+// 한 판(대표 앨범) 고르기: 본 적 없는 것 먼저, 연대 필터가 있으면 그 연대 앨범만
+export const seedKey = (s) => norm(s.artist) + '|' + norm(s.album);
+export function pickSeed(g, seen = {}, rnd = Math.random, dec = []) {
+  const L = g.seeds.filter((s) => !seen[seedKey(s)] && (!dec.length || dec.includes(decOf(s.year))));
+  return L.length ? L[Math.floor(rnd() * L.length)] : null;
+}
+function sample(L, rnd, pow = 2.2, top = 7) {
+  L = [...L].sort((a, b) => b.s - a.s).slice(0, top);
+  const pw = L.map((x) => Math.max(1e-6, x.s) ** pow), tot = pw.reduce((a, b) => a + b, 0);
+  let r = rnd() * tot, k = 0;
+  while (k < L.length - 1 && (r -= pw[k]) > 0) k++;
+  return L[k];
+}
+
+// 카드 네 장: 세 장은 필터 안(취향 점수로, 같은 묶음은 되도록 한 번씩) + 한 장은 필터 밖이자 세 장과 다른 묶음(아예 다른 장르)
+// 필터가 비면 '안' = 전체. 필터 안 장르가 모자라면 성질이 가장 가까운 바깥 장르로 채우고 relaxed 표시
+// st = { fb, seen, recent: 최근 나온 장르 id들, filter }
 export function deal(P, st = {}, rnd = Math.random) {
-  const lc = likedCenter(st.fb);
-  const sc = GENRES.map((g) => scoreGenre(g, P, { ...st, lc })).filter((x) => x && x.s > 0.002 && pickSeed(BY_ID[x.id], st.seen, () => 0));
-  const used = new Set(), out = [];
-  for (const slot of SLOTS) {
-    let L = sc.filter((x) => x.slot === slot.id && !used.has(x.id));
-    if (!L.length) L = sc.filter((x) => !used.has(x.id) && (slot.id === 'far' ? BY_ID[x.id].world : !BY_ID[x.id].world));
-    if (!L.length) L = sc.filter((x) => !used.has(x.id));
+  const f = cleanFilter(st.filter), lc = likedCenter(st.fb);
+  const all = GENRES.map((g) => scoreGenre(g, P, { ...st, lc })).filter((x) => x && x.s > 0.002);
+  const has = (x, dec) => !!pickSeed(BY_ID[x.id], st.seen, () => 0, dec);
+  const inside = all.filter((x) => inFilter(BY_ID[x.id], f) && has(x, f.dec));
+  const used = new Set(), fams = new Set(), out = [];
+  const push = (x, slot, slotName, dec, relaxed) => {
+    const g = BY_ID[x.id]; used.add(x.id); fams.add(g.fam);
+    const seed = pickSeed(g, st.seen, rnd, dec);
+    out.push({ slot, slotName, g, seed, why: why(g, P, seed && seed.year), score: x.s, aff: x.aff, relaxed: !!relaxed });
+  };
+  for (let k = 0; k < 3; k++) {
+    let L = inside.filter((x) => !used.has(x.id)).map((x) => ({ ...x, s: x.s * (fams.has(BY_ID[x.id].fam) ? 0.35 : 1) }));
+    if (L.length) { push(sample(L, rnd), 'in', filterEmpty(f) ? '취향 추천' : '범위 안', f.dec); continue; }
+    // 모자람: 필터 밖에서 필터와 결이 가장 비슷한 장르(필터 안 장르들 성질 중심에 가까운 순)
+    const ref = inside.length ? centerOf(inside.map((x) => BY_ID[x.id])) : P.c;
+    L = all.filter((x) => !used.has(x.id) && has(x, [])).map((x) => ({ ...x, s: Math.exp(-(dist(BY_ID[x.id].tr, ref) ** 2) / 0.08) }));
     if (!L.length) break;
-    L.sort((a, b) => b.s - a.s);
-    const top = L.slice(0, 7), pw = top.map((x) => x.s ** 2.2), tot = pw.reduce((a, b) => a + b, 0);
-    let r = rnd() * tot, k = 0;
-    while (k < top.length - 1 && (r -= pw[k]) > 0) k++;
-    const x = top[k], g = BY_ID[x.id];
-    used.add(x.id);
-    const seed = pickSeed(g, st.seen, rnd);
-    out.push({ slot: slot.id, slotName: slot.name, g, seed, why: why(g, P, seed && seed.year), score: x.s, aff: x.aff });
+    push(sample(L, rnd, 3, 4), 'in', '범위 근처', [], true);
   }
+  // 아예 다른 장르: 필터 밖 + 세 장과 다른 묶음 + 덜 듣는 묶음일수록. 결이 너무 멀면 덜 나오게(취향 점수의 제곱근)
+  let W = all.filter((x) => !used.has(x.id) && has(x, []) && !fams.has(BY_ID[x.id].fam) && (filterEmpty(f) || !inFilter(BY_ID[x.id], f)));
+  W = W.map((x) => ({ ...x, s: Math.sqrt(x.s) * (1 - Math.min(0.8, (P.fam[BY_ID[x.id].fam] || 0) * 3)) }));
+  if (!W.length) W = all.filter((x) => !used.has(x.id) && has(x, []));
+  if (W.length) push(sample(W, rnd, 1.2, 12), 'out', '완전 다른 곳', []);
   return out;
 }
+function centerOf(L) { const c = [0, 0, 0, 0, 0, 0, 0]; for (const g of L) for (let i = 0; i < 7; i++) c[i] += g.tr[i] / L.length; return c; }
 
 // 화면용: 내 동네 이름들
 export const homeNames = (P, n = 4) => P.top.slice(0, n).map((id) => BY_ID[id] && BY_ID[id].name).filter(Boolean);

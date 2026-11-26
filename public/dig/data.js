@@ -1,13 +1,16 @@
 // T/L/L 디깅 — 데이터(취향 읽기 · Spotify에서 판 찾기 · 표지 색 · 기록). 화면은 table.js(턴테이블 장면 안 카드덱)
-import { buildProfile, deal as dealHand, seedKey, why, norm } from './engine.js';
+import { buildProfile, deal as dealHand, seedKey, why, norm, pickSeed, cleanFilter } from './engine.js';
 export { dealHand, seedKey, why };
+export { cleanFilter, filterEmpty, describeFilter, inFilter, DECADES, ENERGY, SOUND, FAMS, GENRES } from './engine.js';
 const C = () => window.MusicCore;
 const LSG = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const LSS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 const PROF_DAYS = 3;
 
 // ── 기록
-export function digState() { const s = LSG('dig.v1', {}); return { fb: s.fb || {}, seen: s.seen || {}, recent: s.recent || [] }; }
+export function digState() { const s = LSG('dig.v1', {}); return { fb: s.fb || {}, seen: s.seen || {}, recent: s.recent || [], filter: cleanFilter(s.filter), fu: s.fu || 0 }; }
+// 필터 저장(fu = 고친 시각, 기기끼리 늦은 쪽)
+export function setFilter(f) { const st = digState(); st.filter = cleanFilter(f); st.fu = Date.now(); saveState(st); return st.filter; }
 export function saveState(st, sync = true) { LSS('dig.v1', st); if (sync && C() && C().digSaved) C().digSaved(); }
 
 // ── 취향 읽기
@@ -154,19 +157,18 @@ export function paletteOf(im) {
 }
 
 
-// 세 장 고르기 + Spotify에서 실제 판 찾기 + 표지 그림·색. 못 찾은 판은 seen에 miss로 적고 같은 장르 다른 판
+// 네 장 고르기 + Spotify에서 실제 판 찾기 + 표지 그림·색. 못 찾은 판은 seen에 miss로 적고 같은 장르 다른 판
 export async function makeHand(P) {
   let st = digState();
   for (let tries = 0; tries < 3; tries++) {
     const H = dealHand(P, st);
-    if (H.length < 3) break;
+    if (H.length < 4) break;
     const got = await Promise.all(H.map(async (h) => {
       for (let k = 0; k < 3 && h.seed; k++) {
         const alb = await findAlbum(h.seed).catch(() => null);
         if (alb && alb.tracks.length) return { ...h, alb };
         st.seen[seedKey(h.seed)] = { t: Date.now(), g: h.g.id, miss: 1 };
-        const L = h.g.seeds.filter((s) => !st.seen[seedKey(s)]);
-        h.seed = L.length ? L[Math.floor(Math.random() * L.length)] : null;
+        h.seed = pickSeed(h.g, st.seen, Math.random, h.slot === 'in' && !h.relaxed ? st.filter.dec : []);
         if (h.seed) h.why = why(h.g, P, h.seed.year);
       }
       return null;

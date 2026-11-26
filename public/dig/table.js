@@ -18,11 +18,10 @@ const HOME = new V3(0.2, 0.0011, -0.07);
 const S = new V3(0.17, 0.12, 0.035), TG = new V3(-0.13, 0.12, 0.035);
 const X0 = -0.27, STEP = 0.0125, ZS = 0.085, YB = 0.0004, KK = STEP / W, BOW = 0.011;
 const GAP = 0.0165, FLY = 0.34, P1 = 0.5, P2 = 1.5;
-const SQ0 = 2.45, SQ1 = 2.97, SP1 = 3.6, W0 = 3.62, WD = 1.75, FL0 = 5.45, FG = 0.17, FD = 0.8, T_END = 6.7;
+const SQ0 = 2.45, SQ1 = 2.97, SP1 = 3.6, W0 = 3.62, WD = 1.75, FL0 = 5.45, FG = 0.17, FD = 0.8, NP = 4, T_END = FL0 + (NP - 1) * FG + FD + 0.02; // 네 장(2026-11-26)
 const HOLD = FL0 - 0.02; // 판이 아직이면 웨이브가 끝난 채 여기서 기다림
 const C0 = -10, C1 = N - 1 + 10;
 const LOOK = new V3(-0.02, 0.02, -0.02);
-const SLOTN = ['옆 동네', '건너 동네', '먼 나라'];
 
 // ── 카드 그림(바이시클 같은 고전 트럼프)
 const CW = 400, CH = Math.round(CW * HC / W);
@@ -204,7 +203,7 @@ export function createDigTable({ deck, scene, cam, renderer, lights, onState }) 
     const perm = [...Array(N).keys()];
     for (let i = N - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
     cards.forEach((c, i) => { c.face = FACES[perm[i]]; setMap(c, c.face); });
-    picks = [3 + Math.floor(Math.random() * 7), 14 + Math.floor(Math.random() * 8), 25 + Math.floor(Math.random() * 8)];
+    picks = [3 + Math.floor(Math.random() * 6), 11 + Math.floor(Math.random() * 6), 19 + Math.floor(Math.random() * 6), 27 + Math.floor(Math.random() * 6)];
   }
 
   // ── 자세(시안 그대로, 덱 자리만 살짝 돌림)
@@ -252,9 +251,9 @@ export function createDigTable({ deck, scene, cam, renderer, lights, onState }) 
   let narrow = false;
   function camPt(x, y, d, o) { return o.copy(BP).addScaledVector(BR, x).addScaledVector(BU, y).addScaledVector(BF, d); }
   function slotP(k, o, bob) {
-    const d = Math.max(0.5, 0.115 / (Math.tan(Math.PI / 12) * cam.aspect)), th = Math.tan(Math.PI / 12) * d;
-    camPt((k - 1) * 0.078, -th * 0.08 + (bob || 0), d, o.p);
-    o.q.copy(BQ).multiply(qT.setFromAxisAngle(AX, -0.12)).multiply(qT2.setFromAxisAngle(AZ, (k - 1) * -0.06)); o.b = 0; return o;
+    const d = Math.max(0.5, 0.152 / (Math.tan(Math.PI / 12) * cam.aspect)), th = Math.tan(Math.PI / 12) * d, m = k - (NP - 1) / 2;
+    camPt(m * 0.071, -th * 0.08 - Math.abs(m) * 0.004 + (bob || 0), d, o.p);
+    o.q.copy(BQ).multiply(qT.setFromAxisAngle(AX, -0.12)).multiply(qT2.setFromAxisAngle(AZ, m * -0.05)); o.b = 0; return o;
   }
   function revP(o) {
     const d = narrow ? 0.27 : 0.3, th = Math.tan(Math.PI / 12) * d;
@@ -326,7 +325,7 @@ export function createDigTable({ deck, scene, cam, renderer, lights, onState }) 
   for (let i = 0; i < N; i++) EV.push([P1 + i * GAP + FLY, 'tick'], [P2 + (N - 1 - i) * GAP + FLY, 'tick']);
   EV.push([SQ1 - 0.04, 'tap'], [3.0, 'shh']);
   for (let j = 0; j < N; j++) EV.push([W0 + WD * Math.acos(1 - 2 * (j - C0) / (C1 - C0)) / Math.PI, 'flip']);
-  for (let k = 0; k < 3; k++) EV.push([FL0 + k * FG + 0.01, 'flick'], [FL0 + k * FG + FD - 0.02, 'tick']);
+  for (let k = 0; k < NP; k++) EV.push([FL0 + k * FG + 0.01, 'flick'], [FL0 + k * FG + FD - 0.02, 'tick']);
   EV.sort((a, b) => a[0] - b[0]);
 
   // ── 화면 글자(카드 위 칸 이름 · 정보 창 · 닫기). 캔버스 위에 겹치는 Shadow DOM 한 겹
@@ -348,12 +347,23 @@ button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
 .bar p b{color:var(--brass);font-weight:600}
 .tip{position:fixed;left:0;top:0;transform:translate(-50%,-100%);background:rgba(16,12,9,.86);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;white-space:nowrap;transition:opacity .25s}
 .tip.slot{color:var(--brass)}
+.tip.slot.out{color:#9fd3ff;border-color:#2e4a63}
 .tip.slot small{color:var(--dim);margin-left:6px;font-size:12px}
 .hide{opacity:0!important;pointer-events:none!important}
-#info{position:fixed;overflow:auto;overscroll-behavior:contain;opacity:0;transform:translateX(24px);pointer-events:none;background:rgba(16,12,9,.93);border:1px solid var(--line);border-top:4px solid var(--acc);border-radius:16px;padding:18px 18px 14px;transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.2,1.2)}
-#info.on{opacity:1;transform:none;pointer-events:auto}
-#info.sheet{left:8px;right:8px;bottom:8px;max-height:52vh;transform:translateY(24px)}
-#info.sheet.on{transform:none}
+#info,.pan{position:fixed;overflow:auto;overscroll-behavior:contain;opacity:0;transform:translateX(24px);pointer-events:none;background:rgba(16,12,9,.93);border:1px solid var(--line);border-top:4px solid var(--acc);border-radius:16px;padding:18px 18px 14px;transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.2,1.2)}
+#info.on,.pan.on{opacity:1;transform:none;pointer-events:auto}
+#info.sheet,.pan.sheet{left:8px;right:8px;bottom:8px;max-height:60vh;transform:translateY(24px)}
+#info.sheet.on,.pan.sheet.on{transform:none}
+.pan h3{margin:0 0 4px;font-size:18px}
+.pan .hint{margin:0 0 6px;color:var(--dim);font-size:13px;word-break:keep-all}
+.pan h4{margin:12px 0 6px;font-size:13px;color:var(--dim);font-weight:500}
+.chs{display:flex;flex-wrap:wrap;gap:6px}
+.chs button{min-height:36px;padding:0 11px;font-size:14px;border-radius:999px}
+.chs button[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:#14100c;font-weight:700}
+.cnt{margin:12px 0 0;font-size:13px;color:var(--brass)}
+.bar button{flex:none;white-space:nowrap}
+.bar .fb{min-width:56px}
+.bar .fb.on{border-color:var(--brass);color:var(--brass)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{background:var(--acc);color:var(--accInk);font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px}
 .chip.o{background:transparent;color:var(--acc);border:1px solid var(--acc)}
@@ -376,9 +386,19 @@ li:hover span:nth-child(1){color:var(--acc)}
 @media (prefers-reduced-motion:reduce){#info,li{transition:none;animation:none!important;opacity:1;transform:none}}
 </style>
 <div class="L">
-<div class="bar" id="bar"><button class="x" id="x" aria-label="디깅 닫기" title="닫기">×</button><button class="re" id="re" aria-label="취향 다시 읽기" title="최근 듣는 아티스트로 취향 다시 읽기">↻</button><p id="sub">취향 읽는 중</p></div>
+<div class="bar" id="bar"><button class="x" id="x" aria-label="디깅 닫기" title="닫기">×</button><button class="re" id="re" aria-label="취향 다시 읽기" title="최근 듣는 아티스트로 취향 다시 읽기">↻</button><button class="fb" id="fltB" aria-expanded="false">필터</button><p id="sub">취향 읽는 중</p></div>
 <div class="tip hide" id="wait">판 고르는 중</div>
-<div class="tip slot hide" id="s0"></div><div class="tip slot hide" id="s1"></div><div class="tip slot hide" id="s2"></div>
+<div class="tip slot hide" id="s0"></div><div class="tip slot hide" id="s1"></div><div class="tip slot hide" id="s2"></div><div class="tip slot hide" id="s3"></div>
+<aside id="flt" class="pan" aria-label="디깅 필터">
+  <h3>범위 고르기</h3>
+  <p class="hint">세 장은 이 범위 안에서, 한 장은 완전히 다른 곳에서 뽑아요. 아무것도 안 고르면 전부.</p>
+  <h4>갈래</h4><div class="chs" id="fF"></div>
+  <h4>시대</h4><div class="chs" id="fD"></div>
+  <h4>에너지</h4><div class="chs" id="fE"></div>
+  <h4>소리</h4><div class="chs" id="fS"></div>
+  <p class="cnt" id="fN"></p>
+  <div class="row"><button class="main" id="fGo">이 범위로 섞기</button><button id="fClr">전부 풀기</button><button id="fX">닫기</button></div>
+</aside>
 <aside id="info" aria-live="polite">
   <div class="chips"><span class="chip" id="iG"></span><span class="chip o" id="iSl"></span></div>
   <h2 id="iT"></h2><p class="meta" id="iA"></p><p class="sub" id="iS"></p>
@@ -395,7 +415,7 @@ li:hover span:nth-child(1){color:var(--acc)}
   const $ = ui.$;
 
   // ── 데이터(data.js는 처음 쓸 때 불러옴)
-  let D = null, P = null, prepP = null, next = null, hand = null, waitErr = null, reading = false;
+  let gen = 0, D = null, P = null, prepP = null, next = null, hand = null, waitErr = null, reading = false;
   const data = () => (D ? Promise.resolve(D) : import('./data.js').then((m) => (D = m)));
   const C = () => window.MusicCore;
   const say = (h) => { $('#sub').innerHTML = h; };
@@ -405,16 +425,60 @@ li:hover span:nth-child(1){color:var(--acc)}
     reading = true;
     try { P = await m.readTaste(force, (s) => say(s)); } catch { P = m.buildProfile([]); }
     reading = false;
-    const H = m.homeNames(P, 3);
-    say(H.length ? `내 동네 <b>${H.join(' · ')}</b> 밖에서 세 장` : '여러 갈래에서 고르게 세 장');
+    sayRange();
     return P;
   }
+  function sayRange() {
+    if (!D) return;
+    const f = D.digState().filter, d = D.describeFilter(f), H = P ? D.homeNames(P, 3) : [];
+    say(d ? `범위 <b>${d}</b> · 세 장 + 다른 곳 한 장` : H.length ? `필터 없음 · 내 동네 <b>${H.join(' · ')}</b> 밖에서` : '필터 없음 · 여러 갈래에서');
+    $('#fltB').classList.toggle('on', !!d);
+  }
+  // ── 필터 창
+  let draft = null;
+  function chips(el, items, key) {
+    el.innerHTML = '';
+    for (const [v, label] of items) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      const on = () => draft[key].includes(v);
+      b.setAttribute('aria-pressed', on());
+      b.onclick = () => { draft[key] = on() ? draft[key].filter((x) => x !== v) : [...draft[key], v]; b.setAttribute('aria-pressed', on()); countF(); };
+      el.append(b);
+    }
+  }
+  function countF() {
+    const n = D.GENRES.filter((g) => !g.home && g.seeds.length && D.inFilter(g, draft)).length;
+    $('#fN').textContent = D.filterEmpty(draft) ? '전부(약 80장르)에서 고름' : n >= 3 ? `범위 안 장르 ${n}개` : n ? `범위 안 장르 ${n}개 · 모자란 칸은 비슷한 곳에서` : '범위 안 장르가 없어요 · 비슷한 곳에서 고름';
+  }
+  async function openFilter() {
+    await data();
+    draft = JSON.parse(JSON.stringify(D.digState().filter));
+    chips($('#fF'), Object.entries(D.FAMS), 'fams');
+    chips($('#fD'), D.DECADES.map((d) => [d, `${String(d).slice(2)}년대`]), 'dec');
+    chips($('#fE'), Object.entries(D.ENERGY), 'en');
+    chips($('#fS'), Object.entries(D.SOUND), 'snd');
+    countF();
+    hideInfo(); $('#flt').classList.add('on'); $('#fltB').setAttribute('aria-expanded', 'true');
+  }
+  function closeFilter() { $('#flt').classList.remove('on'); $('#fltB').setAttribute('aria-expanded', 'false'); }
+  const filterOpen = () => $('#flt').classList.contains('on');
+  $('#fltB').onclick = () => (filterOpen() ? closeFilter() : openFilter());
+  $('#fX').onclick = closeFilter;
+  $('#fClr').onclick = () => { draft = { fams: [], dec: [], en: [], snd: [] }; openFilterRedraw(); };
+  function openFilterRedraw() { chips($('#fF'), Object.entries(D.FAMS), 'fams'); chips($('#fD'), D.DECADES.map((d) => [d, `${String(d).slice(2)}년대`]), 'dec'); chips($('#fE'), Object.entries(D.ENERGY), 'en'); chips($('#fS'), Object.entries(D.SOUND), 'snd'); countF(); }
+  $('#fGo').onclick = () => {
+    D.setFilter(draft); closeFilter(); sayRange();
+    next = null; prepP = null; gen++; waitErr = null;
+    if (mode === 'reveal') { mode = 'tl'; t = T_END; }
+    if (mode === 'tl' && t === 0 && !playing) playing = true; else gather(true);
+  };
   function prep() {
     if (prepP) return prepP;
-    prepP = ensureTaste().then(() => D.makeHand(P)).then((h) => { next = h; return h; }).catch((e) => { prepP = null; throw e; });
+    const my = ++gen;
+    prepP = ensureTaste().then(() => D.makeHand(P)).then((h) => { if (my === gen) next = h; return h; }).catch((e) => { if (my === gen) prepP = null; throw e; });
     return prepP;
   }
-  function takeHand() { if (!next) return false; hand = next; next = null; prepP = null; return true; }
+  function takeHand() { if (!next) return false; hand = next; next = null; prepP = null; gen++; return true; }
 
   // ── 상태
   let active = false, camW = 0, camTarget = 0, t = 0, playing = false, mode = 'tl', gk = 0, autoPlay = false, hover = -1, startWhenReady = false, afterExit = null;
@@ -450,7 +514,7 @@ li:hover span:nth-child(1){color:var(--acc)}
     if (mode === 'tl' && t === 0 && !playing) { finishExit(); return; }
     gather(false, true);
   }
-  function finishExit() { camTarget = 0; hideInfo(); slotTips.forEach((e) => e.classList.add('hide')); wait.classList.add('hide'); $('#bar').classList.add('hide'); }
+  function finishExit() { camTarget = 0; hideInfo(); closeFilter(); slotTips.forEach((e) => e.classList.add('hide')); wait.classList.add('hide'); $('#bar').classList.add('hide'); }
   const mmss = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
   function coverTex(h) {
     const a = h.alb, c = document.createElement('canvas'); c.width = CW; c.height = CH; const g = c.getContext('2d');
@@ -500,7 +564,7 @@ li:hover span:nth-child(1){color:var(--acc)}
     const h = hand && hand[rv.k]; if (!h) return;
     const st = D.digState(), cur = (st.fb[h.g.id] || {}).v || 0;
     st.fb[h.g.id] = { v: cur === v ? 0 : v, u: Date.now() }; D.saveState(st);
-    paintFb(h); next = null; prepP = null;
+    paintFb(h); next = null; prepP = null; gen++;
   }
   const albumOf = (h) => (C().toAlbum ? C().toAlbum(h.alb.raw) : { id: h.alb.id, uri: h.alb.uri, name: h.alb.name, artist: h.alb.artist, img: h.alb.img, year: h.alb.year, n: h.alb.n });
   function playIt(h, uri) { const a = albumOf(h); exit(() => C().playAlbum(a, uri)); }
@@ -517,13 +581,13 @@ li:hover span:nth-child(1){color:var(--acc)}
   $('#again').onclick = () => { audio(); gather(true); };
   $('#other').onclick = () => { audio(); unreveal(); };
   $('#x').onclick = () => exit();
-  $('#re').onclick = async () => { if (reading) return; next = null; prepP = null; await ensureTaste(true); prep().catch(() => {}); C().toast && C().toast('취향을 다시 읽었습니다'); };
+  $('#re').onclick = async () => { if (reading) return; next = null; prepP = null; gen++; await ensureTaste(true); prep().catch(() => {}); C().toast && C().toast('취향을 다시 읽었습니다'); };
   function onKey(e) {
     if (!active) return;
     const tg = e.composedPath && e.composedPath()[0];
-    if (e.key === 'Escape') { e.preventDefault(); if (mode === 'reveal') unreveal(); else exit(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); if (filterOpen()) closeFilter(); else if (mode === 'reveal') unreveal(); else exit(); return; }
     if (tg && (tg.tagName === 'BUTTON' || tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
-    if (ready3() && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); audio(); SFX.flick(); reveal(+e.key - 1); }
+    if (ready3() && ['1', '2', '3', '4'].includes(e.key)) { e.preventDefault(); audio(); SFX.flick(); reveal(+e.key - 1); }
     else if (ready3() && e.code === 'Space') { e.preventDefault(); gather(true); }
   }
 
@@ -568,7 +632,7 @@ li:hover span:nth-child(1){color:var(--acc)}
   }
 
   // ── 화면 글자 자리
-  const wait = $('#wait'), slotTips = [$('#s0'), $('#s1'), $('#s2')], hv = new V3();
+  const wait = $('#wait'), slotTips = [$('#s0'), $('#s1'), $('#s2'), $('#s3')], hv = new V3();
   function place(el, local, dy, r) {
     hv.copy(local).multiplyScalar(K3).add(P0); deck.localToWorld(hv); hv.project(cam);
     const hw = (el.offsetWidth || 0) / 2 + 6, x = r.left + (hv.x + 1) / 2 * r.width;
@@ -576,10 +640,14 @@ li:hover span:nth-child(1){color:var(--acc)}
   }
   function layoutUi(r) {
     const bar = $('#bar'); bar.style.left = (r.left + 12) + 'px'; bar.style.top = (r.top + 12) + 'px';
+    $('#sub').style.maxWidth = Math.max(0, r.width - 230) + 'px'; $('#sub').style.display = r.width < 330 ? 'none' : '';
     const info = $('#info'), sheet = innerWidth < 700 || r.width < 520;
     info.classList.toggle('sheet', sheet);
     if (!sheet) { const w = Math.min(420, r.width * 0.48); Object.assign(info.style, { left: (r.right - w - 14) + 'px', top: (r.top + 14) + 'px', width: w + 'px', maxHeight: (r.height - 28) + 'px', right: '', bottom: '' }); }
     else Object.assign(info.style, { left: '', top: '', width: '', maxHeight: '', right: '', bottom: '' });
+    const fl = $('#flt'); fl.classList.toggle('sheet', sheet);
+    if (!sheet) { const w = Math.min(420, r.width * 0.48); Object.assign(fl.style, { left: (r.right - w - 14) + 'px', top: (r.top + 14) + 'px', width: w + 'px', maxHeight: (r.height - 28) + 'px' }); }
+    else Object.assign(fl.style, { left: '', top: '', width: '', maxHeight: '' });
     narrow = sheet;
   }
 
@@ -639,7 +707,7 @@ li:hover span:nth-child(1){color:var(--acc)}
       const show3 = ready3() && hand && camTarget === 1;
       slotTips.forEach((el, k) => {
         el.classList.toggle('hide', !show3);
-        if (show3) { el.innerHTML = `${SLOTN[k]}<small>${k + 1}</small>`; slotP(k, O, 0); place(el, O.p.addScaledVector(BU, HC * 0.6), 4, r); }
+        if (show3) { const hk = hand[k]; el.innerHTML = narrow && hk.slot === 'in' ? `${k + 1}` : narrow ? `다른 곳<small>${k + 1}</small>` : `${hk.slotName}<small>${k + 1}</small>`; el.classList.toggle('out', hand[k].slot === 'out'); slotP(k, O, 0); place(el, O.p.addScaledVector(BU, HC * 0.6), 4, r); }
       });
     }
   }
@@ -664,6 +732,6 @@ li:hover span:nth-child(1){color:var(--acc)}
     g: G, hits: [pileHit], enter, exit, step, blendCam, pointerdown, pointermove, resize: () => { if (active) fit(); },
     active: () => active || camW > 0.001,
     lively: () => (active || camW > 0.001) && (Math.abs(camTarget - camW) > 0.002 || playing || mode !== 'tl' || hover >= 0 || cards.some((c) => c.hov > 0.01) || ready3()),
-    _st: () => ({ active, camW, t, mode, playing, hand: !!hand, picks, err: waitErr && waitErr.message }),
+    _st: () => ({ active, camW, t, mode, playing, hand: !!hand, T_END, picks, err: waitErr && waitErr.message, cards: hand ? hand.map((h) => h.slotName + ':' + h.g.fam + ':' + h.g.id + ':' + h.seed.year) : [] }),
   };
 }
