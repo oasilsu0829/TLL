@@ -729,6 +729,8 @@ body.lpfull .lyr { display: flex; flex-direction: column; position: absolute; z-
 @media (prefers-reduced-motion: reduce) { body.lpfull .deckp .strip { transition: none; } .deck3d, .ll { transition: none; } body.lpfull .lyr { animation: none; } .ll.dots.on i { animation: none; } }
 /* 잡지를 보는 동안 뒤 앱은 그리지 않는다(아이폰 사파리 메모리) */
 body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > footer { display: none !important; }
+/* 디깅(dig/dig.js)도 화면 전체를 덮으니 뒤 앱은 그리지 않는다 */
+body.digon > header.top, body.digon > main, body.digon > .amb, body.digon > footer { display: none !important; }
 </style>
 </head>
 <body class="night">
@@ -761,6 +763,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   <div class="now">
     <div class="t"><p class="t1" id="nowT">-</p><p class="t2" id="nowA">-</p></div>
     <div class="thumb" id="nowImg"></div>
+    <button class="icon-btn jam-btn" id="digBtn" type="button" aria-label="디깅" title="DIG: 평소 듣던 장르 밖에서 좋아할 만한 판 세 장 뽑기"><svg class="ico" viewBox="0 0 24 24"><path d="M7.2 3.6 3.4 4.9a1 1 0 0 0-.6 1.3l4.4 12.6a1 1 0 0 0 1.3.6l1.6-.6zM11 3h8a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm4 5.2-2 3.3 2 3.3 2-3.3z"/></svg><span>DIG</span></button>
     <button class="icon-btn jam-btn" id="magBtn" type="button" aria-label="잡지 책장" title="잡지 책장"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zm16 0h-4a3 3 0 0 0-2 1v15a2 2 0 0 1 2-2h4z"/></svg><span>MAG</span><i class="magdot" id="magDot" hidden></i></button>
     <button class="icon-btn jam-btn" id="jamBtn" type="button" aria-label="잼 시작" title="JAM: 친구와 곡을 하나씩 넣어 카세트에 녹음"><svg class="ico"><use href="#i-tape"/></svg><span>JAM</span><i class="magdot jamdot" id="jamDot" hidden></i></button>
     <button class="icon-btn" id="setBtn" type="button" aria-label="Spotify 연결 설정"><svg class="ico"><use href="#i-gear"/></svg></button>
@@ -1302,7 +1305,7 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   let clFolder = ''; // 보관함에서 열어 둔 폴더('' = 맨 위)
   function ensureFolder() { doc.folders = doc.folders || {}; if (!doc.folders[FTLL]) doc.folders[FTLL] = { id: FTLL, name: 'T/L/L', o: 0, u: 0 }; }
   const liveF = () => Object.values(doc.folders || {}).filter((f) => !f.del).sort((a, b) => a.o - b.o || a.u - b.u);
-  const sysCrate = (c) => c.id === 'c-jam' || /^c-pub-/.test(c.id);
+  const sysCrate = (c) => c.id === 'c-jam' || c.id === 'c-dig' || /^c-pub-/.test(c.id);
   function folderOf(c) { const f = c.f !== undefined ? c.f : sysCrate(c) ? FTLL : ''; return f && doc.folders && doc.folders[f] && !doc.folders[f].del ? f : ''; }
   function touchF(f) { f.u = Date.now(); doc.folders[f.id] = f; storeDoc(); syncSoon(); }
   function ensureCrate() {
@@ -1344,8 +1347,11 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
   // (기기마다 따로 두었을 때: 다른 기기·홈 화면 앱에서 또 새 호로 뜨고, 부록을 누를 때마다 플레이리스트가 새로 생겨 크레이트에 또 꽂혔음)
   function magFold() {
     doc.mag = MM.mergeMag(doc.mag, { opened: LS.get('mag.opened') || {}, pl: LS.get('mag.pl') || {} });
+    // 디깅 기록(좋아요·별로, 본 판)도 계정 문서에 같이 싣는다(dig/dig.js LS dig.v1)
+    const dg = LS.get('dig.v1'); if (dg) doc.dig = MM.mergeDig(doc.dig, dg);
   }
   function magOut() {
+    if (doc.dig) { const dg = LS.get('dig.v1') || {}, m2 = MM.mergeDig(dg, doc.dig); LS.set('dig.v1', { ...dg, fb: m2.fb, seen: m2.seen }); }
     const m = MM.cleanMag(doc.mag);
     LS.set('mag.opened', { ...(LS.get('mag.opened') || {}), ...m.opened });
     LS.set('mag.pl', { ...m.pl, ...(LS.get('mag.pl') || {}) });
@@ -3381,6 +3387,9 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     },
     // mag.js가 뜯은 기록·부록 플레이리스트를 쓴 뒤 부른다 → 계정 문서에 싣고 서버와 맞춤
     magSaved() { magFold(); storeDoc(); syncSoon(); },
+    // 디깅: 기록을 바꾼 뒤 · 크레이트에 꽂힌 앨범(취향 재료)
+    digSaved() { magFold(); storeDoc(); syncSoon(); },
+    crateAlbums: () => live().flatMap((c) => c.albums || []),
     // 잡지를 열 때: 서버에서 다른 기기의 기록을 받아 온다(최대 3초)
     magPull: () => Promise.race([sync(), new Promise((r) => setTimeout(r, 3000))]),
     saveJam(e) {
@@ -3421,6 +3430,10 @@ body.magon > header.top, body.magon > main, body.magon > .amb, body.magon > foot
     jam().then((m) => m.start());
   });
   setInterval(() => { if (document.visibilityState === 'visible' && !window.MusicJamOn) checkJam(); }, 45000);
+  // ---------- 디깅 (dig/dig.js, 처음 누를 때 불러옴) ----------
+  let digMod = null;
+  const digM = () => (digMod = digMod || import('/dig/dig.js').catch((e) => { digMod = null; toast('디깅을 불러오지 못했습니다'); throw e; }));
+  $('digBtn').addEventListener('click', () => { sfx.unlock(); digM().then((m) => m.open()).catch(() => {}); });
   // ---------- 잡지 (mag/mag.js, 처음 누를 때 불러옴) ----------
   let magMod = null;
   const mag = () => (magMod = magMod || import('/mag/mag.js').catch((e) => { magMod = null; toast('잡지를 불러오지 못했습니다'); throw e; }));

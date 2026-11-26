@@ -8,6 +8,7 @@
      opened는 합집합(이른 시각), pl은 먼저 만든 것(a 쪽)이 이긴다
    - 폴더(2026-11-24): folders: { id: { id, name, o, u } | { id, del: 1, u } } — 보관함에서 크레이트를 묶는 폴더. 크레이트처럼 u가 늦은 쪽이 이긴다.
      크레이트의 f = 들어 있는 폴더 id, '' = 폴더 밖(일부러 꺼냄), 없으면 기본(화면이 정함: JAM·잡지 크레이트는 T/L/L 폴더)
+   - 디깅(dig, 2026-11-26): { fb: { 장르: { v, u } }, seen: { 판 키: { t, g } } } — 좋아요·별로와 본 판. fb는 u 늦은 쪽, seen은 합집합
    일반 스크립트로 불러도(window.MusicMerge), 모듈에서 import 해도(globalThis.MusicMerge) 된다 */
 (function (root) {
   'use strict';
@@ -55,6 +56,28 @@
   }
   const emptyMag = (m) => !Object.keys(m.opened).length && !Object.keys(m.pl).length;
 
+  // 디깅(2026-11-26): { fb: { 장르 id: { v: 1 | 0 | -1, u } }, seen: { 판 키: { t, g, miss? } } }. fb는 u 늦은 쪽, seen은 합집합(이른 t), 최근 600개
+  const GID = /^[a-z0-9]{2,20}$/, SKEY = /^[^|]{1,80}\|[^|]{1,120}$/, MAX_SEEN = 600;
+  function cleanDig(d) {
+    d = obj(d);
+    const fb = {}, seen = {};
+    for (const [id, x0] of Object.entries(obj(d.fb)).slice(0, 200)) {
+      const x = obj(x0), v = Math.sign(num(x.v));
+      if (GID.test(id)) fb[id] = { v, u: Math.max(0, Math.floor(num(x.u))) };
+    }
+    const L = Object.entries(obj(d.seen)).filter(([k, x]) => SKEY.test(k) && num(obj(x).t) > 0)
+      .sort((a, b) => num(b[1].t) - num(a[1].t)).slice(0, MAX_SEEN);
+    for (const [k, x] of L) { const y = { t: Math.floor(num(x.t)), g: GID.test(x.g || '') ? x.g : '' }; if (x.miss) y.miss = 1; seen[k] = y; }
+    return { fb, seen };
+  }
+  function mergeDig(a, b) {
+    const A = cleanDig(a), B = cleanDig(b), fb = { ...A.fb }, seen = { ...A.seen };
+    for (const [id, x] of Object.entries(B.fb)) if (!fb[id] || x.u > fb[id].u) fb[id] = x;
+    for (const [k, x] of Object.entries(B.seen)) if (!seen[k] || x.t < seen[k].t) seen[k] = x;
+    return cleanDig({ fb, seen });
+  }
+  const emptyDig = (d) => !Object.keys(d.fb).length && !Object.keys(d.seen).length;
+
   // 어떤 모양이 와도 문서 모양으로 맞춘다. now를 주면 앞서 있는 시계(u)를 now + 5분으로 누르고 오래된 지운 표시를 치운다
   function clean(doc, now) {
     const out = { v: 1, crates: {} };
@@ -91,6 +114,8 @@
     }
     const mag = cleanMag(obj(doc).mag);
     if (!emptyMag(mag)) out.mag = mag;
+    const dg = cleanDig(obj(doc).dig);
+    if (!emptyDig(dg)) out.dig = dg;
     return out;
   }
 
@@ -106,8 +131,10 @@
     if (Object.keys(folders).length) out.folders = folders;
     const mag = mergeMag(a && a.mag, b && b.mag);
     if (!emptyMag(mag)) out.mag = mag;
+    const dg = mergeDig(a && a.dig, b && b.dig);
+    if (!emptyDig(dg)) out.dig = dg;
     return out;
   }
 
-  root.MusicMerge = { clean, merge, album, cleanMag, mergeMag };
+  root.MusicMerge = { clean, merge, album, cleanMag, mergeMag, cleanDig, mergeDig };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
