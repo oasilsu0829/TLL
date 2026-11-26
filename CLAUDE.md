@@ -49,7 +49,19 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
   - 소리 S3(sfx.clink): 얼음 달그락 두 번(6.5kHz 대역 잡음 + 딱) → 5.52k·5.546k 맥놀이 핑 + 8.3k·11k 배음
   - 재즈바 배경은 넣었다가 사용자 요청으로 지움(사진이 별로). 3D 재즈바 계획(카운터·술장·무대·펜던트, 폰 가벼운 판)은 '다음에'로 미룸. 잔을 누르면 잔이 코스터 위에서 살짝 돌고(용수철, 누를 때마다 방향 바꿈) 얼음이 흔들리며 쨍(sfx.clink)
   - 시가(로부스토): 겉잎 그림(얼룩·사선 이음매·잎맥, bump) + 손말이 굵기 흔들림, 세 겹 캡과 잘린 단면, 금박 띠(metalnessMap, 메달 T/L/L·RESERVA), 탄 띠·불씨 고리(emissiveMap 흐름)·겹 재(금 간 회백)
-- 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase)
+- 디깅 DIG(2026-11-26, v1.23.0, 사용자 요청 '평소 듣던 장르에서 벗어나면서도 좋아할 만한 독특한 장르의 앨범 찾기' + 사용자 시안 '디깅 덱 셔플'): 위 줄 DIG 버튼 → public/dig/dig.js(처음 누를 때 import, Shadow DOM 화면 전체 겹, body.digon + Deck3D.suspend)
+  - 화면 = 시안 그대로(바 카운터 3D: 스프링 왕복 → 펼침 → 웨이브 뒤집기 → 세 장 튕김 → 고른 카드가 4바퀴 돌며 앨범 표지로). 시안의 타임라인·속도 막대는 뺌. 덱 누름/스페이스 = 시작, 1·2·3 = 고르기, 바닥 누름 = 다시 섞기, Esc = 카드로/닫기
+    판이 아직 안 골라졌으면 펼친 채(HOLD 3.58초) '판 고르는 중'으로 기다림(웨이브 전에 뽑힐 카드 앞면을 바꿔야 해서). 다음 판은 미리 고름(prep). 소리는 설정 효과음(music.sfx) 따름. three는 '/3d/…' 경로, RoomEnvironment는 public/3d/RoomEnvironment.js로 들여옴
+  - 장르 지도 public/dig/atlas.js(Claude가 손으로 짠 표, 추천지 약 80장르 + '*' 집 칸): 장르마다 묶음(fam) · 성질 7개(에너지·어쿠스틱·그루브·어두움·보컬·실험성·시대, 숫자 0~9) · 태그 정규식 · 한 줄 설명 · 대표 앨범 2~5장('아티스트|앨범|연도'). 태그는 위에서부터 처음 맞는 칸 → 좁은 장르를 위에, 넓은 집 칸은 아래에(순서 중요, test/dig.mjs가 확인)
+  - 엔진 public/dig/engine.js(순수, AI 호출 없음): 취향 = 아티스트 태그 → 칸 무게(w)·묶음 비율(fam)·성질 중심(c). 점수 = 성질 거리 가우스(σ .24, 좋아요한 장르 중심과도) × (1 − 듣는 정도), 많이 듣는 칸(w > .45)은 제외. 별로 ×0.12(같은 묶음 ×0.82), 좋아요 ×1.5, 최근 9장르 ×0.15
+    카드 세 칸: 옆 동네(듣는 묶음 안의 안 들은 장르) · 건너 동네(안 듣는 묶음) · 먼 나라(WORLD 지역 음악). 칸마다 위 7개에서 점수^2.2 비율로 뽑음. why() = 가장 가까운 내 장르와 같은 성질·다른 성질·연대로 한두 문장
+  - 취향 재료(dig.js readTaste, LS dig.prof 3일 캐시, '취향 다시 읽기'): /me/top/artists 세 기간(3 · 2.2 · 1.5배) + 크레이트 아티스트(MusicCore.crateAlbums). 장르는 Spotify genres → 비었으면(개발 모드 앱은 자주 빔) /api/music/tags(src/tags.js, MusicBrainz 태그, 캐시 30일, 503이면 화면이 쉬었다 다시, LS dig.tags)
+  - 판 찾기: Spotify /search album:… artist:…(market=from_token) → 점수(아티스트 필수·이름·연도·컴필 감점) → 못 찾으면 그 아티스트 정규 앨범 중 연도 가까운 것 → /albums/{id}. 그래도 없으면 seen에 miss로 적고 같은 장르 다른 판
+    카드 앞면은 표지 대표색(paletteOf)으로 트럼프 + 아래 장르 띠, 공개 표지는 실제 표지 그림 + 제목·아티스트·연도
+  - 정보 창: 장르·칸·제목·아티스트·곡 수·레이블·왜·장르 설명·곡 목록(누르면 그 곡부터) · 턴테이블에 올리기(MusicCore.playAlbum, 디깅 닫힘) · 크레이트에 담기(DIG 크레이트 c-dig, T/L/L 폴더 기본) · 좋아요/별로(장르 단위) · 다시 섞기 · 다른 카드
+  - 기록 LS dig.v1 { fb: {장르: {v, u}}, seen: {판 키: {t, g, miss?}}, recent } → fb·seen은 계정 문서 doc.dig로 동기화(merge.js cleanDig/mergeDig, magFold/magOut에 같이). 대표 앨범을 다 보면 그 장르는 안 나옴 → 지도에 앨범을 더 넣을 것
+  - 확인: 로컬 Playwright(가짜 MusicCore로 덱 → 세 장 → 공개 → 좋아요·담기 → 다시 섞기, 1280×800 · 390×844, 오류 0) + 실제 index.html에서 DIG 버튼·로그인 안내·Esc. 실제 Spotify 찾기 적중률·MusicBrainz 태그·폰 성능은 미확인
+- 테스트: `npm test` (test/music.mjs 합치기·잡지 기록, test/music-api.mjs API — node:sqlite, test/lyrics.mjs 가사 LRCLIB·NetEase, test/dig.mjs 디깅 지도·고르기·기록 합치기)
 
 ## 구조
 ```
@@ -62,6 +74,7 @@ public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). �
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D(deck3d.js) + 황동 실린더 전축(phono.js) · 잼 · 잡지 · 친구용 매니페스트·아이콘
 src/index.js        라우터(/deck/, 예전 /music/… → 새 경로 301, /api/music/*)
+public/dig/          디깅(dig.js 화면 · engine.js 고르기 · atlas.js 장르 지도) · src/tags.js 아티스트 태그(MusicBrainz, /api/music/tags)
 src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q) · src/lyrics.js 가사(LRCLIB · NetEase 프록시, /api/music/lyrics)
 ```
 
