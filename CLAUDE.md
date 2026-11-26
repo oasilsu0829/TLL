@@ -64,6 +64,15 @@ Spotify 턴테이블 앱. 2026-11-13 Sabathia(`oasilsu0829/sabathia`)의 음악 
     4번 = '완전 다른 곳': 필터 밖 + 1~3번과 다른 묶음, 점수 = √취향 × (1 − 그 묶음 듣는 비율×3, 최대 .8), 위 12개에서 덜 치우치게. 카드 이름표는 폰에선 숫자만(다른 곳만 글자)
     저장 LS dig.v1.filter + fu(고친 시각) → doc.dig로 동기화(merge.js: fu 늦은 쪽). '이 범위로 섞기' = 저장 + 미리 고른 판 버림(gen으로 늦게 온 옛 판 무시) + 다시 섞기
     3D: NP = 4, T_END = FL0 + 3·FG + FD, 세 장 자리 slotP는 네 칸(간격 0.071, 거리 0.152/(tan·aspect) 이상), 키 1~4
+  - 새 방식(2026-11-26 v1.26.0, 사용자 선택 '개선안 2(태그 그래프 + 실제 인기 앨범) + 3(씨앗에서 출발) + UI 깔끔하게'): 위 필터·장르 지도 방식은 Last.fm 키가 없을 때의 대신(취향 모드)과 넷째 장 대신으로만 남음
+    도구줄(#tb): × · 취향|태그|씨앗(LS dig.cfg {mode, tags, dec, seed}, 기기마다) · 모드 버튼(취향 = ↻ 다시 읽기, 태그 = 고른 태그, 씨앗 = 씨앗 표지·이름). 아래 한 줄 설명(.cap). 설정 창 #pan 하나(태그·씨앗), 정보 창 = 장르 칩·칸 이름 · 제목 · 아티스트·연도·곡 수 · 왜 · 턴테이블에 올리기 · 아이콘 줄(좋아요·별로·담기·다시 섞기·다른 카드) · 곡 목록 접기(폰은 접힘)
+    서버 src/lastfm.js: /api/music/lf?m=…(Last.fm, 허용 메서드만, 키는 Worker secret LASTFM_KEY — 없으면 501 nokey) · /api/music/lb/similar?mbid=(ListenBrainz labs 비슷한 아티스트, 키 없음). 캐시 7일(차트 1일)
+    순수 로직 public/dig/tagx.js(test/dig.mjs): 장르 아닌 태그 거르기(JUNK: seen live·female vocalists·국적·연대·느낌 말), 너무 넓은 태그(BROAD: indie·rock·pop·k-pop…)는 목적지에서 뺌, related() = 낱말·합성어 겹침, homeTags · neighborTags(집에서 센 태그 > .2 제외, 별로 태그 ×0.05, 좋아요 ×1.6) · farTags(집·이웃·고른 태그와 낱말 안 겹침) · pickSpread(서로 안 겹치게) · pickAlbum(본 판·내 아티스트·모음집/라이브 제외, 인기 위 25에서) · seedSteps(한 다리는 위 6명 건너뜀)
+    data.js: 취향 tasteHand = 내 아티스트 6명 → artist.getsimilar(4~30위, 내가 듣는 아티스트 제외) 16명 → 그들의 태그 → 이웃 태그 세 개 → tag.gettopalbums → Spotify에서 실제 판. 태그 tagHand = 고른 태그를 돌아가며(시대 필터는 Spotify 발매 연도로 맞을 때까지). 씨앗 seedHand = 씨앗 아티스트 → 비슷한(한 다리) · 그 옆(두 다리), Last.fm이면 대표 태그가 서로 다른 아티스트로, 판은 artist.gettopalbums → 없으면 Spotify 'artist:' 검색 첫 정규 앨범
+    넷째 장 farCard = 차트 태그 200 + 장르 지도의 영어 태그 중 피할 태그와 안 겹치는 것의 인기 판. 키가 없거나 못 찾으면 장르 지도의 '완전 다른 곳'
+    키 없을 때: 취향 = 예전 장르 지도(makeHand), 태그 = 창에 '키 필요' 안내·버튼 꺼짐, 씨앗 = MusicBrainz MBID → ListenBrainz 비슷한 아티스트 → Spotify 검색
+    좋아요·별로 id는 't:<태그>'(merge.js GID가 받음). 취향 프로필 dig.prof에 P.arts(아티스트 40명 + 태그)를 같이 둠, Last.fm 태그 캐시 LS dig.lft 30일
+    확인: 로컬 Playwright + 가짜 Last.fm·ListenBrainz·Spotify(1280×800 · 390×844, 키 있음/없음): 세 모드 네 장, 태그 창 입력·추천·70년대, 씨앗 창 지금 듣는 판, 정보 창. 실제 Last.fm 응답·태그 품질은 키를 넣은 뒤 확인할 것
   - 장르 지도 public/dig/atlas.js(Claude가 손으로 짠 표, 추천지 약 80장르 + '*' 집 칸): 장르마다 묶음(fam) · 성질 7개(에너지·어쿠스틱·그루브·어두움·보컬·실험성·시대, 숫자 0~9) · 태그 정규식 · 한 줄 설명 · 대표 앨범 2~5장('아티스트|앨범|연도'). 태그는 위에서부터 처음 맞는 칸 → 좁은 장르를 위에, 넓은 집 칸은 아래에(순서 중요, test/dig.mjs가 확인)
   - 엔진 public/dig/engine.js(순수, AI 호출 없음): 취향 = 아티스트 태그 → 칸 무게(w)·묶음 비율(fam)·성질 중심(c). 점수 = 성질 거리 가우스(σ .24, 좋아요한 장르 중심과도) × (1 − 듣는 정도), 많이 듣는 칸(w > .45)은 제외. 별로 ×0.12(같은 묶음 ×0.82), 좋아요 ×1.5, 최근 9장르 ×0.15
     (v1.23~1.24의 세 칸 옆 동네·건너 동네·먼 나라는 v1.25.0 필터 + 네 장으로 바뀜.) why() = 가장 가까운 내 장르와 같은 성질·다른 성질·연대(판 연도)로 한두 문장
@@ -85,7 +94,7 @@ public/lyrics.js    전체화면 가사(LRC 읽기·지금 줄 따라가기). �
 public/merge.js     크레이트 합치기(화면·서버 공용). 예전 /music/mag/sleeves/ 그림 경로는 /mag/sleeves/로 바꾼다
 public/3d · jam · mag · deck   턴테이블 3D(deck3d.js) + 황동 실린더 전축(phono.js) · 잼 · 잡지 · 친구용 매니페스트·아이콘
 src/index.js        라우터(/deck/, 예전 /music/… → 새 경로 301, /api/music/*)
-public/dig/          디깅(table.js 턴테이블 장면 안 카드덱 · data.js 취향·판 찾기 · engine.js 고르기 · atlas.js 장르 지도) · src/tags.js 아티스트 태그(MusicBrainz, /api/music/tags)
+public/dig/          디깅(table.js 턴테이블 장면 안 카드덱·화면 · data.js 취향·판 찾기·Last.fm/ListenBrainz · tagx.js 태그·씨앗 고르기 · engine.js·atlas.js 장르 지도(키 없을 때)) · src/lastfm.js 프록시 · src/tags.js 아티스트 태그(MusicBrainz, /api/music/tags)
 src/music.js        음악 API · src/util.js 테이블 준비(settings, jam_q) · src/lyrics.js 가사(LRCLIB · NetEase 프록시, /api/music/lyrics)
 ```
 
