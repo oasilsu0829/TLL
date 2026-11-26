@@ -91,3 +91,15 @@ for (let i = 0; i < 20; i++) { const a = TX.pickAlbum(albs, { known: new Set(['b
 const ss = TX.seedSteps(Array.from({ length: 12 }, (_, i) => ({ name: 'A' + i })), [{ name: 'A3' }, { name: 'B1' }, { name: 'Me' }], { seed: 'Me', known: new Set(['a7']) });
 assert.deepEqual(ss.one.map((x) => x.name), ['A6', 'A8', 'A9', 'A10', 'A11']); assert.deepEqual(ss.two.map((x) => x.name), ['B1']);
 console.log('tagx ok');
+// 장난·나라 태그는 이웃 태그가 안 됨(어휘에 없고 한 아티스트에만 붙음), 어휘에 없어도 둘 이상이 같이 쓰면 통과
+{
+  const V = new Set(['electropop', 'shoegaze']);
+  const nb2 = TX.neighborTags({}, [
+    { name: 'Kanye', sim: 0.9, via: 'X', tags: [['hip-hop', 100], ['gay fish', 60], ['canada', 50]] },
+    { name: 'A', sim: 0.8, via: 'X', tags: [['tweegaze', 100], ['electropop', 40]] },
+    { name: 'B', sim: 0.7, via: 'X', tags: [['tweegaze', 90], ['indie', 50]] },
+  ], {}, V).map((x) => x.tag).sort();
+  assert.deepEqual(nb2, ['electropop', 'tweegaze']);
+  assert.ok(!TX.isGenreTag('canada') && !TX.isGenreTag('halloween') && TX.isGenreTag('girl group'));
+  console.log('tag filter ok');
+}

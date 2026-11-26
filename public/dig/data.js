@@ -218,7 +218,7 @@ export async function lf(m, params = {}) {
 }
 export async function hasLf() {
   if (LF !== null) return LF;
-  try { await lf('chart.gettoptags', { limit: '200' }); } catch {}
+  try { await lf('chart.gettoptags', { limit: '1000' }); } catch {}
   return !!LF;
 }
 async function pool(L, n, fn) { const q = [...L]; await Promise.all(Array.from({ length: n }, async () => { while (q.length) { const x = q.shift(); try { await fn(x); } catch {} } })); }
@@ -248,8 +248,14 @@ async function tagAlbums(tag, page) {
   const j = await lf('tag.gettopalbums', { tag, limit: '50', page: String(page || 1) }).catch(() => null);
   return ((j && j.albums && j.albums.album) || []).map((a) => ({ name: a.name, artist: a.artist && a.artist.name }));
 }
+// 장르 어휘: Last.fm 상위 태그 1000개 + 장르 지도의 영어 태그(니치 장르 'ethio-jazz' 같은 것은 차트에 없어서)
+let vocabP = null;
+async function vocab() {
+  if (!vocabP) vocabP = lf('chart.gettoptags', { limit: '1000' }).then((j) => new Set([...((j && j.tags && j.tags.tag) || []).map((t) => TX.cleanTag(t.name)), ...SUGGEST()])).catch(() => { vocabP = null; return null; });
+  return vocabP;
+}
 async function farPool() {
-  const j = await lf('chart.gettoptags', { limit: '200' }).catch(() => null);
+  const j = await lf('chart.gettoptags', { limit: '1000' }).catch(() => null);
   const chart = ((j && j.tags && j.tags.tag) || []).map((t) => t.name);
   // 차트 태그는 흔한 것 위주라, 장르 지도의 독특한 장르 이름(영어 태그)도 섞는다
   const atlas = GENRES2.filter((g) => !g.home).map((g) => g.kw.source.split('|')[0].replace(/\\b|[\\^$()]/g, '').trim()).filter((x) => /^[a-z -]{3,}$/.test(x));
@@ -321,7 +327,7 @@ export async function tasteHand(P, onStep) {
   const pickC = cands.sort(() => Math.random() - 0.5).slice(0, 16);
   onStep && onStep('이웃 태그 읽는 중');
   await pool(pickC, 4, async (c) => { c.tags = await artistTags(c.name); });
-  const N = TX.pickSpread(TX.neighborTags(home, pickC, st.fb), 6, Math.random);
+  const N = TX.pickSpread(TX.neighborTags(home, pickC, st.fb, await vocab()), 6, Math.random);
   onStep && onStep('판 고르는 중');
   const out = [];
   for (const t of N) {

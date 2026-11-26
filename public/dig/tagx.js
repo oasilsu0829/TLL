@@ -5,7 +5,7 @@
 //  - 씨앗: 씨앗 아티스트에서 비슷한 아티스트로 한 다리 · 두 다리 건너간 곳에서 세 장, 먼 태그(없으면 장르 지도)에서 한 장
 
 // 장르가 아닌 태그(듣는 사람 표시·평가·국적·연대 등)
-const JUNK = /^(seen live|favou?rites?|favou?rite|my favou?rite|albums? i own|love|loved|beautiful|awesome|amazing|cool|good|great|best|spotify|under \d+.*|check out|to listen|female vocalists?|male vocalists?|female vocal|male vocal|vocalists?|singer|songwriter|bands?|composer|producer|guitarist|pianist|the beatles|\d+s|\d{4}s?|\d{2}s|american|british|uk|usa|english|german|french|japanese|korean|swedish|canadian|australian|italian|spanish|brazilian|irish|scottish|icelandic|norwegian|finnish|danish|dutch|belgian|mexican|argentinian|chilean|russian|polish|african|nigerian|ghanaian|ethiopian|seoul|tokyo|london|new york|all|other|misc|music|instrumental|cover|covers|remix|soundtrack|live|acoustic|chill|chillout|mellow|sad|happy|sexy|party|summer|relax|relaxing|catchy|fun|epic|melancholy|melancholic|atmospheric|dreamy|romantic|easy listening|00s|90s|80s|70s|60s|50s|10s|20s|classic|oldies)$/;
+const JUNK = /^(canada|japan|korea|south korea|france|germany|sweden|norway|finland|iceland|denmark|netherlands|belgium|spain|italy|portugal|russia|poland|china|taiwan|hong kong|mexico|brazil|argentina|chile|colombia|peru|australia|new zealand|ireland|scotland|wales|england|jamaica|nigeria|ghana|mali|ethiopia|south africa|india|turkey|iran|israel|greece|austria|switzerland|czech|hungarian|ukrainian|cuban|jamaican|indian|turkish|chinese|taiwanese|thai|indonesian|filipino|vietnamese|halloween|christmas|xmas|cinematic|fantasy|meditative|<3|hot|sex|female|male|gay|lgbt|queer|women|girl|boy|sweet|cute|weird|strange|genius|legend|legends|masterpiece|perfect|favorite songs|my music|heard on pandora|amazing voice|guitar|piano|drums|bass|saxophone|violin|instrumental hip hop beats|seen live|favou?rites?|favou?rite|my favou?rite|albums? i own|love|loved|beautiful|awesome|amazing|cool|good|great|best|spotify|under \d+.*|check out|to listen|female vocalists?|male vocalists?|female vocal|male vocal|vocalists?|singer|songwriter|bands?|composer|producer|guitarist|pianist|the beatles|\d+s|\d{4}s?|\d{2}s|american|british|uk|usa|english|german|french|japanese|korean|swedish|canadian|australian|italian|spanish|brazilian|irish|scottish|icelandic|norwegian|finnish|danish|dutch|belgian|mexican|argentinian|chilean|russian|polish|african|nigerian|ghanaian|ethiopian|seoul|tokyo|london|new york|all|other|misc|music|instrumental|cover|covers|remix|soundtrack|live|acoustic|chill|chillout|mellow|sad|happy|sexy|party|summer|relax|relaxing|catchy|fun|epic|melancholy|melancholic|atmospheric|dreamy|romantic|easy listening|00s|90s|80s|70s|60s|50s|10s|20s|classic|oldies)$/;
 // 너무 넓어 디깅 목적지로는 안 쓰는 태그(집 계산에는 씀)
 const BROAD = new Set(['indie', 'rock', 'pop', 'electronic', 'electronica', 'alternative', 'alternative rock', 'indie rock', 'indie pop', 'hip-hop', 'hip hop', 'rap', 'jazz', 'metal', 'folk', 'soul', 'rnb', 'r&b', 'classical', 'dance', 'experimental', 'singer-songwriter', 'blues', 'country', 'punk', 'world', 'k-pop', 'kpop', 'j-pop', 'jpop', 'ballad', 'pop rock', 'soft rock', 'hard rock', 'classic rock']);
 export const isDigTag = (t) => isGenreTag(t) && !BROAD.has(cleanTag(t));
@@ -39,13 +39,21 @@ export function homeTags(arts) {
 export const topOf = (m, n) => Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, n).map((x) => x[0]);
 
 // 이웃 태그: 비슷한 아티스트들(cands: [{ name, sim(0~1), via(내 아티스트), tags }])에 붙은 태그 중 집에서 약한 것. 집에서 아주 센 태그(> .2)는 뺀다
-export function neighborTags(home, cands, fb = {}) {
+export function neighborTags(home, cands, fb = {}, vocab = null) {
+  // 진짜 장르 태그만: 어휘(Last.fm 상위 1000 태그 + 장르 지도)에 있거나, 비슷한 아티스트 둘 이상에 붙은 것('gay fish' 같은 장난 태그 거름)
+  const cnt = {};
+  for (const a of cands || []) {
+    const T = (a.tags || []).filter((x) => isGenreTag(x[0])), top = Math.max(1, ...T.map((x) => +x[1] || 1));
+    for (const [t, c] of T.slice(0, 8)) if ((+c || 1) / top >= 0.15) { const k = cleanTag(t); cnt[k] = (cnt[k] || 0) + 1; }
+  }
+  const real = (t) => !vocab || vocab.has(t) || (cnt[t] || 0) >= 2;
   const m = {};
   for (const a of cands || []) {
-    const T = (a.tags || []).filter((x) => isGenreTag(x[0])).slice(0, 6);
+    const T0 = (a.tags || []).filter((x) => isGenreTag(x[0])), top = Math.max(1, ...T0.map((x) => +x[1] || 1));
+    const T = T0.filter((x) => (+x[1] || 1) / top >= 0.15).slice(0, 6);
     T.forEach(([t], i) => {
       if (!isDigTag(t)) return;
-      t = cleanTag(t); if ((home[t] || 0) > 0.2) return;
+      t = cleanTag(t); if ((home[t] || 0) > 0.2 || !real(t)) return;
       const v = (a.sim || 0.5) * (i < 2 ? 1 : 0.6) * (1 - (home[t] || 0) * 2);
       if (!m[t] || m[t].s < v) m[t] = { tag: t, s: (m[t] ? m[t].s : 0) + v, via: a.via, art: a.name }; else m[t].s += v * 0.5;
     });

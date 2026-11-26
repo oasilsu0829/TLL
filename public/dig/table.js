@@ -19,6 +19,7 @@ const S = new V3(0.17, 0.12, 0.035), TG = new V3(-0.13, 0.12, 0.035);
 const X0 = -0.27, STEP = 0.0125, ZS = 0.085, YB = 0.0004, KK = STEP / W, BOW = 0.011;
 const GAP = 0.0165, FLY = 0.34, P1 = 0.5, P2 = 1.5;
 const SQ0 = 2.45, SQ1 = 2.97, SP1 = 3.6, W0 = 3.62, WD = 1.75, FL0 = 5.45, FG = 0.17, FD = 0.8, NP = 4, T_END = FL0 + (NP - 1) * FG + FD + 0.02; // 네 장(2026-11-26)
+const LOOP_AT = 2.42, LOOP_TO = 0.46; // 판이 아직이면 스프링 섞기를 되풀이(2026-11-26 사용자 '로딩은 섞는 모션 나올 때부터')
 const HOLD = SP1 - 0.02; // 판이 아직이면 펼친 채(뒤집기 전) 여기서 기다림: 뽑힐 카드 앞면을 앨범 색으로 바꿔 둬야 해서
 const C0 = -10, C1 = N - 1 + 10;
 const LOOK = new V3(-0.02, 0.02, -0.02);
@@ -241,7 +242,7 @@ export function createDigTable({ deck, scene, cam, renderer, lights, onState }) 
   function tlPose(i, t, o) {
     if (t <= 0.45) { const u = eio(cl(t / 0.45)); mix(homeP(i, A), srcP(i, B), u, o, 0.03); o.b = BOW * u; return o; }
     const t1 = P1 + i * GAP, t2 = P2 + (N - 1 - i) * GAP;
-    if (t < t1) return srcP(i, o);
+    if (t < t1) { srcP(i, o); if (loops > 0) o.b = BOW * sm((t - LOOP_TO) / 0.04); return o; }
     if (t < t1 + FLY) return fly(i, (t - t1) / FLY, srcP, tgtP, 0.075, 1, BOW, 0, o);
     if (t < t2) { tgtP(i, o); o.b = -BOW * sm((t - (P2 - 0.14)) / 0.14); return o; }
     if (t < t2 + FLY) return fly(i, (t - t2) / FLY, tgtP, srcP, 0.11, -1, -BOW, 0, o);
@@ -339,6 +340,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 /* 창 공통 */
 .pan{position:fixed;overflow:auto;overscroll-behavior:contain;opacity:0;transform:translateX(20px);pointer-events:none;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:18px;transition:opacity .3s,transform .4s cubic-bezier(.2,.9,.2,1.1)}
 .pan.on{opacity:1;transform:none;pointer-events:auto}
+.pan:not(.on),.pan:not(.on) *,.hide,.hide *{pointer-events:none!important} /* 숨은 창의 버튼이 카드 누르기를 가로채던 것(3·4번 카드가 그 밑) */
 .pan.sheet{left:8px;right:8px;bottom:8px;max-height:62vh;transform:translateY(20px);border-radius:18px 18px 14px 14px}
 .pan.sheet.on{transform:none}
 .pan h3{margin:0;font-size:17px;font-weight:700}
@@ -544,7 +546,7 @@ li:hover span:nth-child(1){color:var(--acc)}
   }
 
   // ── 상태
-  let active = false, camW = 0, camTarget = 0, t = 0, playing = false, mode = 'tl', gk = 0, autoPlay = false, hover = -1, startWhenReady = false, afterExit = null;
+  let loops = 0, active = false, camW = 0, camTarget = 0, t = 0, playing = false, mode = 'tl', gk = 0, autoPlay = false, hover = -1, startWhenReady = false, afterExit = null;
   let rv = { k: -1, j: -1, t: 0, swapped: false, half: 0, info: false, slap: false };
   const snap = Array.from({ length: N }, mk), O = mk();
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -563,7 +565,7 @@ li:hover span:nth-child(1){color:var(--acc)}
     audio();
     if (!loggedIn()) { C() && C().toast && C().toast('Spotify에 로그인하면 카드를 섞을 수 있어요'); C() && C().openDlg && C().openDlg(); return; }
     active = true; camTarget = 1; waitErr = null; afterExit = null;
-    fit(); shuffleFaces(); hand = null;
+    fit(); shuffleFaces(); hand = null; loops = 0;
     ui.h.hidden = false; $('#tb').classList.remove('hide'); $('#sub').classList.remove('hide'); addEventListener('keydown', onKey);
     say('취향 읽는 중'); data().then(paintMode);
     if (!ready()) { data().then(openPan); startWhenReady = false; }
@@ -725,9 +727,10 @@ li:hover span:nth-child(1){color:var(--acc)}
     if (startWhenReady && camW > 0.85 && mode === 'tl' && t === 0) { startWhenReady = false; if (reduce) { t = HOLD; playing = true; } else playing = true; }
     if (mode === 'tl' && playing) {
       const prev = t; let nt = Math.min(T_END, t + dt);
+      if (!hand && !next && !waitErr && prev < LOOP_AT && nt >= LOOP_AT) { nt = LOOP_TO; loops++; } // 아직이면 한 번 더 섞기
       if (!hand && nt >= HOLD && !takeHand()) nt = Math.max(t, Math.min(nt, HOLD));
       t = nt;
-      for (const [et, k] of EV) if (et > prev && et <= t) SFX[k]();
+      if (t >= prev) for (const [et, k] of EV) if (et > prev && et <= t) SFX[k]();
       if (t >= T_END) playing = false;
     }
     if (mode === 'tl' && t >= W0) waveAt(Math.min(t, W0 + WD));
@@ -749,7 +752,7 @@ li:hover span:nth-child(1){color:var(--acc)}
       c.g.position.copy(O.p); c.g.quaternion.copy(O.q); c.uf.value = O.b; c.ub.value = -O.b;
     }
     if (mode === 'gather' && gk > (N - 1) * 0.012 + 0.55) {
-      mode = 'tl'; t = 0; hand = null;
+      mode = 'tl'; t = 0; hand = null; loops = 0;
       if (afterExit) finishExit();
       else { shuffleFaces(); if (autoPlay) { autoPlay = false; playing = true; } }
     }
@@ -762,12 +765,12 @@ li:hover span:nth-child(1){color:var(--acc)}
     if (!ui.h.hidden) {
       const r = renderer.domElement.getBoundingClientRect();
       layoutUi(r);
-      const holding = mode === 'tl' && playing && t >= HOLD - 0.001 && !hand;
+      const holding = mode === 'tl' && playing && !hand && (t >= HOLD - 0.001 || loops > 0);
       wait.textContent = waitErr ? (waitErr.message || '판을 찾지 못했어요') : '판 고르는 중';
       const showW = camW > 0.9 && (holding || (waitErr && mode === 'tl' && t < T_END));
       wait.classList.toggle('hide', !showW);
       if (waitErr && playing) { playing = false; gather(false); if (waitErr.need) openPan(); }
-      if (showW) place(wait, hv.set(0, 0.06, ZS), 0, r);
+      if (showW) place(wait, t < SQ0 ? hv.set(0.02, 0.2, 0.035) : hv.set(0, 0.06, ZS), 0, r);
       const show3 = ready3() && hand && camTarget === 1 && !panOpen();
       slotTips.forEach((el, k) => {
         el.classList.toggle('hide', !show3);
@@ -778,7 +781,7 @@ li:hover span:nth-child(1){color:var(--acc)}
   // 카메라: deck3d가 평소 자리를 정한 뒤 부른다. 디깅 자리(시안의 카메라, 섞는 동안은 공중의 카드 쪽으로 다가감)와 camW만큼 섞음
   function blendCam() {
     if (camW < 0.0005) return;
-    const k = mode === 'tl' ? sm((t - 0.3) / 0.35) * (1 - sm((t - 2.35) / 0.45)) : 0;
+    const k = mode === 'tl' ? (loops > 0 ? 1 : sm((t - 0.3) / 0.35)) * (1 - sm((t - 2.35) / 0.45)) : 0;
     tmpO.position.copy(BP).lerp(FOC, 0.24 * k);
     LK.set(LOOK.x, LOOK.y - 0.025, LOOK.z).lerp(FOC, 0.6 * k);
     tmpO.lookAt(LK);
@@ -796,6 +799,6 @@ li:hover span:nth-child(1){color:var(--acc)}
     g: G, hits: [pileHit], enter, exit, step, blendCam, pointerdown, pointermove, resize: () => { if (active) fit(); },
     active: () => active || camW > 0.001,
     lively: () => (active || camW > 0.001) && (Math.abs(camTarget - camW) > 0.002 || playing || mode !== 'tl' || hover >= 0 || cards.some((c) => c.hov > 0.01) || ready3()),
-    _st: () => ({ active, camW, t, mode, playing, hand: !!hand, T_END, picks, err: waitErr && waitErr.message, cards: hand ? hand.map((h) => h.slotName + ':' + h.g.name + ':' + h.alb.artist + '/' + h.alb.name + ':' + h.alb.year) : [] }),
+    _st: () => ({ loops, active, camW, t, mode, playing, hand: !!hand, T_END, picks, err: waitErr && waitErr.message, cards: hand ? hand.map((h) => h.slotName + ':' + h.g.name + ':' + h.alb.artist + '/' + h.alb.name + ':' + h.alb.year) : [] }),
   };
 }
