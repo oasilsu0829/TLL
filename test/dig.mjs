@@ -1,7 +1,7 @@
 // 디깅 엔진 검사: node test/dig.mjs
 import assert from 'node:assert/strict';
 import { GENRES, BY_ID } from '../public/dig/atlas.js';
-import { buildProfile, tagGenre, deal, scoreGenre, why, seedKey } from '../public/dig/engine.js';
+import { buildProfile, tagGenre, deal, scoreGenre, why, seedKey, inFilter, describeFilter } from '../public/dig/engine.js';
 
 // 지도: id 겹침 없음, 성질 7개, 추천지는 대표 앨범 2장 이상
 const ids = new Set();
@@ -25,18 +25,30 @@ const me = buildProfile([
 assert.ok(me.top.includes('shoegaze') && me.top.includes('kpop'));
 // 이미 많이 듣는 장르는 안 나온다
 assert.equal(scoreGenre(BY_ID.shoegaze, me), null);
-// 세 장: 서로 다른 장르, 세 칸
+// 네 장: 서로 다른 장르, 앞 세 장은 '범위 안', 마지막은 '완전 다른 곳'(세 장과 다른 묶음)
 let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const seen = {}, recent = [], cnt = {};
-for (let k = 0; k < 40; k++) {
+for (let k = 0; k < 30; k++) {
   const H = deal(me, { seen, recent }, rnd);
-  assert.equal(H.length, 3);
-  assert.equal(new Set(H.map((x) => x.g.id)).size, 3);
-  assert.deepEqual(H.map((x) => x.slot), ['near', 'mid', 'far']);
+  assert.equal(H.length, 4);
+  assert.equal(new Set(H.map((x) => x.g.id)).size, 4);
+  assert.deepEqual(H.map((x) => x.slot), ['in', 'in', 'in', 'out']);
+  assert.ok(!H.slice(0, 3).some((x) => x.g.fam === H[3].g.fam), '다른 장르는 다른 묶음');
   for (const x of H) { assert.ok(!x.g.home && x.seed && !seen[seedKey(x.seed)]); seen[seedKey(x.seed)] = 1; cnt[x.g.id] = (cnt[x.g.id] || 0) + 1; recent.unshift(x.g.id); }
   recent.length = Math.min(recent.length, 9);
-  assert.ok(H[2].g.world, '먼 나라는 지역 음악');
 }
+// 필터: 재즈·브라질 · 70년대 → 세 장은 그 안(판도 70년대), 한 장은 밖
+const F = { fams: ['jazz', 'brazil'], dec: [1970] };
+assert.equal(describeFilter(F), '재즈·브라질 · 70년대');
+for (let k = 0; k < 15; k++) {
+  const H = deal(me, { filter: F }, rnd);
+  assert.equal(H.length, 4);
+  for (const x of H.slice(0, 3)) { assert.ok(inFilter(x.g, F), x.g.id); assert.ok(x.seed.year >= 1970 && x.seed.year < 1980, x.seed.album); }
+  assert.ok(!inFilter(H[3].g, F) && !['jazz', 'brazil'].includes(H[3].g.fam), H[3].g.id);
+}
+// 좁은 필터(투바·몽골 목노래 하나뿐) → 모자란 칸은 '범위 근처'로 채움
+const H2 = deal(me, { filter: { fams: ['asia'], en: ['loud'], snd: ['ac'] } }, rnd);
+assert.equal(H2.length, 4); assert.ok(H2.some((x) => x.relaxed));
 // 별로 누른 장르는 거의 안 나옴, 좋아요는 더 나옴
 const first = deal(me, {}, () => 0)[1].g.id;
 const sBad = scoreGenre(BY_ID[first], me, { fb: { [first]: { v: -1, u: 1 } } }).s, sOk = scoreGenre(BY_ID[first], me).s;
@@ -44,7 +56,7 @@ assert.ok(sBad < sOk * 0.2);
 const w = why(BY_ID.slowcore, me);
 assert.ok(w.text.length > 8);
 console.log('dig ok', Object.keys(cnt).length, '장르 나옴 /', GENRES.filter((g) => !g.home).length);
-console.log(deal(me, {}, Math.random).map((x) => `${x.slotName}: ${x.g.name} — ${x.seed.artist} [${x.seed.album}] · ${x.why.text}`).join('\n'));
+console.log(deal(me, { filter: { fams: ['jazz', 'soul', 'africa'] } }, Math.random).map((x) => `${x.slotName}: ${x.g.name} — ${x.seed.artist} [${x.seed.album}] · ${x.why.text}`).join('\n'));
 
 // 기록 합치기(merge.js)
 await import('../public/merge.js');
@@ -55,5 +67,7 @@ const m = MM.merge(MM.clean(a), MM.clean(b));
 assert.deepEqual(m.dig.fb, { bossa: { v: 1, u: 10 }, dub: { v: 0, u: 9 } });
 assert.deepEqual(Object.keys(m.dig.seen).sort(), ['p|q', 'x|y']);
 assert.equal(m.dig.seen['x|y'].t, 30);
+const m3 = MM.merge(MM.clean({ v: 1, crates: {}, dig: { fb: {}, seen: {}, filter: { fams: ['jazz'] }, fu: 5 } }), MM.clean({ v: 1, crates: {}, dig: { fb: {}, seen: {}, filter: { fams: ['latin'], dec: [1970] }, fu: 9 } }));
+assert.deepEqual(m3.dig.filter.fams, ['latin']); assert.equal(m3.dig.fu, 9);
 assert.equal(MM.clean({ v: 1, crates: {} }).dig, undefined);
 console.log('dig merge ok');

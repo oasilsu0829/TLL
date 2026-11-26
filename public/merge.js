@@ -68,15 +68,20 @@
     const L = Object.entries(obj(d.seen)).filter(([k, x]) => SKEY.test(k) && num(obj(x).t) > 0)
       .sort((a, b) => num(b[1].t) - num(a[1].t)).slice(0, MAX_SEEN);
     for (const [k, x] of L) { const y = { t: Math.floor(num(x.t)), g: GID.test(x.g || '') ? x.g : '' }; if (x.miss) y.miss = 1; seen[k] = y; }
-    return { fb, seen };
+    const out = { fb, seen };
+    // 필터(2026-11-26): { fams, dec, en, snd } + fu(고친 시각). 값 모양은 화면(engine.cleanFilter)이 다시 거른다
+    const fl = obj(d.filter), fu = Math.max(0, Math.floor(num(d.fu)));
+    if (fu) { const L2 = (x, re) => (Array.isArray(x) ? x.filter((y) => re.test(String(y))).slice(0, 20) : []); out.filter = { fams: L2(fl.fams, /^[a-z]{2,12}$/), dec: L2(fl.dec, /^(19|20)\d0$/).map(Number), en: L2(fl.en, /^[a-z]{2,6}$/), snd: L2(fl.snd, /^[a-z]{2,4}$/) }; out.fu = fu; }
+    return out;
   }
   function mergeDig(a, b) {
     const A = cleanDig(a), B = cleanDig(b), fb = { ...A.fb }, seen = { ...A.seen };
     for (const [id, x] of Object.entries(B.fb)) if (!fb[id] || x.u > fb[id].u) fb[id] = x;
     for (const [k, x] of Object.entries(B.seen)) if (!seen[k] || x.t < seen[k].t) seen[k] = x;
-    return cleanDig({ fb, seen });
+    const F = (B.fu || 0) > (A.fu || 0) ? B : A;
+    return cleanDig({ fb, seen, filter: F.filter, fu: F.fu });
   }
-  const emptyDig = (d) => !Object.keys(d.fb).length && !Object.keys(d.seen).length;
+  const emptyDig = (d) => !Object.keys(d.fb).length && !Object.keys(d.seen).length && !d.fu;
 
   // 어떤 모양이 와도 문서 모양으로 맞춘다. now를 주면 앞서 있는 시계(u)를 now + 5분으로 누르고 오래된 지운 표시를 치운다
   function clean(doc, now) {

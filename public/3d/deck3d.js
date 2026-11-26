@@ -10,6 +10,7 @@
 import * as THREE from '/3d/three.module.min.js';
 import { RoundedBoxGeometry } from './geometries/RoundedBoxGeometry.js';
 import { buildPhono } from './phono.js';
+import { createDigTable } from '/dig/table.js';
 
 const host = document.getElementById('deck3d');
 const D = (window.Deck3D = { ok: false });
@@ -71,6 +72,9 @@ function start() {
   spot.target.position.set(-0.18, 0, -0.035); scene.add(spot, spot.target);
   const armLamp = new THREE.PointLight(0xfff1d6, 0, 0.45, 2); armLamp.position.set(0.5, 0.2, 0.42); scene.add(armLamp);
   const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+  // 디깅(카드덱) 불빛: 처음부터 장면에 두고 세기만 바꾼다(나중에 더하면 모든 셰이더를 다시 만듦)
+  const digSpot = new THREE.SpotLight(0xffd8a8, 0, 6, 0.62, 0.75, 1); const digFront = new THREE.DirectionalLight(0xfff1df, 0);
+  scene.add(digSpot, digSpot.target, digFront, digFront.target);
 
   const deck = new THREE.Group(); scene.add(deck);
   // 턴테이블(tt) · 황동 실린더 전축(phono). 시가를 꾹 눌러 바꿈(bar.dunk → setMode)
@@ -1193,6 +1197,9 @@ void main(){
   let shakeT = -1;
   let strobeTex = null, strobeAng = 0;
   const clips = [], clickables = [bar.hit, bar.trayHit];
+  // 카드덱(2026-11-26): 재떨이 왼쪽 앞. 누르면 카메라가 턴테이블 앞으로 와서 섞고 세 장(public/dig/table.js)
+  const dig = createDigTable({ deck, scene, cam, renderer, lights: { spot: digSpot, front: digFront }, onState: (on) => { D._dig = on; poke = performance.now(); D.onDig && D.onDig(on); } });
+  clickables.push(...dig.hits);
   let speed45 = false, volume = 50, cueUp = 1, coverK = 0, coverT = 0, idle = 0, dragCtl = null;
   // 마지막으로 뭔가 바뀐 시각(만짐·라벨·색·볼륨…). 2초 넘게 조용하면 프레임을 낮춘다(배터리)
   let poke = 0, touchAt = 0; // poke: 깨우기(시간창 글자 등), touchAt: 손으로 만진 시각
@@ -1467,6 +1474,7 @@ void main(){
     cam.position.copy(camBase);
     cam.lookAt(camLook);
     cam.updateProjectionMatrix();
+    try { dig.resize(); } catch {}
   }
   new ResizeObserver(resize).observe(host);
 
@@ -1501,6 +1509,8 @@ void main(){
   el.addEventListener('pointerdown', (e) => {
     if (!parts) return;
     idle = 0;
+    if (dig.active()) { e.preventDefault(); dig.pointerdown(e); return; }
+    if (hitControl(e) === 'dig') { e.preventDefault(); touchAt = performance.now(); dig.enter(); return; }
     // 덮개가 닫혀 있으면 먼저 연다
     if (coverK > 0.3) { coverT = 0; D.onSound && D.onSound('cover'); e.preventDefault(); return; }
     const act = hitControl(e);
@@ -1530,6 +1540,7 @@ void main(){
     D.onScratch && D.onScratch('start');
   });
   el.addEventListener('pointermove', (e) => {
+    if (dig.active()) { dig.pointermove(e); return; }
     if (dragCtl) {
       if (dragCtl.act === 'slider') {
         const h = planeHit(e, PLATE + 0.03); if (!h) return;
@@ -1586,7 +1597,7 @@ void main(){
     }
     if (!ph && phono) phono.finish();
     // 턴테이블 숨기기: 불빛은 숨기지 않고(불빛 수 그대로) 세기만 0, 불빛이 든 묶음은 속을 하나씩
-    const keep = new Set([floor, shadow, bar.g, bar.tray, phono && phono.g, phLights.lamp, phLights.bell]);
+    const keep = new Set([floor, shadow, bar.g, bar.tray, dig.g, phono && phono.g, phLights.lamp, phLights.bell]);
     const vis = (o) => { if (o.isLight) return; let hasL = false; o.traverse((x) => { if (x.isLight) hasL = true; }); if (!hasL) { o.visible = !ph; return; } o.children.forEach(vis); };
     deck.children.forEach((c) => { if (!keep.has(c)) vis(c); });
     if (!ph) kindOn(); // 45 어댑터는 판 종류대로
@@ -1607,6 +1618,9 @@ void main(){
     bar.dunk((m) => setMode(m));
   }
   D.setMode = (m) => setMode(m, true);
+  D.digging = () => dig.active();
+  D._digSt = () => dig._st();
+  D.digOpen = () => dig.enter();
   D.dunking = () => bar.dunking();
   D._prog = () => renderer.info.programs.length;
   D.dunk = startDunk;
@@ -1651,14 +1665,14 @@ void main(){
     if (document.hidden || window.MusicJamOn || !onScreen) { loop.last = now; requestAnimationFrame(loop); return; }
     // 조용할 때(멈춤 · 움직이는 것 없음 · 2초 넘게 안 만짐)는 초당 10번, 덮개가 닫혔으면 초당 2번만 그린다
     const phOn = !!(phono && phono.g.visible);
-    const calm = !(bar.busy() || (phOn && phono.busy()) || playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
+    const calm = !(dig.active() || bar.busy() || (phOn && phono.busy()) || playing || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || fx.gaps.length) &&
       vel < 0.005 && Math.abs(yaw) < 0.001 && lift < 0.0005 && Math.abs(cueUp - 1) < 0.005 &&
       Math.abs(coverT - coverK) < 0.001 && Math.abs(nightT - night) < 0.001 &&
       Math.abs((0.25 - volume / 100 * 0.5) - ctl.knob.position.z) < 0.0005 && now - poke > 2000;
     // 시가 연기가 있어 조용할 때도 초당 15번(덮개 닫힘은 2번 그대로)
     if (calm && now - loop.last < (coverK > 0.99 ? 500 : 66)) { requestAnimationFrame(loop); return; }
     // 판만 도는 평소 재생은 초당 30번이면 충분하다(120Hz 화면에서 4배 덜 그림). 판 갈기·잡기·조작 중엔 매 프레임
-    const lively = !!(grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || bar.lively() || (phOn && phono.lively())) || now - touchAt < 1200;
+    const lively = !!(dig.lively() || grab || drop || dragCtl || cue || brushT0 >= 0 || shakeT >= 0 || bar.lively() || (phOn && phono.lively())) || now - touchAt < 1200;
     if (!calm && !lively && now - loop.last < 31) { requestAnimationFrame(loop); return; }
     const dt = Math.min(calm ? 0.6 : 0.05, (now - loop.last) / 1000); loop.last = now;
     const busy = !!drop;
@@ -1717,6 +1731,7 @@ void main(){
     dp.needsUpdate = true; fx.dust.pts.material.opacity = night * 0.75;
     // 곡이 바뀔 때 그 무음 홈이 빛났다 사라짐
     bar.step(dt, T, night);
+    dig.step(dt, now);
     if (phOn) phono.step(dt, T, { playing, progress, cue, night, now });
     fx.gaps = fx.gaps.filter((gp) => { const k = (now - gp.t0) / 1600; if (k >= 1) { scene.remove(gp.m); return false; } gp.m.material.opacity = (1 - k) * 0.9; return true; });
     // 카메라 숨쉬기 + 판 갈 때 플래터 쪽으로 살짝 다가감
@@ -1726,6 +1741,8 @@ void main(){
       cam.position.lerp(new THREE.Vector3(PLATTER.x, camBase.y * 0.72, camBase.z * 0.72), camZoom * 0.22);
       cam.lookAt(new THREE.Vector3().copy(camLook).lerp(PLATTER, camZoom * 0.35));
     }
+    dig.blendCam();
+    if (digFront.intensity > 0) { digFront.position.copy(cam.position); digFront.target.position.copy(cam.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion)); }
     night += (nightT - night) * Math.min(1, dt * 2.2);
     scene.environmentIntensity = lerp(1, 0.1, night);
     key.intensity = lerp(1.1, 0.06, night);
