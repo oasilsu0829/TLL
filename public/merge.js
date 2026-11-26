@@ -57,7 +57,7 @@
   const emptyMag = (m) => !Object.keys(m.opened).length && !Object.keys(m.pl).length;
 
   // 디깅(2026-11-26): { fb: { 장르 id: { v: 1 | 0 | -1, u } }, seen: { 판 키: { t, g, miss? } } }. fb는 u 늦은 쪽, seen은 합집합(이른 t), 최근 600개
-  const GID = /^[a-z0-9]{2,20}$/, SKEY = /^[^|]{1,80}\|[^|]{1,120}$/, MAX_SEEN = 600;
+  const GID = /^(?:[a-z0-9]{2,20}|t:[\p{L}\p{N} .&'+-]{1,40})$/u, SKEY = /^[^|]{1,80}\|[^|]{1,120}$/, MAX_SEEN = 600;
   function cleanDig(d) {
     d = obj(d);
     const fb = {}, seen = {};

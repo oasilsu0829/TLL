@@ -71,3 +71,23 @@ const m3 = MM.merge(MM.clean({ v: 1, crates: {}, dig: { fb: {}, seen: {}, filter
 assert.deepEqual(m3.dig.filter.fams, ['latin']); assert.equal(m3.dig.fu, 9);
 assert.equal(MM.clean({ v: 1, crates: {} }).dig, undefined);
 console.log('dig merge ok');
+
+// 태그·씨앗(tagx.js)
+const TX = await import('../public/dig/tagx.js');
+assert.ok(!TX.isGenreTag('seen live') && !TX.isGenreTag('female vocalists') && !TX.isGenreTag('80s') && !TX.isGenreTag('korean') && TX.isGenreTag('dream pop') && TX.isGenreTag('ethio-jazz'));
+assert.ok(TX.related('dream pop', 'pop') && TX.related('hip-hop', 'hip hop') && !TX.related('shoegaze', 'bossa nova'));
+const home = TX.homeTags([{ name: 'Beach House', w: 3, tags: [['dream pop', 100], ['indie', 60], ['seen live', 40]] }, { name: 'NewJeans', w: 2, tags: [['k-pop', 100], ['korean', 50]] }]);
+assert.ok(home['dream pop'] === 1 && !('seen live' in home) && !('korean' in home));
+const nb = TX.neighborTags(home, [{ name: 'Cocteau Twins', sim: 0.9, via: 'Beach House', tags: [['dream pop', 100], ['ethereal', 80], ['gothic', 50]] }, { name: 'Slowdive', sim: 0.8, via: 'Beach House', tags: [['shoegaze', 100], ['dream pop', 90]] }], { 't:gothic': { v: -1, u: 1 } });
+const nbT = nb.map((x) => x.tag);
+assert.ok(nbT.includes('ethereal') && nbT.includes('shoegaze') && !nbT.includes('dream pop'));
+assert.ok(nb.find((x) => x.tag === 'gothic').s < nb.find((x) => x.tag === 'ethereal').s * 0.2, '별로 태그는 거의 안 나옴');
+const far = TX.farTags(['pop', 'synthpop', 'afrobeat', 'krautrock', 'seen live', 'indie pop'], ['dream pop', 'indie', 'shoegaze']).map((x) => x.tag);
+assert.deepEqual(far.sort(), ['afrobeat', 'krautrock']);
+const sp = TX.pickSpread([{ tag: 'dream pop', s: 5 }, { tag: 'synth pop', s: 4 }, { tag: 'krautrock', s: 3 }, { tag: 'afrobeat', s: 2 }], 3, () => 0);
+assert.equal(sp.length, 3); assert.ok(!(sp.some((x) => x.tag === 'dream pop') && sp.some((x) => x.tag === 'synth pop')));
+const albs = [{ name: 'Greatest Hits', artist: 'X' }, { name: 'Heaven or Las Vegas', artist: 'Cocteau Twins' }, { name: 'Souvlaki', artist: 'Slowdive' }, { name: 'Teen Dream', artist: 'Beach House' }];
+for (let i = 0; i < 20; i++) { const a = TX.pickAlbum(albs, { known: new Set(['beachhouse']), seen: { [TX.albumKey('Slowdive', 'Souvlaki')]: 1 } }); assert.equal(a.name, 'Heaven or Las Vegas'); }
+const ss = TX.seedSteps(Array.from({ length: 12 }, (_, i) => ({ name: 'A' + i })), [{ name: 'A3' }, { name: 'B1' }, { name: 'Me' }], { seed: 'Me', known: new Set(['a7']) });
+assert.deepEqual(ss.one.map((x) => x.name), ['A6', 'A8', 'A9', 'A10', 'A11']); assert.deepEqual(ss.two.map((x) => x.name), ['B1']);
+console.log('tagx ok');
